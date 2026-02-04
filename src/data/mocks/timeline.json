@@ -1,0 +1,95 @@
+{
+  "timelineItems": [
+    {
+      "id": "timeline-1",
+      "tripId": "trip-1",
+      "type": "flight",
+      "date": "Fri, Oct 12",
+      "time": "10:00 AM",
+      "title": "Air France Flight 1234",
+      "subtitle": "JFK → CDG",
+      "metadata": "Conf: #ABC123",
+      "actionLabel": "Boarding Pass",
+      "actionIcon": "qr-code-scanner",
+      "thumbnailUrl": "https://lh3.googleusercontent.com/aida-public/AB6AXuAASCpKkh9LLnkk-ydVL5HdCy7qnLtuaWzhes7exOYYTAUepklZ_GkKv8maXzOzs8oh8ueFGTKWmUoIEiKnYAaSyjEAfbcynpqhjL56Q_QncimmB_BS-ZFznKeFoesAHbv306hKsqu1X_iQUCEopS_sHy0IKrO3E7jfmfqMpoCLqYQ3H01Z9IL_UZNgrD1kJ0DpeEzFhYQn_bD5KYy_ZT35QHHsWDsl0K5fWVJ_sOnVU9Hi-n9WnkLykZ4tJM1Cu433H9eYVFV23BvV"
+    },
+    {
+      "id": "timeline-2",
+      "tripId": "trip-1",
+      "type": "hotel",
+      "date": "Fri, Oct 12",
+      "time": "03:00 PM",
+      "title": "Hotel Le Marais",
+      "subtitle": "Check-in • 6 Nights",
+      "metadata": "★ 4.9 (2,340 reviews)",
+      "actionLabel": "Get Directions",
+      "actionIcon": "directions",
+      "thumbnailUrl": "https://lh3.googleusercontent.com/aida-public/AB6AXuABlk9vG61bbIsSfG-JCNGqpzFVuPX6AOnLNQ44KwfX-oMdoB7qa7aeE_qNUevOUDy2fbtA0Dy67NfqMD4u8ugjIqh3fSc7qh9IIqCXHntlYyxB1untUu7w6McpuWguD1ETxdZfPEv7CupBMYC0-Tu5n0ZtdkfT3xSruXMMw7SFjNnH2epCE_0parPneqA35CUNlwKualV0SR-zSuJJLuwI8xtOCY2wysYe2v7xVuBMqo3B_GizGEsFqTYJU7lDWtN7BL5WBImXcy3P"
+    },
+    {
+      "id": "timeline-3",
+      "tripId": "trip-1",
+      "type": "train",
+      "date": "Mon, Oct 15",
+      "time": "09:30 AM",
+      "title": "TGV 6789",
+      "subtitle": "Paris → Lyon",
+      "metadata": "Seat: Car 4, 12A",
+      "actionLabel": "View Ticket",
+      "actionIcon": "confirmation-number",
+      "thumbnailUrl": "https://lh3.googleusercontent.com/aida-public/AB6AXuC3sKwmbMQJRQhOhZYQp-zr2EIVnQEnIkrf412VPtfklkEl0bpybB4PqBHGCTI5S5plr94vfGWUieOiiFr62SOabms4rOCuGvtkvm9JIf_Feh67nziyfTXqwpg70t426Z-1RAul4qqDli-Ha6X1SRKCD7abOZiT_0r-G63lYqjW7naVmZEjzPMMUsPW6qK0ZWEUUHsl0ulncpDDokDIy2mVnpcaKE6Bkj_PpGS133Rsx__sz01Exg__6r_e2rUwCaH5KeD3syzkKvQy"
+    },
+    {
+      "id": "timeline-4",
+      "tripId": "trip-2",
+      "type": "flight",
+      "date": "Sun, Nov 05",
+      "time": "11:30 AM",
+      "title": "Japan Airlines 789",
+      "subtitle": "LAX → NRT",
+      "metadata": "Conf: #JL789XY",
+      "actionLabel": "Boarding Pass",
+      "actionIcon": "qr-code-scanner",
+      "thumbnailUrl": "https://lh3.googleusercontent.com/aida-public/AB6AXuAASCpKkh9LLnkk-ydVL5HdCy7qnLtuaWzhes7exOYYTAUepklZ_GkKv8maXzOzs8oh8ueFGTKWmUoIEiKnYAaSyjEAfbcynpqhjL56Q_QncimmB_BS-ZFznKeFoesAHbv306hKsqu1X_iQUCEopS_sHy0IKrO3E7jfmfqMpoCLqYQ3H01Z9IL_UZNgrD1kJ0DpeEzFhYQn_bD5KYy_ZT35QHHsWDsl0K5fWVJ_sOnVU9Hi-n9WnkLykZ4tJM1Cu433H9eYVFV23BvV"
+    },
+    {
+      "id": "timeline-5",
+      "tripId": "trip-2",
+      "type": "hotel",
+      "date": "Mon, Nov 06",
+      "time": "02:00 PM",
+      "title": "Park Hyatt Tokyo",
+      "subtitle": "Check-in • 6 Nights",
+      "metadata": "★ 4.8 (1,890 reviews)",
+      "actionLabel": "Get Directions",
+      "actionIcon": "directions",
+      "thumbnailUrl": "https://lh3.googleusercontent.com/aida-public/AB6AXuABlk9vG61bbIsSfG-JCNGqpzFVuPX6AOnLNQ44KwfX-oMdoB7qa7aeE_qNUevOUDy2fbtA0Dy67NfqMD4u8ugjIqh3fSc7qh9IIqCXHntlYyxB1untUu7w6McpuWguD1ETxdZfPEv7CupBMYC0-Tu5n0ZtdkfT3xSruXMMw7SFjNnH2epCE_0parPneqA35CUNlwKualV0SR-zSuJJLuwI8xtOCY2wysYe2v7xVuBMqo3B_GizGEsFqTYJU7lDWtN7BL5WBImXcy3P"
+    },
+    {
+      "id": "timeline-6",
+      "tripId": "trip-3",
+      "type": "flight",
+      "date": "Wed, Dec 20",
+      "time": "08:00 AM",
+      "title": "Delta Airlines 456",
+      "subtitle": "SFO → JFK",
+      "metadata": "Conf: #DL456AB",
+      "actionLabel": "Boarding Pass",
+      "actionIcon": "qr-code-scanner",
+      "thumbnailUrl": "https://lh3.googleusercontent.com/aida-public/AB6AXuAASCpKkh9LLnkk-ydVL5HdCy7qnLtuaWzhes7exOYYTAUepklZ_GkKv8maXzOzs8oh8ueFGTKWmUoIEiKnYAaSyjEAfbcynpqhjL56Q_QncimmB_BS-ZFznKeFoesAHbv306hKsqu1X_iQUCEopS_sHy0IKrO3E7jfmfqMpoCLqYQ3H01Z9IL_UZNgrD1kJ0DpeEzFhYQn_bD5KYy_ZT35QHHsWDsl0K5fWVJ_sOnVU9Hi-n9WnkLykZ4tJM1Cu433H9eYVFV23BvV"
+    },
+    {
+      "id": "timeline-7",
+      "tripId": "trip-3",
+      "type": "hotel",
+      "date": "Wed, Dec 20",
+      "time": "04:00 PM",
+      "title": "The Plaza Hotel",
+      "subtitle": "Check-in • 6 Nights",
+      "metadata": "★ 4.7 (3,210 reviews)",
+      "actionLabel": "Get Directions",
+      "actionIcon": "directions",
+      "thumbnailUrl": "https://lh3.googleusercontent.com/aida-public/AB6AXuABlk9vG61bbIsSfG-JCNGqpzFVuPX6AOnLNQ44KwfX-oMdoB7qa7aeE_qNUevOUDy2fbtA0Dy67NfqMD4u8ugjIqh3fSc7qh9IIqCXHntlYyxB1untUu7w6McpuWguD1ETxdZfPEv7CupBMYC0-Tu5n0ZtdkfT3xSruXMMw7SFjNnH2epCE_0parPneqA35CUNlwKualV0SR-zSuJJLuwI8xtOCY2wysYe2v7xVuBMqo3B_GizGEsFqTYJU7lDWtN7BL5WBImXcy3P"
+    }
+  ]
+}

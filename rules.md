@@ -1,0 +1,365 @@
+# Project Rules & React Best Practices
+
+This project follows React software engineering best practices. Cursor uses the rules in [.cursor/rules/](.cursor/rules/) for AI assistance.
+
+## Summary
+
+- **Components**: Functional components only; one per file; PascalCase names; TypeScript props.
+- **State**: Minimal and local; derive values when possible; avoid redundant state.
+- **Hooks**: Custom hooks for reusable logic; stable dependencies; follow Rules of Hooks.
+- **Performance**: Stable list keys; lazy/split when beneficial; avoid unnecessary memo.
+- **Quality**: Typed props (no `any`); loading/error/empty states; accessible labels and structure.
+
+See [.cursor/rules/react-best-practices.mdc](.cursor/rules/react-best-practices.mdc) for the full rule set and examples.
+
+---
+
+# Engineering Rules & Standards
+
+This document defines the **staff‑level engineering principles, architectural rules, and best practices** for this React Native (Expo) itinerary app backed by Supabase.
+
+These rules exist to maximize **long‑term maintainability, scalability, correctness, and developer sanity**. All code should optimize for clarity and future change, not short‑term speed.
+
+---
+
+## 1. Core Engineering Philosophy
+
+* Optimize for **3–5 year maintainability**, not quick wins.
+* Prefer **boring, explicit, predictable code** over clever abstractions.
+* Every abstraction must earn its existence.
+* Code is read far more often than it is written.
+* Mobile constraints (memory, battery, network unreliability) are first‑class concerns.
+
+---
+
+## 2. Architecture Principles
+
+### 2.1 Separation of Concerns (Non‑Negotiable)
+
+Each layer has a single responsibility:
+
+* **UI / Presentation**
+
+  * Renders data
+  * Handles user interaction
+  * Contains *no* business logic
+
+* **Application / Feature Logic**
+
+  * Coordinates user actions
+  * Calls services
+  * Owns workflows
+
+* **Domain Logic**
+
+  * Pure logic
+  * No React, no navigation, no APIs
+
+* **Data / Services**
+
+  * Supabase queries
+  * Network and persistence
+  * No UI concerns
+
+> Business logic must never live inside React components.
+
+---
+
+### 2.2 Feature‑Based Folder Structure
+
+Organize by **feature**, not by technology.
+
+**Good:**
+
+```
+features/
+  trips/
+    screens/
+    components/
+    hooks/
+    services/
+    types.ts
+```
+
+**Avoid:**
+
+```
+components/
+hooks/
+utils/
+services/
+```
+
+Shared code must be intentional and minimal:
+
+* `shared/ui`
+* `shared/hooks`
+* `shared/services`
+
+If something is reused twice, question whether it truly belongs in shared.
+
+---
+
+## 3. React Native & Expo Rules
+
+### 3.1 Components
+
+* Components must be **small and single-purpose**.
+* If a component exceeds ~150 lines, it likely needs splitting.
+* Components:
+
+  * Render UI
+  * Call hooks
+  * Emit events upward
+
+They must **not**:
+
+* Fetch data directly
+* Call Supabase
+* Contain business rules
+
+---
+
+### 3.2 Hooks
+
+* Hooks must be:
+
+  * Predictable
+  * Focused
+  * Reusable
+
+Rules:
+
+* One hook = one responsibility
+* Effects must be minimal and explicit
+* Dependency arrays must be correct
+* Do not suppress lint warnings without justification
+
+---
+
+### 3.3 Performance & Mobile Constraints
+
+* Avoid unnecessary re-renders
+* Be careful with:
+
+  * Large lists
+  * Images
+  * Inline object creation
+* Memoization (`useMemo`, `useCallback`) only when proven necessary
+
+---
+
+### 3.4 React Native Maintainability Best Practices
+
+These rules exist to keep the codebase understandable and evolvable as features grow.
+
+**Component Design**
+
+* Prefer composition over configuration-heavy components.
+* Avoid boolean prop explosions; split components instead.
+* Do not pass entire objects when only specific fields are needed.
+
+**Styling & Layout**
+
+* Centralize shared styles and spacing rules.
+* Avoid deeply nested layout trees.
+* Prefer Flexbox primitives consistently.
+* Never duplicate magic numbers; extract constants or tokens.
+
+**Lists & Performance**
+
+* Always use `FlatList` or `SectionList` for scrollable collections.
+* Provide stable `keyExtractor` functions.
+* Avoid anonymous inline render functions for list items when possible.
+
+**Platform Awareness**
+
+* Handle iOS vs Android differences explicitly.
+* Avoid implicit platform assumptions.
+* Use platform utilities instead of conditionals scattered throughout the UI.
+
+**Side Effects & Lifecycles**
+
+* Screen lifecycle effects must be intentional and documented.
+* Clean up subscriptions, listeners, and timers.
+* Avoid effects that depend on frequently changing values.
+
+**Imports & Dependencies**
+
+* Imports should reflect architectural intent.
+* Avoid deep relative paths; use aliases where possible.
+* Circular dependencies are forbidden.
+
+**Refactoring Discipline**
+
+* If code feels hard to explain, it must be simplified.
+* Repetition is a refactoring signal.
+* Delete unused code aggressively.
+
+---
+
+### 3.2 Hooks
+
+* Hooks must be:
+
+  * Predictable
+  * Focused
+  * Reusable
+
+Rules:
+
+* One hook = one responsibility
+* Effects must be minimal and explicit
+* Dependency arrays must be correct
+* Do not suppress lint warnings without justification
+
+---
+
+### 3.3 Performance & Mobile Constraints
+
+* Avoid unnecessary re‑renders
+* Be careful with:
+
+  * Large lists
+  * Images
+  * Inline object creation
+* Memoization (`useMemo`, `useCallback`) only when proven necessary
+
+---
+
+## 4. Navigation
+
+* Navigation logic must not leak into domain logic.
+* Screens may navigate; services may not.
+* Avoid route‑string duplication.
+* Nested navigation must reflect feature hierarchy.
+
+Auth flows, modals, and deep navigation stacks must be explicitly modeled.
+
+---
+
+## 5. State Management
+
+### 5.1 State Categories
+
+State must be clearly categorized:
+
+* **UI State** – local component state
+* **Server State** – Supabase data
+* **Domain State** – app‑level workflows
+
+Do not mix these.
+
+---
+
+### 5.2 Server State
+
+* Supabase data access must be centralized.
+* Components must never construct queries.
+* Error handling must be explicit.
+
+---
+
+## 6. Supabase Rules
+
+### 6.1 Data Access
+
+* All Supabase access lives in service files.
+* Queries must be reusable and typed.
+* No implicit trust of client state.
+
+---
+
+### 6.2 Auth & Security
+
+* RLS is the source of truth.
+* Client logic must assume queries can fail.
+* Auth state must be handled centrally.
+
+---
+
+### 6.3 Error Handling
+
+* Never silently swallow Supabase errors.
+* Errors must:
+
+  * Be logged
+  * Be mapped to user‑friendly messages
+
+---
+
+## 7. Offline & Reliability Readiness
+
+* Assume the network is unreliable.
+* Design flows that can later support:
+
+  * Caching
+  * Optimistic updates
+  * Deferred sync
+
+Do not hard‑code online assumptions into UI components.
+
+---
+
+## 8. UI & Design System
+
+* Prefer shared UI primitives over one‑off styles.
+* Avoid inline styles unless trivial.
+* Platform differences must be handled explicitly.
+* Accessibility is not optional.
+
+---
+
+## 9. Clean Code Standards
+
+* Names must reveal intent.
+* Functions should be short and focused.
+* Avoid duplication.
+* Comments explain **why**, not **what**.
+
+If code needs a comment to be understood, consider refactoring.
+
+---
+
+## 10. Testing Philosophy
+
+* Architecture must enable testing.
+* Prioritize:
+
+  * Domain logic tests
+  * Service tests
+* UI tests only where high value.
+
+Avoid brittle snapshot tests.
+
+---
+
+## 11. Technical Debt Rules
+
+* Call out debt explicitly.
+* Do not hide shortcuts.
+* If something is a temporary solution, document:
+
+  * Why
+  * What replaces it
+  * When
+
+---
+
+## 12. Code Review Standard
+
+Every change should answer:
+
+1. Is this easy to understand?
+2. Is this easy to change?
+3. Is this safe to scale?
+
+If the answer is "no", refactor before merging.
+
+---
+
+## Final Rule
+
+**Future maintainers matter more than present speed.**
+
+Write code like someone else will inherit it — because they will.

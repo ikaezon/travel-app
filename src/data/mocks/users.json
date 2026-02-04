@@ -1,0 +1,20 @@
+{
+  "currentUser": {
+    "id": "user-1",
+    "name": "John",
+    "email": "john@example.com",
+    "photoUrl": "https://lh3.googleusercontent.com/aida-public/AB6AXuB8Gjcr5Hf7eFfO5_cVIWBu59xxnBKDYW07dpH4W7zRNMuScjxtNdLNU6JaMIEPd15ZZtINerjsQMLP0iupkJZOagQ8ThxlAFAJKEGoQJOu5ziMo2ruuUQaCM5-UV2urlivZNQBAnlxvDGe1Q7GYuOJP4w9KlGcopr_ut4qPqQ2Y9YxYwjqgytHr1qdxO86g6ogiBXtqv5Po0Td38AN3e6cHrkdkAvr8jy2j0ozFiAxWNv7Er3KWyd437QmW7Emv8SsByIQc1rb22x8",
+    "title": "Global Trotter",
+    "memberSince": "2021",
+    "isPro": true
+  },
+  "profileUser": {
+    "id": "user-1",
+    "name": "Alex Johnson",
+    "email": "alex@example.com",
+    "photoUrl": "https://lh3.googleusercontent.com/aida-public/AB6AXuAZHv3LKdrdUlQ_Lu3ToI-ehcb0QlA-QVlaR2XKNewULFry8d548Ky1_LFHMJEWQeHkEI9oIObmTucV1kxE42BBol_zyYRab-GxzYh04xpv4Y0FaN6uaewCNfO1hOgJZMogJU5eQFfy1UvlKf8zrYvIdXUjS2RbdiGxcwo8iNwqSGvUbNL6U9VJO0eti9xBqf6dl_hHL9XaqlSh9sunluOiKVwda2fpyg6Fj7oXQ0Y90GxoLPjhJUE7zHJfgGsnyeO8iTRh-SzP2w0K",
+    "title": "Global Trotter",
+    "memberSince": "2021",
+    "isPro": true
+  }
+}

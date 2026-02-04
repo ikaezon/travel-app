@@ -1,0 +1,91 @@
+---
+description: React software engineering principles and best practices for this project
+globs: **/*.tsx,**/*.jsx,**/App.js,**/App.tsx
+alwaysApply: false
+---
+
+# React Best Practices
+
+## Components
+
+- **Functional components only** — Use function declarations or arrow functions; no class components.
+- **One component per file** — Default export the main component; name the file to match (e.g. `TripCard.tsx` exports `TripCard`).
+- **Colocate when it helps** — Keep small, single-use components or hooks in the same file when they’re only used there; extract when reused or when the file grows.
+
+```tsx
+// ✅ GOOD — named export for component, clear file name
+export function TripCard({ trip }: { trip: Trip }) {
+  return <View>...</View>;
+}
+
+// ❌ BAD — default export with different name, class component
+export default class TripCardComponent extends React.Component { ... }
+```
+
+## Props & State
+
+- **Explicit prop types** — Use TypeScript interfaces for props; avoid `any`.
+- **Minimal, local state** — Prefer lifting state only as far as needed; avoid global state until necessary.
+- **Derive when possible** — Compute values from props/state instead of storing them in state (e.g. filtered list from `trips` + `filter`).
+
+```tsx
+// ✅ GOOD — typed props, derived value
+interface TripCardProps {
+  trip: Trip;
+  onPress?: () => void;
+}
+export function TripCard({ trip, onPress }: TripCardProps) {
+  const subtitle = `${trip.destination} · ${formatDate(trip.start)}`;
+  return <Pressable onPress={onPress}>...</Pressable>;
+}
+
+// ❌ BAD — untyped, redundant state
+export function TripCard(props: any) {
+  const [subtitle, setSubtitle] = useState(''); // derive instead
+  ...
+}
+```
+
+## Hooks
+
+- **Custom hooks for reuse** — Extract logic (data fetching, form state, subscriptions) into `useX` hooks; keep components focused on rendering.
+- **Stable dependencies** — Use `useCallback`/`useMemo` only when needed (e.g. passing callbacks to memoized children or expensive computations); avoid wrapping everything.
+- **Rules of Hooks** — Call hooks only at top level and from React functions (components or custom hooks).
+
+```tsx
+// ✅ GOOD — custom hook for data + loading/error
+function useTrip(id: string | null) {
+  const [trip, setTrip] = useState<Trip | null>(null);
+  const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    if (!id) return;
+    fetchTrip(id).then(setTrip).finally(() => setLoading(false));
+  }, [id]);
+  return { trip, loading };
+}
+```
+
+## Performance & Structure
+
+- **List keys** — Use stable, unique keys (e.g. `id`), never array index for dynamic lists.
+- **Splitting** — Use `React.lazy` / `Suspense` for heavy or route-level screens when it improves load time.
+- **Avoid inline objects/functions in render when it breaks memo** — If a child is memoized, pass stable references (e.g. `useCallback`) or accept that the child may re-render.
+
+## Naming & Files
+
+- **Components**: PascalCase (`TripCard`, `SignInScreen`).
+- **Hooks**: `use` prefix (`useTrip`, `useAuth`).
+- **Utils/helpers**: camelCase; keep in `utils/` or next to the feature.
+- **Constants**: UPPER_SNAKE or grouped in `constants/`.
+
+## Accessibility & UX
+
+- **Semantic structure** — Use correct roles and labels (e.g. `accessibilityLabel`, `accessibilityRole` in React Native).
+- **Loading and error states** — Every async flow should have loading and error UI; avoid silent failures.
+- **Empty states** — Provide clear empty-state UI for lists and sections.
+
+## Do Not
+
+- Mutate props or state; update state with setState/functional updates.
+- Put side effects in render; use `useEffect` (and clean up if needed).
+- Use `any` for props or event handlers; type them explicitly.

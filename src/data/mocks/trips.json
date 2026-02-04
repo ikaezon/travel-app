@@ -1,0 +1,67 @@
+{
+  "trips": [
+    {
+      "id": "trip-1",
+      "destination": "JP's Gas House, France",
+      "dateRange": "Oct 12 - Oct 18, 2023",
+      "durationLabel": "7 Days",
+      "imageUrl": "https://lh3.googleusercontent.com/aida-public/AB6AXuCBelicH0CCMqTjoEM0xuNdTfXNTRpjywRheYa0tFyJuzuWyI6ftJgDwPCVFMP94oyPiKvi1GOFTTCeeVcF5z6drWjSNMjMgEH1UqgHdv8hq-xvfNhQ4kLjSqSzX70tc_s2BOoOrjuAV4UtN8bGDZVs3S59OL5GTw30xsaK7-6UkTAKxAiVMrQnqi46xKjvuDOyQEiEDhY1H1UDg_curOuO_xQdqhVU4bhcOmlK_ISmDA1kscKc4AH1_8E4WLvKzcElds7rESBrIFkB",
+      "status": "upcoming",
+      "iconName": "airplane-ticket"
+    },
+    {
+      "id": "trip-2",
+      "destination": "Nasser's House, Corona",
+      "dateRange": "Oct 12 - Oct 18, 2023",
+      "durationLabel": "7 Days",
+      "imageUrl": "https://lh3.googleusercontent.com/aida-public/AB6AXuCBelicH0CCMqTjoEM0xuNdTfXNTRpjywRheYa0tFyJuzuWyI6ftJgDwPCVFMP94oyPiKvi1GOFTTCeeVcF5z6drWjSNMjMgEH1UqgHdv8hq-xvfNhQ4kLjSqSzX70tc_s2BOoOrjuAV4UtN8bGDZVs3S59OL5GTw30xsaK7-6UkTAKxAiVMrQnqi46xKjvuDOyQEiEDhY1H1UDg_curOuO_xQdqhVU4bhcOmlK_ISmDA1kscKc4AH1_8E4WLvKzcElds7rESBrIFkB",
+      "status": "upcoming",
+      "iconName": "airplane-ticket"
+    },
+    {
+      "id": "trip-3",
+      "destination": "Ryrona, Japan",
+      "dateRange": "Nov 05 - Nov 12, 2023",
+      "durationLabel": "8 Days",
+      "imageUrl": "https://lh3.googleusercontent.com/aida-public/AB6AXuAVLvTEemEHJpQcZDwNEjZF8Ozi63FJ1ocz5on536RPYFI6CiQ08Q2BjI1grnMl8B8x7ljnmX0GDJ_z0i4lks226QT7_YvvNWiDJXByIVTEprz9vmSz-kfEh25g3LEpL1okJF4aQgXlQJ1FJSp6WH039TyCNfufxgLUsO9FwmrxHNbfNapZS7HDdNgt9UCaSb3UXq1T5IyrDK_TTJN7tzzXMuCe7kS-WbR6tAzU_4rEBXgsM83bcjScjTtdUFRlgif7D1W1J15ApQoH",
+      "status": "upcoming",
+      "iconName": "hotel"
+    },
+    {
+      "id": "trip-4",
+      "destination": "New York, USA",
+      "dateRange": "Dec 20 - Dec 26, 2023",
+      "durationLabel": "7 Days",
+      "imageUrl": "https://lh3.googleusercontent.com/aida-public/AB6AXuDMoYAupAEp2k9LzunxJafZokqgQ1JbrDygDRo_nBs4lY-H4OFoHARrCmudGZ9H0_5jl7zO-6ovda9RJXZ55C54y_3OAT5dxAiha4BSXGKHf33_DwPqSC-wmMcGaEpM36FDDCIvepoP-loEs6J5zfh0WXYfIhSFfblRxk-Ag4DALSs4_Au9oKISNRVqEA2eJKuwdtDwpqGPjWRBEwtRb0NQw-YAbyi55kJPaN2-HEG3WOqiUEL-wHXzbZiZRTSIngrzEMZYJzNBv6lb",
+      "status": "upcoming",
+      "iconName": "train"
+    },
+    {
+      "id": "trip-5",
+      "destination": "Barcelona, Spain",
+      "dateRange": "Sep 01 - Sep 08, 2023",
+      "durationLabel": "8 Days",
+      "imageUrl": "https://lh3.googleusercontent.com/aida-public/AB6AXuBBHc14SWlBtc7y-lPtRa89OL_nthPATvhMw67S7DtyoWx8JjKRTFEh3QBZwDNUWvmsWS4fyprL4DLrIuCpj9R6kqWblccqrc_kzO-wLyZoYEDlwoGcRfq27ucICpDrQyAIhujo9WerwibReVcEd7BhLmSK7cNcTTl4ufbgxYO6tRYlUybh0wQXhLnpBZLtMhNfuX51uN582GoF76XLh5hTvJY55Wz7D8f_aCTFNjb7M-v_TGIkDqBNhhcTWBvwBGzkp_mEHTSRXF3C",
+      "status": "completed",
+      "iconName": "airplane-ticket"
+    },
+    {
+      "id": "trip-6",
+      "destination": "London, United Kingdom",
+      "dateRange": "Jul 15 - Jul 22, 2023",
+      "durationLabel": "8 Days",
+      "imageUrl": "https://lh3.googleusercontent.com/aida-public/AB6AXuAASCpKkh9LLnkk-ydVL5HdCy7qnLtuaWzhes7exOYYTAUepklZ_GkKv8maXzOzs8oh8ueFGTKWmUoIEiKnYAaSyjEAfbcynpqhjL56Q_QncimmB_BS-ZFznKeFoesAHbv306hKsqu1X_iQUCEopS_sHy0IKrO3E7jfmfqMpoCLqYQ3H01Z9IL_UZNgrD1kJ0DpeEzFhYQn_bD5KYy_ZT35QHHsWDsl0K5fWVJ_sOnVU9Hi-n9WnkLykZ4tJM1Cu433H9eYVFV23BvV",
+      "status": "completed",
+      "iconName": "hotel"
+    },
+    {
+      "id": "trip-7",
+      "destination": "Rome, Italy",
+      "dateRange": "Jun 10 - Jun 20, 2023",
+      "durationLabel": "11 Days",
+      "imageUrl": "https://lh3.googleusercontent.com/aida-public/AB6AXuBBHc14SWlBtc7y-lPtRa89OL_nthPATvhMw67S7DtyoWx8JjKRTFEh3QBZwDNUWvmsWS4fyprL4DLrIuCpj9R6kqWblccqrc_kzO-wLyZoYEDlwoGcRfq27ucICpDrQyAIhujo9WerwibReVcEd7BhLmSK7cNcTTl4ufbgxYO6tRYlUybh0wQXhLnpBZLtMhNfuX51uN582GoF76XLh5hTvJY55Wz7D8f_aCTFNjb7M-v_TGIkDqBNhhcTWBvwBGzkp_mEHTSRXF3C",
+      "status": "completed",
+      "iconName": "train"
+    }
+  ]
+}

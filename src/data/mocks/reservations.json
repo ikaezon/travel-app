@@ -1,0 +1,99 @@
+{
+  "reservations": [
+    {
+      "id": "res-1",
+      "tripId": "trip-1",
+      "type": "flight",
+      "providerName": "Air France",
+      "operatedBy": "Operated by Air France",
+      "headerImageUrl": "https://lh3.googleusercontent.com/aida-public/AB6AXuBvvFIP-aa_sUGQclfzPtj3IWIEXjSuYWBu3US-5FTSqlNbmdcsyAz0P48DolqssrDbl6I_Hlq59V-ITrgeCBHRZGLyx8BWg971k2ntPLkVXJCo0DyVS9KNg7jf9MM_WeSOYXZ3jex9ttI90PL8OmrGqlKanobqesFZ-KQNRsizDJUNx8sNmuTLw0OuvioOva-_VigumXzifku2ucZ7cqPwt3F_oIN17vRIsLBgSbPn8vWUvMvB35Pegyju565zt7neAnQt3G5CJng4",
+      "route": "NYC to CDG",
+      "date": "Oct 12, 2023",
+      "duration": "7h 30m",
+      "status": "confirmed",
+      "terminal": "1",
+      "gate": "A24",
+      "seat": "12A",
+      "confirmationCode": "AF1234X",
+      "statusText": "On Time",
+      "vehicleInfo": "Airbus A380",
+      "boardingZone": "Zone 1",
+      "priority": "Priority",
+      "attachments": [
+        {
+          "id": "att-1",
+          "name": "Booking_Confirmation.pdf",
+          "date": "Oct 5",
+          "size": "1.2 MB",
+          "thumbnailUrl": "https://lh3.googleusercontent.com/aida-public/AB6AXuBvxqXgUIE-XTkWP3_qkTRgi1QMZqNvkRUPqZLPqmTOYeVOGjIurb6cKWCUcsN9oAVGnGCDXsd3k-eTrC-SsMv8E-XvmN3WiaFxqLOu06JGJwldk90WgJVdmkVduO_nQlxtY9rPp9GTUJMki53DHtYJWEz8f8RkirzrHWQbnIC81RnYlweRw_hflHK5oFzoX54B2JV59QKBoZvYOqdlLE3PptyKMfRDdSYKnvpJp5NmGOmiAvM4mlxiqxT7naB3G3L3eWGmaXtKI8LG"
+        }
+      ]
+    },
+    {
+      "id": "res-2",
+      "tripId": "trip-1",
+      "type": "hotel",
+      "providerName": "Hotel Le Marais",
+      "headerImageUrl": "https://lh3.googleusercontent.com/aida-public/AB6AXuABlk9vG61bbIsSfG-JCNGqpzFVuPX6AOnLNQ44KwfX-oMdoB7qa7aeE_qNUevOUDy2fbtA0Dy67NfqMD4u8ugjIqh3fSc7qh9IIqCXHntlYyxB1untUu7w6McpuWguD1ETxdZfPEv7CupBMYC0-Tu5n0ZtdkfT3xSruXMMw7SFjNnH2epCE_0parPneqA35CUNlwKualV0SR-zSuJJLuwI8xtOCY2wysYe2v7xVuBMqo3B_GizGEsFqTYJU7lDWtN7BL5WBImXcy3P",
+      "route": "Paris, France",
+      "date": "Oct 12 - 18, 2023",
+      "duration": "6 Nights",
+      "status": "confirmed",
+      "confirmationCode": "HLM789Y",
+      "statusText": "Confirmed",
+      "attachments": []
+    },
+    {
+      "id": "res-3",
+      "tripId": "trip-1",
+      "type": "train",
+      "providerName": "SNCF TGV",
+      "operatedBy": "Operated by SNCF",
+      "headerImageUrl": "https://lh3.googleusercontent.com/aida-public/AB6AXuC3sKwmbMQJRQhOhZYQp-zr2EIVnQEnIkrf412VPtfklkEl0bpybB4PqBHGCTI5S5plr94vfGWUieOiiFr62SOabms4rOCuGvtkvm9JIf_Feh67nziyfTXqwpg70t426Z-1RAul4qqDli-Ha6X1SRKCD7abOZiT_0r-G63lYqjW7naVmZEjzPMMUsPW6qK0ZWEUUHsl0ulncpDDokDIy2mVnpcaKE6Bkj_PpGS133Rsx__sz01Exg__6r_e2rUwCaH5KeD3syzkKvQy",
+      "route": "Paris to Lyon",
+      "date": "Oct 15, 2023",
+      "duration": "2h 00m",
+      "status": "confirmed",
+      "seat": "Car 4, 12A",
+      "confirmationCode": "TGV6789Z",
+      "statusText": "On Time",
+      "vehicleInfo": "TGV Duplex",
+      "attachments": []
+    },
+    {
+      "id": "res-4",
+      "tripId": "trip-2",
+      "type": "flight",
+      "providerName": "Japan Airlines",
+      "operatedBy": "Operated by JAL",
+      "headerImageUrl": "https://lh3.googleusercontent.com/aida-public/AB6AXuBvvFIP-aa_sUGQclfzPtj3IWIEXjSuYWBu3US-5FTSqlNbmdcsyAz0P48DolqssrDbl6I_Hlq59V-ITrgeCBHRZGLyx8BWg971k2ntPLkVXJCo0DyVS9KNg7jf9MM_WeSOYXZ3jex9ttI90PL8OmrGqlKanobqesFZ-KQNRsizDJUNx8sNmuTLw0OuvioOva-_VigumXzifku2ucZ7cqPwt3F_oIN17vRIsLBgSbPn8vWUvMvB35Pegyju565zt7neAnQt3G5CJng4",
+      "route": "LAX to NRT",
+      "date": "Nov 05, 2023",
+      "duration": "11h 45m",
+      "status": "confirmed",
+      "terminal": "B",
+      "gate": "52",
+      "seat": "8K",
+      "confirmationCode": "JL789XY",
+      "statusText": "On Time",
+      "vehicleInfo": "Boeing 787 Dreamliner",
+      "boardingZone": "Zone 2",
+      "priority": "Business",
+      "attachments": []
+    },
+    {
+      "id": "res-5",
+      "tripId": "trip-2",
+      "type": "hotel",
+      "providerName": "Park Hyatt Tokyo",
+      "headerImageUrl": "https://lh3.googleusercontent.com/aida-public/AB6AXuABlk9vG61bbIsSfG-JCNGqpzFVuPX6AOnLNQ44KwfX-oMdoB7qa7aeE_qNUevOUDy2fbtA0Dy67NfqMD4u8ugjIqh3fSc7qh9IIqCXHntlYyxB1untUu7w6McpuWguD1ETxdZfPEv7CupBMYC0-Tu5n0ZtdkfT3xSruXMMw7SFjNnH2epCE_0parPneqA35CUNlwKualV0SR-zSuJJLuwI8xtOCY2wysYe2v7xVuBMqo3B_GizGEsFqTYJU7lDWtN7BL5WBImXcy3P",
+      "route": "Tokyo, Japan",
+      "date": "Nov 06 - 12, 2023",
+      "duration": "6 Nights",
+      "status": "confirmed",
+      "confirmationCode": "PHT456K",
+      "statusText": "Confirmed",
+      "attachments": []
+    }
+  ]
+}
