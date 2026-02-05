@@ -7,10 +7,6 @@ export interface ReservationStatusConfig {
   textColor: string;
 }
 
-/**
- * Shared mapping from reservation status to label and theme colors.
- * Use for badges and status text so copy and colors stay consistent.
- */
 export function getReservationStatusConfig(
   status: Reservation['status']
 ): ReservationStatusConfig {

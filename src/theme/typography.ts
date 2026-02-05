@@ -15,9 +15,17 @@ export const fontWeights = {
   regular: '400' as const,
   medium: '500' as const,
   semibold: '600' as const,
-  bold: '700' as const,
-  extrabold: '800' as const,
+  bold: '600' as const,
+  extrabold: '700' as const,
 };
+
+export const fontFamilies = {
+  regular: 'Outfit_400Regular',
+  medium: 'Outfit_500Medium',
+  semibold: 'Outfit_600SemiBold',
+  bold: 'Outfit_600SemiBold',
+  extrabold: 'Outfit_700Bold',
+} as const;
 
 export const lineHeights = {
   tight: 1.1,
@@ -35,66 +43,66 @@ export const letterSpacing = {
 export const textStyles = {
   hero: {
     fontSize: fontSizes.hero,
-    fontWeight: fontWeights.extrabold,
+    fontFamily: fontFamilies.extrabold,
     letterSpacing: letterSpacing.tight,
     lineHeight: 38,
   },
   h1: {
     fontSize: fontSizes.display,
-    fontWeight: fontWeights.bold,
+    fontFamily: fontFamilies.bold,
     letterSpacing: letterSpacing.tight,
     lineHeight: 32,
   },
   h2: {
     fontSize: fontSizes.xxl,
-    fontWeight: fontWeights.bold,
+    fontFamily: fontFamilies.bold,
     letterSpacing: letterSpacing.tight,
     lineHeight: 28,
   },
   h3: {
     fontSize: fontSizes.xl,
-    fontWeight: fontWeights.bold,
+    fontFamily: fontFamilies.bold,
     lineHeight: 28,
   },
   h4: {
     fontSize: fontSizes.lg,
-    fontWeight: fontWeights.bold,
+    fontFamily: fontFamilies.bold,
     letterSpacing: -0.3,
     lineHeight: 22,
   },
   bodyLarge: {
     fontSize: fontSizes.md,
-    fontWeight: fontWeights.regular,
+    fontFamily: fontFamilies.regular,
     lineHeight: 24,
   },
   body: {
     fontSize: fontSizes.sm,
-    fontWeight: fontWeights.regular,
+    fontFamily: fontFamilies.regular,
     lineHeight: 20,
   },
   bodySmall: {
     fontSize: fontSizes.xs,
-    fontWeight: fontWeights.regular,
+    fontFamily: fontFamilies.regular,
     lineHeight: 16,
   },
   label: {
     fontSize: fontSizes.sm,
-    fontWeight: fontWeights.medium,
+    fontFamily: fontFamilies.medium,
     lineHeight: 18,
   },
   labelSmall: {
     fontSize: fontSizes.xs,
-    fontWeight: fontWeights.semibold,
+    fontFamily: fontFamilies.semibold,
     letterSpacing: letterSpacing.wider,
     textTransform: 'uppercase' as const,
   },
   button: {
     fontSize: fontSizes.md,
-    fontWeight: fontWeights.bold,
+    fontFamily: fontFamilies.bold,
     letterSpacing: 0.24,
   },
   buttonSmall: {
     fontSize: fontSizes.sm,
-    fontWeight: fontWeights.bold,
+    fontFamily: fontFamilies.bold,
   },
 } as const;

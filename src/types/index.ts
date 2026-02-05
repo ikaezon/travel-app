@@ -13,7 +13,6 @@ export interface User {
 
 export interface Trip {
   id: string;
-  /** Full destination display e.g. "Paris, France" (from autocomplete or free text) */
   destination: string;
   dateRange: string;
   durationLabel: string;

@@ -14,9 +14,6 @@ import {
 import { DatabaseError, wrapDatabaseError, hasError } from '../supabase/errors';
 
 export const tripService = {
-  /**
-   * Get all trips for the current user
-   */
   async getAllTrips(): Promise<Trip[]> {
     const response = await supabase
       .from('trips')
@@ -31,9 +28,6 @@ export const tripService = {
     return (response.data as DbTrip[]).map(mapTripFromDb);
   },
 
-  /**
-   * Get upcoming and ongoing trips (not completed)
-   */
   async getUpcomingTrips(): Promise<Trip[]> {
     const response = await supabase
       .from('trips')
@@ -49,9 +43,6 @@ export const tripService = {
     return (response.data as DbTrip[]).map(mapTripFromDb);
   },
 
-  /**
-   * Get completed trips
-   */
   async getCompletedTrips(): Promise<Trip[]> {
     const response = await supabase
       .from('trips')
@@ -67,9 +58,6 @@ export const tripService = {
     return (response.data as DbTrip[]).map(mapTripFromDb);
   },
 
-  /**
-   * Get a single trip by ID
-   */
   async getTripById(tripId: string): Promise<Trip | null> {
     const response = await supabase
       .from('trips')
@@ -79,7 +67,6 @@ export const tripService = {
       .single();
 
     if (response.error) {
-      // PGRST116 = no rows returned, which is not an error for this method
       if (response.error.code === 'PGRST116') {
         return null;
       }
@@ -89,9 +76,6 @@ export const tripService = {
     return mapTripFromDb(response.data as DbTrip);
   },
 
-  /**
-   * Get timeline items for a trip
-   */
   async getTripTimeline(tripId: string): Promise<TimelineItem[]> {
     const response = await supabase
       .from('timeline_items')
@@ -107,9 +91,6 @@ export const tripService = {
     return (response.data as DbTimelineItem[]).map(mapTimelineItemFromDb);
   },
 
-  /**
-   * Create a timeline item for a trip (e.g. when adding a reservation)
-   */
   async createTimelineItem(
     tripId: string,
     item: Omit<TimelineItem, 'id' | 'tripId'>
@@ -129,9 +110,6 @@ export const tripService = {
     return mapTimelineItemFromDb(response.data as DbTimelineItem);
   },
 
-  /**
-   * Delete a single timeline item
-   */
   async deleteTimelineItem(timelineItemId: string): Promise<boolean> {
     const response = await supabase
       .from('timeline_items')
@@ -145,16 +123,10 @@ export const tripService = {
     return true;
   },
 
-  /**
-   * Get quick actions (static UI config, kept in mocks)
-   */
   async getQuickActions(): Promise<QuickAction[]> {
     return mockQuickActions.quickActions as QuickAction[];
   },
 
-  /**
-   * Create a new trip
-   */
   async createTrip(tripData: Omit<Trip, 'id'>): Promise<Trip> {
     const dbData = mapTripToDb(tripData, TEST_USER_ID);
 
@@ -171,9 +143,6 @@ export const tripService = {
     return mapTripFromDb(response.data as DbTrip);
   },
 
-  /**
-   * Update an existing trip
-   */
   async updateTrip(tripId: string, updates: Partial<Trip>): Promise<Trip | null> {
     const dbUpdates = mapTripUpdateToDb(updates);
 
@@ -186,7 +155,6 @@ export const tripService = {
       .single();
 
     if (response.error) {
-      // PGRST116 = no rows returned (trip not found)
       if (response.error.code === 'PGRST116') {
         return null;
       }
@@ -196,9 +164,6 @@ export const tripService = {
     return mapTripFromDb(response.data as DbTrip);
   },
 
-  /**
-   * Delete a trip and all related data (attachments, reservations, timeline items)
-   */
   async deleteTrip(tripId: string): Promise<boolean> {
     const reservationsResponse = await supabase
       .from('reservations')

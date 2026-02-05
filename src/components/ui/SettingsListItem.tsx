@@ -1,7 +1,8 @@
 import React from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
+import { BlurView } from 'expo-blur';
 import { MaterialIcons } from '@expo/vector-icons';
-import { colors, spacing, borderRadius } from '../../theme';
+import { colors, spacing, fontFamilies, glassStyles, glassColors } from '../../theme';
 
 interface SettingsListItemProps {
   label: string;
@@ -9,6 +10,8 @@ interface SettingsListItemProps {
   onPress?: () => void;
   rightElement?: React.ReactNode;
   showChevron?: boolean;
+  /** Use liquid glass card styling (for Profile screen) */
+  variant?: 'default' | 'glass';
 }
 
 export function SettingsListItem({
@@ -17,13 +20,20 @@ export function SettingsListItem({
   onPress,
   rightElement,
   showChevron = true,
+  variant = 'default',
 }: SettingsListItemProps) {
   const content = (
-    <View style={styles.container}>
+    <View style={variant === 'glass' ? styles.glassContainer : styles.container}>
       <View style={styles.leftContent}>
-        <View style={styles.iconContainer}>
-          <MaterialIcons name={iconName} size={20} color={colors.primary} />
-        </View>
+        {variant === 'glass' ? (
+          <BlurView intensity={50} tint="light" style={[styles.glassIconContainer, glassStyles.blurContentIcon]}>
+            <MaterialIcons name={iconName} size={20} color={colors.primary} />
+          </BlurView>
+        ) : (
+          <View style={styles.iconContainer}>
+            <MaterialIcons name={iconName} size={20} color={colors.primary} />
+          </View>
+        )}
         <Text style={styles.label}>{label}</Text>
       </View>
       {rightElement || (showChevron && (
@@ -33,6 +43,26 @@ export function SettingsListItem({
       ))}
     </View>
   );
+
+  if (variant === 'glass') {
+    const wrapper = (
+      <BlurView intensity={24} tint="light" style={[styles.glassBlur, glassStyles.blurContent]}>
+        <View style={styles.glassOverlay} pointerEvents="none" />
+        {content}
+      </BlurView>
+    );
+    if (onPress) {
+      return (
+        <Pressable
+          style={({ pressed }) => [styles.glassPressable, pressed && styles.glassPressed]}
+          onPress={onPress}
+        >
+          {wrapper}
+        </Pressable>
+      );
+    }
+    return <View style={styles.glassPressable}>{wrapper}</View>;
+  }
 
   if (onPress) {
     return (
@@ -59,27 +89,61 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: spacing.xxl,
+    paddingHorizontal: 24,
     minHeight: 56,
+    gap: spacing.lg,
+  },
+  glassPressable: {
+    ...glassStyles.cardWrapper,
+    overflow: 'hidden',
+  },
+  glassPressed: {
+    transform: [{ scale: 0.97 }],
+  },
+  glassBlur: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 12,
+    gap: 12,
+    position: 'relative',
+  },
+  glassOverlay: {
+    ...glassStyles.cardOverlay,
+    backgroundColor: glassColors.overlayStrong,
+  },
+  glassContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    flex: 1,
     gap: spacing.lg,
   },
   leftContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.lg,
+    gap: 12,
     flex: 1,
   },
   iconContainer: {
     width: 40,
     height: 40,
-    borderRadius: borderRadius.sm,
+    borderRadius: 12,
     backgroundColor: colors.background.light,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  glassIconContainer: {
+    ...glassStyles.iconContainer,
+    width: 40,
+    height: 40,
+    padding: 10,
     justifyContent: 'center',
     alignItems: 'center',
   },
   label: {
     fontSize: 16,
-    fontWeight: '500',
+    fontFamily: fontFamilies.medium,
     color: colors.text.primary.light,
     flex: 1,
   },

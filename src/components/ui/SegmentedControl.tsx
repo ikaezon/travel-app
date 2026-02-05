@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
-import { borderRadius, colors, spacing } from '../../theme';
+import { colors, fontFamilies, glassColors, glassShadows, glassConstants } from '../../theme';
 
 interface SegmentedControlOption {
   label: string;
@@ -44,32 +44,29 @@ export function SegmentedControl({
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
-    height: 40,
-    backgroundColor: colors.border.light,
-    borderRadius: borderRadius.sm,
-    padding: spacing.xs,
+    height: 36,
+    backgroundColor: 'transparent',
+    borderRadius: glassConstants.radius.card,
+    padding: 3,
   },
   segment: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    borderRadius: borderRadius.xs,
-    paddingHorizontal: spacing.sm,
+    borderRadius: 20,
+    paddingHorizontal: 12,
   },
   segmentSelected: {
-    backgroundColor: colors.surface.light,
-    shadowColor: colors.black,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
+    backgroundColor: glassColors.borderStrong,
+    boxShadow: glassShadows.icon,
   },
   label: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: colors.text.secondary.light,
+    fontSize: 12,
+    fontFamily: fontFamilies.semibold,
+    color: colors.text.tertiary.light,
   },
   labelSelected: {
     color: colors.primary,
+    fontFamily: fontFamilies.semibold,
   },
 });

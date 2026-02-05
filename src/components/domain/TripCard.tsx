@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { View, Text, ImageBackground, StyleSheet, Pressable, Animated } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { MaterialIcons } from '@expo/vector-icons';
-import { colors, spacing, borderRadius } from '../../theme';
+import { colors, spacing, borderRadius, fontFamilies, glassStyles, glassColors } from '../../theme';
 import { TripIconType } from '../../types';
 
 interface TripCardProps {
@@ -14,15 +14,6 @@ interface TripCardProps {
   onPress?: () => void;
   delay?: number;
 }
-
-// Calculate preparation percentage based on days until trip
-// const getPreparationPercent = (durationLabel: string): number => {
-//   const days = parseInt(durationLabel.replace(/\D/g, ''), 10) || 30;
-//   if (days <= 7) return 95;
-//   if (days <= 14) return 80;
-//   if (days <= 30) return 60;
-//   return 45;
-// };
 
 const getAccentColor = (iconName: TripIconType): string => {
   switch (iconName) {
@@ -75,27 +66,23 @@ export const TripCard = React.memo(function TripCard({
         style={({ pressed }) => [styles.cardWrapper, pressed && styles.cardPressed]}
         onPress={onPress}
       >
-        {/* Liquid Glass Background */}
-        <BlurView intensity={24} tint="light" style={StyleSheet.absoluteFill} />
+        <BlurView intensity={24} tint="light" style={[StyleSheet.absoluteFill, glassStyles.blurContentXLarge]} />
         <View style={styles.cardOverlay} pointerEvents="none" />
 
-        {/* Content Container */}
         <View style={styles.innerContainer}>
-          {/* Image Section */}
           <View style={styles.imageFrame}>
             <ImageBackground 
               source={{ uri: imageUrl }} 
               style={styles.image} 
               resizeMode="cover"
             >
-              <BlurView intensity={40} tint="light" style={styles.durationBadge}>
+              <BlurView intensity={40} tint="light" style={[styles.durationBadge, glassStyles.blurContentPill]}>
                 <MaterialIcons name="flight-takeoff" size={14} color={colors.text.primary.light} />
                 <Text style={styles.durationText}>{durationLabel}</Text>
               </BlurView>
             </ImageBackground>
           </View>
 
-          {/* Content Section */}
           <View style={styles.content}>
             <View style={styles.header}>
               <View style={styles.textContainer}>
@@ -106,7 +93,7 @@ export const TripCard = React.memo(function TripCard({
                   {dateRange}
                 </Text>
               </View>
-              <BlurView intensity={40} tint="light" style={styles.iconBadge}>
+              <BlurView intensity={40} tint="light" style={[styles.iconBadge, glassStyles.blurContentIcon]}>
                 <MaterialIcons name={getIconName()} size={24} color={accentColor} />
               </BlurView>
             </View>
@@ -119,30 +106,24 @@ export const TripCard = React.memo(function TripCard({
 
 const styles = StyleSheet.create({
   cardWrapper: {
+    ...glassStyles.cardWrapperLarge,
     width: 300,
-    borderRadius: 40, // rounded-[2.5rem]
-    overflow: 'hidden',
-    borderWidth: 2,
-    borderColor: 'rgba(255, 255, 255, 0.6)', // border-white/60
-    // Diffuse shadow behind card (Material Design style)
-    boxShadow: '0 2px 5px 2px rgba(0, 0, 0, 0.02)',
     position: 'relative',
   },
   cardPressed: {
     transform: [{ scale: 0.98 }],
   },
   cardOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(255, 255, 255, 0.45)', // bg-white/40-45
+    ...glassStyles.cardOverlay,
   },
   innerContainer: {
-    padding: 8, // p-2
+    padding: 8,
     gap: 12,
   },
   imageFrame: {
-    height: 140, // h-44 -> Reduced to fit on screen
+    height: 140,
     width: '100%',
-    borderRadius: 28, // rounded-[1.8rem]
+    borderRadius: 28,
     overflow: 'hidden',
   },
   image: {
@@ -151,6 +132,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
   },
   durationBadge: {
+    ...glassStyles.pillContainer,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
@@ -158,18 +140,16 @@ const styles = StyleSheet.create({
     paddingVertical: 6, 
     borderRadius: borderRadius.full,
     margin: 12,
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.8)',
-    backgroundColor: 'rgba(255, 255, 255, 0.4)',
+    borderColor: glassColors.borderStrong,
+    backgroundColor: glassColors.overlay,
   },
   durationText: {
     fontSize: 12,
-    fontWeight: '800',
+    fontFamily: fontFamilies.semibold,
     color: colors.text.primary.light,
   },
   content: {
-    paddingHorizontal: 16, // p-6 sides -> reduced to match compact look
+    paddingHorizontal: 16,
     paddingBottom: 16,
     gap: 8, 
   },
@@ -183,22 +163,20 @@ const styles = StyleSheet.create({
   },
   destination: {
     fontSize: 18, 
-    fontWeight: '800', 
+    fontFamily: fontFamilies.semibold, 
     color: colors.text.primary.light,
   },
   dateRange: {
     fontSize: 14, 
-    fontWeight: '600', 
+    fontFamily: fontFamilies.semibold, 
     color: colors.text.secondary.light,
     marginTop: 4, 
   },
   iconBadge: {
-    padding: 10, 
-    borderRadius: 16, 
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.8)',
-    backgroundColor: 'rgba(255, 255, 255, 0.4)',
+    ...glassStyles.iconContainer,
+    padding: 10,
+    borderColor: glassColors.borderStrong,
+    backgroundColor: glassColors.overlay,
   },
   progressSection: {
     gap: 8, 
@@ -210,7 +188,7 @@ const styles = StyleSheet.create({
   },
   progressLabel: {
     fontSize: 12, 
-    fontWeight: '700', 
+    fontFamily: fontFamilies.semibold, 
     color: colors.text.secondary.light,
   },
   progressTrack: {

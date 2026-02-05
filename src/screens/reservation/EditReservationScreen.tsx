@@ -10,14 +10,23 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
+import { BlurView } from 'expo-blur';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { FormInput } from '../../components/ui/FormInput';
 import { DatePickerInput } from '../../components/ui/DatePickerInput';
 import { DateRangePickerInput } from '../../components/ui/DateRangePickerInput';
-import { colors, spacing, borderRadius } from '../../theme';
+import { ShimmerButton } from '../../components/ui/ShimmerButton';
+import {
+  colors,
+  spacing,
+  fontFamilies,
+  glassStyles,
+  glassColors,
+} from '../../theme';
 import { MainStackParamList } from '../../navigation/types';
 import { useReservationByTimelineId } from '../../hooks';
 import { reservationService } from '../../data';
@@ -29,13 +38,13 @@ type EditReservationRouteProp = RouteProp<MainStackParamList, 'EditReservation'>
 export default function EditReservationScreen() {
   const navigation = useNavigation<NavigationProp>();
   const route = useRoute<EditReservationRouteProp>();
+  const insets = useSafeAreaInsets();
   const reservationId = route.params?.reservationId ?? '';
 
   const { reservation, isLoading } = useReservationByTimelineId(reservationId);
   const [providerName, setProviderName] = useState('');
   const [routeText, setRouteText] = useState('');
   const [date, setDate] = useState('');
-  const [duration, setDuration] = useState('');
   const [checkInDate, setCheckInDate] = useState<string | null>(null);
   const [checkOutDate, setCheckOutDate] = useState<string | null>(null);
   const [confirmationCode, setConfirmationCode] = useState('');
@@ -45,18 +54,18 @@ export default function EditReservationScreen() {
   const [keyboardHeight, setKeyboardHeight] = useState(0);
   const [saving, setSaving] = useState(false);
 
+  const topOffset = insets.top + 8;
+
   useEffect(() => {
     if (reservation) {
       setProviderName(reservation.providerName);
       setRouteText(reservation.route);
       setDate(reservation.date);
-      setDuration(reservation.duration);
       setConfirmationCode(reservation.confirmationCode);
       setTerminal(reservation.terminal ?? '');
       setGate(reservation.gate ?? '');
       setSeat(reservation.seat ?? '');
-      
-      // For hotel reservations, parse date range from duration (supports "YYYY-MM-DD - YYYY-MM-DD" or "February 26, 2026 - March 2, 2026")
+
       if (reservation.type === 'hotel' && reservation.duration) {
         const parts = reservation.duration.split(/\s*-\s*/);
         if (parts.length >= 2) {
@@ -95,16 +104,15 @@ export default function EditReservationScreen() {
     Keyboard.dismiss();
     setSaving(true);
     try {
-      // For hotel reservations, save in display format "February 26, 2026"
       let finalDate = date;
-      let finalDuration = duration;
+      let finalDuration = reservation.duration;
       if (reservation.type === 'hotel' && checkInDate && checkOutDate) {
         const startDisplay = formatCalendarDateToLongDisplay(checkInDate);
         const endDisplay = formatCalendarDateToLongDisplay(checkOutDate);
         finalDuration = checkInDate === checkOutDate ? startDisplay : `${startDisplay} - ${endDisplay}`;
         finalDate = startDisplay;
       }
-      
+
       const updated = await reservationService.updateReservation(reservation.id, {
         providerName,
         route: routeText,
@@ -133,20 +141,34 @@ export default function EditReservationScreen() {
     setCheckOutDate(end);
   };
 
+  const handleBackPress = () => navigation.goBack();
+
   if (isLoading || !reservation) {
     return (
-      <SafeAreaView style={styles.container} edges={['top']}>
-        <View style={styles.header}>
-          <Pressable style={styles.backButton} onPress={() => navigation.goBack()}>
-            <MaterialIcons name="arrow-back" size={24} color={colors.text.primary.light} />
-          </Pressable>
-          <Text style={styles.title}>Edit reservation</Text>
-          <View style={styles.headerSpacer} />
+      <LinearGradient
+        colors={[colors.gradient.start, colors.gradient.middle, colors.gradient.end]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.gradientContainer}
+      >
+        <View style={styles.container}>
+          <View style={[styles.headerContainer, { top: topOffset }]}>
+            <BlurView intensity={24} tint="light" style={[styles.headerBlur, glassStyles.blurContentLarge]}>
+              <View style={styles.glassOverlay} pointerEvents="none" />
+              <View style={styles.headerContent}>
+                <Pressable style={styles.backButton} onPress={handleBackPress}>
+                  <MaterialIcons name="arrow-back" size={22} color={colors.text.primary.light} />
+                </Pressable>
+                <Text style={styles.headerTitle}>Edit reservation</Text>
+                <View style={styles.headerSpacer} />
+              </View>
+            </BlurView>
+          </View>
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={colors.primary} />
+          </View>
         </View>
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={colors.primary} />
-        </View>
-      </SafeAreaView>
+      </LinearGradient>
     );
   }
 
@@ -154,147 +176,177 @@ export default function EditReservationScreen() {
   const isHotel = reservation.type === 'hotel';
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      <View style={styles.header}>
-        <Pressable
-          style={styles.backButton}
-          onPress={() => navigation.goBack()}
-          accessibilityLabel="Go back"
+    <LinearGradient
+      colors={[colors.gradient.start, colors.gradient.middle, colors.gradient.end]}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+      style={styles.gradientContainer}
+    >
+      <View style={styles.container}>
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={[
+            styles.scrollContent,
+            {
+              paddingTop: topOffset + 72,
+              paddingBottom: spacing.xxl + keyboardHeight,
+            },
+          ]}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
         >
-          <MaterialIcons name="arrow-back" size={24} color={colors.text.primary.light} />
-        </Pressable>
-        <Text style={styles.title}>Edit reservation</Text>
-        <View style={styles.headerSpacer} />
-      </View>
-
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={[
-          styles.scrollContent,
-          { paddingBottom: spacing.xxl + keyboardHeight },
-        ]}
-        showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
-      >
-        <FormInput
-          label="Provider"
-          value={providerName}
-          onChangeText={setProviderName}
-          placeholder="e.g. Air France"
-          iconName="business"
-        />
-        <FormInput
-          label="Route"
-          value={routeText}
-          onChangeText={setRouteText}
-          placeholder="e.g. LAX → CDG"
-          iconName="route"
-        />
-        {isHotel ? (
-          <DateRangePickerInput
-            label="Check-in / Check-out dates"
-            startDate={checkInDate}
-            endDate={checkOutDate}
-            onRangeChange={handleHotelDateRangeChange}
-            placeholder="Tap to select dates"
+          <FormInput
+            label="Provider"
+            value={providerName}
+            onChangeText={setProviderName}
+            placeholder="e.g. Air France"
+            iconName="business"
+            variant="glass"
           />
-        ) : (
-          <>
+          <FormInput
+            label="Route"
+            value={routeText}
+            onChangeText={setRouteText}
+            placeholder="e.g. LAX → CDG"
+            iconName="route"
+            variant="glass"
+          />
+          {isHotel ? (
+            <DateRangePickerInput
+              label="Check-in / Check-out dates"
+              startDate={checkInDate}
+              endDate={checkOutDate}
+              onRangeChange={handleHotelDateRangeChange}
+              placeholder="Tap to select dates"
+              variant="glass"
+            />
+          ) : (
             <DatePickerInput
               label="Date"
               value={date}
               onChange={setDate}
               placeholder="Tap to select date"
               iconName="event"
+              variant="glass"
             />
-            <FormInput
-              label="Duration"
-              value={duration}
-              onChangeText={setDuration}
-              placeholder="e.g. 11h 20m"
-              iconName="schedule"
-            />
-          </>
-        )}
-        <FormInput
-          label="Confirmation code"
-          value={confirmationCode}
-          onChangeText={setConfirmationCode}
-          placeholder="Booking reference"
-          iconName="confirmation-number"
-        />
-        {isFlight && (
-          <>
-            <FormInput
-              label="Terminal"
-              value={terminal}
-              onChangeText={setTerminal}
-              placeholder="e.g. 2"
-              iconName="meeting-room"
-            />
-            <FormInput
-              label="Gate"
-              value={gate}
-              onChangeText={setGate}
-              placeholder="e.g. B12"
-              iconName="door-sliding"
-            />
-            <FormInput
-              label="Seat"
-              value={seat}
-              onChangeText={setSeat}
-              placeholder="e.g. 14A"
-              iconName="airline-seat-recline-extra"
-            />
-          </>
-        )}
-
-        <Pressable
-          style={({ pressed }) => [
-            styles.saveButton,
-            pressed && styles.saveButtonPressed,
-            saving && styles.saveButtonDisabled,
-          ]}
-          onPress={handleSave}
-          disabled={saving}
-        >
-          {saving ? (
-            <ActivityIndicator size="small" color={colors.white} />
-          ) : (
-            <Text style={styles.saveButtonText}>Save changes</Text>
           )}
-        </Pressable>
-      </ScrollView>
-    </SafeAreaView>
+          <FormInput
+            label="Confirmation code"
+            value={confirmationCode}
+            onChangeText={setConfirmationCode}
+            placeholder="Booking reference"
+            iconName="confirmation-number"
+            variant="glass"
+          />
+          {isFlight && (
+            <>
+              <FormInput
+                label="Terminal"
+                value={terminal}
+                onChangeText={setTerminal}
+                placeholder="e.g. 2"
+                iconName="meeting-room"
+                variant="glass"
+              />
+              <FormInput
+                label="Gate"
+                value={gate}
+                onChangeText={setGate}
+                placeholder="e.g. B12"
+                iconName="door-sliding"
+                variant="glass"
+              />
+              <FormInput
+                label="Seat"
+                value={seat}
+                onChangeText={setSeat}
+                placeholder="e.g. 14A"
+                iconName="airline-seat-recline-extra"
+                variant="glass"
+              />
+            </>
+          )}
+
+          <ShimmerButton
+            label="Save changes"
+            iconName="save"
+            onPress={handleSave}
+            disabled={saving}
+            loading={saving}
+            variant="boardingPass"
+          />
+        </ScrollView>
+
+        <View style={[styles.headerContainer, { top: topOffset }]}>
+          <BlurView intensity={24} tint="light" style={[styles.headerBlur, glassStyles.blurContentLarge]}>
+            <View style={styles.glassOverlay} pointerEvents="none" />
+            <View style={styles.headerContent}>
+              <Pressable
+                style={({ pressed }) => [styles.backButton, pressed && styles.backButtonPressed]}
+                onPress={handleBackPress}
+                accessibilityLabel="Go back"
+              >
+                <MaterialIcons name="arrow-back" size={22} color={colors.text.primary.light} />
+              </Pressable>
+              <Text style={styles.headerTitle}>Edit reservation</Text>
+              <View style={styles.headerSpacer} />
+            </View>
+          </BlurView>
+        </View>
+      </View>
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
+  gradientContainer: {
+    flex: 1,
+  },
   container: {
     flex: 1,
-    backgroundColor: colors.surface.light,
   },
-  header: {
-    flexDirection: 'row',
+  headerContainer: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
     alignItems: 'center',
+    zIndex: 60,
+  },
+  headerBlur: {
+    ...glassStyles.navBarWrapper,
+    width: '90%',
+    maxWidth: 340,
+    position: 'relative',
+    height: 56,
+    justifyContent: 'center',
+  },
+  headerContent: {
+    flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-    backgroundColor: colors.surface.light,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border.light,
+    alignItems: 'center',
+    paddingHorizontal: 16,
+  },
+  glassOverlay: {
+    ...glassStyles.cardOverlay,
+    backgroundColor: glassColors.overlayStrong,
   },
   backButton: {
-    padding: spacing.xs,
-    marginLeft: -spacing.xs,
+    width: 36,
+    height: 36,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  title: {
-    fontSize: 18,
-    fontWeight: '700',
+  backButtonPressed: {
+    opacity: 0.6,
+  },
+  headerTitle: {
+    fontSize: 16,
+    fontFamily: fontFamilies.semibold,
     color: colors.text.primary.light,
+    letterSpacing: -0.3,
   },
   headerSpacer: {
-    width: 32,
+    width: 36,
   },
   loadingContainer: {
     flex: 1,
@@ -303,30 +355,9 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     flex: 1,
-    backgroundColor: colors.surface.light,
   },
   scrollContent: {
-    padding: spacing.lg,
-    gap: spacing.lg,
-    paddingBottom: spacing.xxl,
-  },
-  saveButton: {
-    marginTop: spacing.lg,
-    backgroundColor: colors.primary,
-    paddingVertical: spacing.lg,
-    borderRadius: borderRadius.md,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  saveButtonPressed: {
-    opacity: 0.9,
-  },
-  saveButtonDisabled: {
-    opacity: 0.7,
-  },
-  saveButtonText: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: colors.white,
+    paddingHorizontal: 24,
+    gap: 12,
   },
 });

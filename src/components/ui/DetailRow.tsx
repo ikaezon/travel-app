@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { colors, spacing } from '../../theme';
+import { colors, spacing, fontFamilies } from '../../theme';
 
 interface DetailRowProps {
   label: string;
@@ -47,12 +47,12 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 14,
-    fontWeight: '400',
+    fontFamily: fontFamilies.regular,
     color: colors.text.secondary.light,
   },
   value: {
     fontSize: 14,
-    fontWeight: '700',
+    fontFamily: fontFamilies.semibold,
     color: colors.text.primary.light,
     textAlign: 'right',
   },

@@ -17,7 +17,6 @@ export type MainStackParamList = {
   TripList: undefined;
   TripOverview: { tripId: string; tripName?: string };
   CreateTrip: undefined;
-  /** When navigating from timeline, pass the timeline item id; screens use useReservationByTimelineId. From elsewhere (e.g. deep link) pass reservation id and use useReservationById. */
   ReservationDetail: { reservationId: string };
   EditReservation: { reservationId: string };
   ReservationAttachments: { reservationId: string };

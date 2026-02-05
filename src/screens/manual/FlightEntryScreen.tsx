@@ -7,17 +7,25 @@ import {
   Pressable,
   Platform,
   Keyboard,
-  ActivityIndicator,
   Alert,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
+import { BlurView } from 'expo-blur';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { FormInput } from '../../components/ui/FormInput';
 import { DatePickerInput } from '../../components/ui/DatePickerInput';
 import { TripSelector } from '../../components/domain';
-import { colors, spacing, borderRadius } from '../../theme';
+import { ShimmerButton } from '../../components/ui/ShimmerButton';
+import {
+  colors,
+  spacing,
+  fontFamilies,
+  glassStyles,
+  glassColors,
+} from '../../theme';
 import { MainStackParamList } from '../../navigation/types';
 import { reservationService, tripService } from '../../data';
 import { DEFAULT_RESERVATION_HEADER_IMAGE } from '../../constants/reservationDefaults';
@@ -29,6 +37,7 @@ type FlightEntryRouteProp = RouteProp<MainStackParamList, 'FlightEntry'>;
 export default function FlightEntryScreen() {
   const navigation = useNavigation<NavigationProp>();
   const route = useRoute<FlightEntryRouteProp>();
+  const insets = useSafeAreaInsets();
   const initialTripId = route.params?.tripId ?? null;
   const { trips, isLoading: tripsLoading, error: tripsError } = useTrips();
   const [selectedTripId, setSelectedTripId] = useState<string | null>(initialTripId);
@@ -44,6 +53,8 @@ export default function FlightEntryScreen() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
   const dateFieldYRef = useRef(0);
+
+  const topOffset = insets.top + 8;
 
   const handleCalendarOpen = useCallback(() => {
     scrollViewRef.current?.scrollTo({
@@ -91,7 +102,7 @@ export default function FlightEntryScreen() {
 
     setIsSubmitting(true);
     try {
-      const reservation = await reservationService.createReservation({
+      await reservationService.createReservation({
         tripId: selectedTripId,
         type: 'flight',
         providerName,
@@ -125,36 +136,36 @@ export default function FlightEntryScreen() {
     }
   };
 
-  return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      <View style={styles.header}>
-        <Pressable
-          style={styles.backButton}
-          onPress={() => navigation.goBack()}
-          accessibilityLabel="Go back"
-        >
-          <MaterialIcons name="arrow-back" size={24} color={colors.text.primary.light} />
-        </Pressable>
-        <Text style={styles.title}>Flight Details</Text>
-        <View style={styles.headerSpacer} />
-      </View>
+  const handleBackPress = () => navigation.goBack();
 
-      <ScrollView
-        ref={scrollViewRef}
-        style={styles.scrollView}
-        contentContainerStyle={[
-          styles.scrollContent,
-          { paddingBottom: spacing.xxl + keyboardHeight },
-        ]}
-        showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
-      >
+  return (
+    <LinearGradient
+      colors={[colors.gradient.start, colors.gradient.middle, colors.gradient.end]}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+      style={styles.gradientContainer}
+    >
+      <View style={styles.container}>
+        <ScrollView
+          ref={scrollViewRef}
+          style={styles.scrollView}
+          contentContainerStyle={[
+            styles.scrollContent,
+            {
+              paddingTop: topOffset + 72,
+              paddingBottom: spacing.xxl + keyboardHeight,
+            },
+          ]}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
           <TripSelector
             trips={trips}
             selectedTripId={selectedTripId}
             onSelectTrip={setSelectedTripId}
             isLoading={tripsLoading}
             error={tripsError}
+            variant="glass"
           />
           <FormInput
             label="Airline"
@@ -162,6 +173,7 @@ export default function FlightEntryScreen() {
             onChangeText={setAirline}
             placeholder="e.g. United, Delta"
             iconName="flight"
+            variant="glass"
           />
           <FormInput
             label="Flight number"
@@ -169,6 +181,7 @@ export default function FlightEntryScreen() {
             onChangeText={setFlightNumber}
             placeholder="e.g. UA 123"
             iconName="confirmation-number"
+            variant="glass"
           />
           <FormInput
             label="Departure airport"
@@ -176,6 +189,7 @@ export default function FlightEntryScreen() {
             onChangeText={setDepartureAirport}
             placeholder="e.g. SFO"
             iconName="flight-takeoff"
+            variant="glass"
           />
           <FormInput
             label="Arrival airport"
@@ -183,6 +197,7 @@ export default function FlightEntryScreen() {
             onChangeText={setArrivalAirport}
             placeholder="e.g. JFK"
             iconName="flight-land"
+            variant="glass"
           />
           <View onLayout={handleDateFieldLayout}>
             <DatePickerInput
@@ -193,6 +208,7 @@ export default function FlightEntryScreen() {
               iconName="event"
               onOpen={handleCalendarOpen}
               bottomPadding={spacing.xxl + keyboardHeight}
+              variant="glass"
             />
           </View>
           <FormInput
@@ -201,6 +217,7 @@ export default function FlightEntryScreen() {
             onChangeText={setDepartureTime}
             placeholder="e.g. 10:30 AM"
             iconName="schedule"
+            variant="glass"
           />
           <FormInput
             label="Confirmation number"
@@ -208,82 +225,95 @@ export default function FlightEntryScreen() {
             onChangeText={setConfirmationNumber}
             placeholder="Booking reference"
             iconName="badge"
+            variant="glass"
           />
 
-          <Pressable
-            style={({ pressed }) => [
-              styles.saveButton,
-              (pressed || isSubmitting) && styles.saveButtonPressed,
-              !selectedTripId && styles.saveButtonDisabled,
-            ]}
+          <ShimmerButton
+            label="Save Flight"
+            iconName="flight"
             onPress={handleSave}
             disabled={isSubmitting || !selectedTripId}
-          >
-            {isSubmitting ? (
-              <ActivityIndicator size="small" color={colors.white} />
-            ) : (
-              <Text style={styles.saveButtonText}>Save Flight</Text>
-            )}
-          </Pressable>
+            loading={isSubmitting}
+            variant="boardingPass"
+          />
         </ScrollView>
-    </SafeAreaView>
+
+        <View style={[styles.headerContainer, { top: topOffset }]}>
+          <BlurView intensity={24} tint="light" style={[styles.headerBlur, glassStyles.blurContentLarge]}>
+            <View style={styles.glassOverlay} pointerEvents="none" />
+            <View style={styles.headerContent}>
+              <Pressable
+                style={({ pressed }) => [styles.backButton, pressed && styles.backButtonPressed]}
+                onPress={handleBackPress}
+                accessibilityLabel="Go back"
+              >
+                <MaterialIcons name="arrow-back" size={22} color={colors.text.primary.light} />
+              </Pressable>
+              <Text style={styles.headerTitle}>Flight Details</Text>
+              <View style={styles.headerSpacer} />
+            </View>
+          </BlurView>
+        </View>
+      </View>
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
+  gradientContainer: {
+    flex: 1,
+  },
   container: {
     flex: 1,
-    backgroundColor: colors.surface.light,
   },
-  header: {
-    flexDirection: 'row',
+  headerContainer: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
     alignItems: 'center',
+    zIndex: 60,
+  },
+  headerBlur: {
+    ...glassStyles.navBarWrapper,
+    width: '90%',
+    maxWidth: 340,
+    position: 'relative',
+    height: 56,
+    justifyContent: 'center',
+  },
+  headerContent: {
+    flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-    backgroundColor: colors.surface.light,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border.light,
+    alignItems: 'center',
+    paddingHorizontal: 16,
+  },
+  glassOverlay: {
+    ...glassStyles.cardOverlay,
+    backgroundColor: glassColors.overlayStrong,
   },
   backButton: {
-    padding: spacing.xs,
-    marginLeft: -spacing.xs,
+    width: 36,
+    height: 36,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  title: {
-    fontSize: 18,
-    fontWeight: '700',
+  backButtonPressed: {
+    opacity: 0.6,
+  },
+  headerTitle: {
+    fontSize: 16,
+    fontFamily: fontFamilies.semibold,
     color: colors.text.primary.light,
+    letterSpacing: -0.3,
   },
   headerSpacer: {
-    width: 32,
+    width: 36,
   },
   scrollView: {
     flex: 1,
-    backgroundColor: colors.surface.light,
   },
   scrollContent: {
-    padding: spacing.lg,
-    gap: spacing.lg,
-    paddingBottom: spacing.xxl,
-  },
-  saveButton: {
-    marginTop: spacing.lg,
-    backgroundColor: colors.primary,
-    paddingVertical: spacing.lg,
-    borderRadius: borderRadius.md,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  saveButtonPressed: {
-    opacity: 0.9,
-  },
-  saveButtonDisabled: {
-    backgroundColor: colors.text.tertiary.light,
-    opacity: 0.8,
-  },
-  saveButtonText: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: colors.white,
+    paddingHorizontal: 24,
+    gap: 12,
   },
 });

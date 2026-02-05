@@ -12,12 +12,11 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialIcons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { colors, spacing, borderRadius } from '../../theme';
+import { colors, spacing, borderRadius, fontFamilies } from '../../theme';
 import { mockImages } from '../../data/mocks';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 const HERO_HEIGHT = Math.max(SCREEN_HEIGHT * 0.45, 360);
-// Extra height above the fold so overscroll reveals soft gradient, not a flat crop line
 const TOP_BLEED = 280;
 
 interface SplashScreenProps {
@@ -229,7 +228,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 32,
-    fontWeight: '800',
+    fontFamily: fontFamilies.semibold,
     color: colors.text.primary.light,
     textAlign: 'center',
     lineHeight: 38,
@@ -238,7 +237,7 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 16,
-    fontWeight: '500',
+    fontFamily: fontFamilies.medium,
     color: colors.text.secondary.light,
     textAlign: 'center',
     lineHeight: 24,
@@ -275,7 +274,7 @@ const styles = StyleSheet.create({
   },
   primaryButtonText: {
     fontSize: 16,
-    fontWeight: '700',
+    fontFamily: fontFamilies.semibold,
     color: colors.white,
     letterSpacing: 0.24,
   },
@@ -293,7 +292,7 @@ const styles = StyleSheet.create({
   },
   secondaryButtonText: {
     fontSize: 16,
-    fontWeight: '700',
+    fontFamily: fontFamilies.semibold,
     color: colors.text.primary.light,
     letterSpacing: 0.24,
   },
@@ -314,7 +313,7 @@ const styles = StyleSheet.create({
   },
   separatorText: {
     fontSize: 12,
-    fontWeight: '600',
+    fontFamily: fontFamilies.semibold,
     color: colors.text.tertiary.light,
     letterSpacing: 1.2,
   },
@@ -324,13 +323,14 @@ const styles = StyleSheet.create({
   },
   footerText: {
     fontSize: 12,
+    fontFamily: fontFamilies.regular,
     color: colors.text.tertiary.light,
     textAlign: 'center',
     lineHeight: 18,
   },
   footerLink: {
     fontSize: 12,
-    fontWeight: '700',
+    fontFamily: fontFamilies.semibold,
     color: colors.primary,
   },
 });

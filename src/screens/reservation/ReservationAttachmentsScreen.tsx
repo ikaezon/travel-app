@@ -12,7 +12,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { colors, spacing, borderRadius } from '../../theme';
+import { colors, spacing, borderRadius, fontFamilies } from '../../theme';
 import { MainStackParamList } from '../../navigation/types';
 import { useReservationByTimelineId } from '../../hooks';
 import { reservationService } from '../../data';
@@ -142,7 +142,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 18,
-    fontWeight: '700',
+    fontFamily: fontFamilies.semibold,
     color: colors.text.primary.light,
   },
   headerSpacer: {
@@ -170,13 +170,14 @@ const styles = StyleSheet.create({
   },
   heading: {
     fontSize: 20,
-    fontWeight: '700',
+    fontFamily: fontFamilies.semibold,
     color: colors.text.primary.light,
     marginBottom: spacing.sm,
     textAlign: 'center',
   },
   subtext: {
     fontSize: 15,
+    fontFamily: fontFamilies.regular,
     color: colors.text.secondary.light,
     textAlign: 'center',
     marginBottom: spacing.xxl,
@@ -201,7 +202,7 @@ const styles = StyleSheet.create({
   },
   primaryButtonText: {
     fontSize: 16,
-    fontWeight: '700',
+    fontFamily: fontFamilies.semibold,
     color: colors.white,
   },
 });

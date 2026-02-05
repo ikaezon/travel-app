@@ -1,11 +1,11 @@
 export const colors = {
-  primary: '#0ea5e9', // Sky 500
+  primary: '#0ea5e9',
   primaryLight: 'rgba(14, 165, 233, 0.1)',
-  primaryDark: '#0284c7', // Sky 600
+  primaryDark: '#0284c7',
 
   background: {
-    light: '#f0f9ff', // Sky 50
-    dark: '#0c4a6e', // Sky 900
+    light: '#f0f9ff',
+    dark: '#0c4a6e',
   },
 
   surface: {
@@ -63,7 +63,6 @@ export const colors = {
     },
   },
 
-  // Liquid glass - higher contrast: whiter cards, stronger borders
   glass: {
     background: 'rgba(255, 255, 255, 0.55)',
     backgroundStrong: 'rgba(255, 255, 255, 0.65)',
@@ -74,14 +73,12 @@ export const colors = {
     progressBg: 'rgba(255, 255, 255, 0.3)',
   },
 
-  // Ambient gradient - slightly darker/greyer for better contrast with white cards
   gradient: {
-    start: '#e2e8f0', // Slate 200
-    middle: '#f1f5f9', // Slate 100
-    end: '#cbd5e1',   // Slate 300
+    start: '#e2e8f0',
+    middle: '#f1f5f9',
+    end: '#cbd5e1',
   },
 
-  // Accent colors for variety
   accent: {
     blue: '#3b82f6',
     indigo: '#6366f1',

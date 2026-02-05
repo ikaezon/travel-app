@@ -1,10 +1,3 @@
-/**
- * Database row types (snake_case)
- * These match the Supabase/PostgreSQL schema exactly
- * Separate from app types to keep concerns clear
- */
-
-// Enum types matching database constraints
 export type DbReservationType = 'flight' | 'hotel' | 'train' | 'car';
 export type DbTripStatus = 'upcoming' | 'ongoing' | 'completed';
 export type DbTripIconName = 'airplane-ticket' | 'hotel' | 'train';
@@ -92,7 +85,6 @@ export interface DbUserSettings {
   updated_at: string;
 }
 
-// Insert types (without auto-generated fields)
 export type DbTripInsert = Omit<DbTrip, 'id' | 'created_at' | 'updated_at'>;
 export type DbTripUpdate = Partial<Omit<DbTrip, 'id' | 'user_id' | 'created_at' | 'updated_at'>>;
 

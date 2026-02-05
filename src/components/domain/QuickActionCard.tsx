@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, Pressable, Animated } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { MaterialIcons } from '@expo/vector-icons';
-import { colors, borderRadius } from '../../theme';
+import { colors, borderRadius, fontFamilies, glassStyles, glassConstants, glassColors } from '../../theme';
 
 interface QuickActionCardProps {
   title: string;
@@ -41,10 +41,10 @@ export function QuickActionCard({
         accessibilityRole="button"
         accessibilityLabel={`${title}. ${subtitle}`}
       >
-        <BlurView intensity={24} tint="light" style={styles.card}>
+        <BlurView intensity={24} tint="light" style={[styles.card, glassStyles.blurContent]}>
           <View style={styles.cardOverlay} pointerEvents="none" />
           <View style={styles.content}>
-            <BlurView intensity={50} tint="light" style={styles.iconContainer}>
+            <BlurView intensity={50} tint="light" style={[styles.iconContainer, glassStyles.blurContentIcon]}>
               <MaterialIcons name={iconName} size={28} color={iconColor} />
             </BlurView>
             <View style={styles.textContainer}>
@@ -52,7 +52,7 @@ export function QuickActionCard({
               <Text style={styles.subtitle}>{subtitle}</Text>
             </View>
           </View>
-          <BlurView intensity={50} tint="light" style={styles.chevronContainer}>
+          <BlurView intensity={50} tint="light" style={[styles.chevronContainer, glassStyles.blurContentIcon]}>
             <MaterialIcons name="chevron-right" size={20} color={colors.text.tertiary.light} />
           </BlurView>
         </BlurView>
@@ -63,12 +63,7 @@ export function QuickActionCard({
 
 const styles = StyleSheet.create({
   cardWrapper: {
-    borderRadius: 28, // rounded-[1.75rem]
-    overflow: 'hidden',
-    borderWidth: 2,
-    borderColor: 'rgba(255, 255, 255, 0.6)', // border-white/60
-    // Diffuse shadow behind card (Material Design style)
-    boxShadow: '0 2px 5px 2px rgba(0, 0, 0, 0.02)',
+    ...glassStyles.cardWrapper,
   },
   card: {
     flexDirection: 'row',
@@ -79,8 +74,7 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   cardOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(255, 255, 255, 0.45)', // bg-white/40-45
+    ...glassStyles.cardOverlay,
   },
   cardPressed: {
     transform: [{ scale: 0.97 }],
@@ -88,40 +82,35 @@ const styles = StyleSheet.create({
   content: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 20, // gap-5
+    gap: 20,
     flex: 1,
   },
   iconContainer: {
-    padding: 14, // p-3.5
-    borderRadius: 16, // rounded-2xl
-    overflow: 'hidden',
-    borderWidth: 1.5,
-    borderColor: colors.glass.borderStrong,
+    ...glassStyles.iconContainer,
+    padding: 14,
   },
   textContainer: {
     flex: 1,
   },
   title: {
-    fontSize: 16, // text-base
-    fontWeight: '800', // font-extrabold
+    fontSize: 16,
+    fontFamily: fontFamilies.semibold,
     color: colors.text.primary.light,
     lineHeight: 20,
   },
   subtitle: {
-    fontSize: 12, // text-xs
-    fontWeight: '600', // font-semibold
+    fontSize: 12,
+    fontFamily: fontFamilies.semibold,
     color: colors.text.secondary.light,
     textTransform: 'uppercase',
-    letterSpacing: 0.5, // tracking-wider
-    marginTop: 2, // mt-0.5
+    letterSpacing: 0.5,
+    marginTop: 2,
   },
   chevronContainer: {
-    width: 32, // size-8
+    ...glassStyles.iconContainer,
+    width: 32,
     height: 32,
     borderRadius: borderRadius.full,
-    overflow: 'hidden',
-    borderWidth: 1.5,
-    borderColor: colors.glass.borderStrong,
     justifyContent: 'center',
     alignItems: 'center',
   },

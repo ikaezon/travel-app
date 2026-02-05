@@ -10,17 +10,18 @@ import {
   Animated,
   Alert,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
+import { BlurView } from 'expo-blur';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useNavigation, useRoute, useFocusEffect, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { SegmentedControl } from '../../components/ui/SegmentedControl';
-import { GlassDropdownMenu } from '../../components/ui';
 import { TimelineCard } from '../../components/domain/TimelineCard';
-import { FadeInView } from '../../components/ui/FadeInView';
+import { GlassDropdownMenu } from '../../components/ui';
 import { MainStackParamList } from '../../navigation/types';
-import { useTripTimeline, useDeleteTrip, useMenuAnimation } from '../../hooks';
-import { colors, spacing, borderRadius } from '../../theme';
+import { useTripTimeline, useDeleteTrip } from '../../hooks';
+import { colors, spacing, borderRadius, fontFamilies, glassStyles, glassColors, glassShadows, glassConstants } from '../../theme';
 import { TIMELINE_FILTER_OPTIONS } from '../../constants';
 import { mockImages } from '../../data/mocks';
 
@@ -30,6 +31,7 @@ type TripOverviewRouteProp = RouteProp<MainStackParamList, 'TripOverview'>;
 export default function TripOverviewScreen() {
   const navigation = useNavigation<NavigationProp>();
   const route = useRoute<TripOverviewRouteProp>();
+  const insets = useSafeAreaInsets();
   const tripId = route.params?.tripId || '';
   const tripName = route.params?.tripName || 'Trip Overview';
 
@@ -38,7 +40,6 @@ export default function TripOverviewScreen() {
   const [selectedFilter, setSelectedFilter] = useState('all');
   const [menuVisible, setMenuVisible] = useState(false);
   const [addMenuVisible, setAddMenuVisible] = useState(false);
-  const addMenuAnimation = useMenuAnimation(addMenuVisible);
 
   useFocusEffect(
     useCallback(() => {
@@ -121,83 +122,61 @@ export default function TripOverviewScreen() {
     navigation.navigate('TrainEntry', { tripId });
   }, [navigation, tripId]);
 
+  const topOffset = insets.top + 8;
+
   if (isLoading) {
     return (
-      <SafeAreaView style={styles.container} edges={['top']}>
-        <View style={styles.header}>
-          <Pressable style={styles.headerButton} onPress={handleBackPress}>
-            <MaterialIcons name="arrow-back" size={24} color={colors.text.primary.light} />
-          </Pressable>
-          <Text style={styles.headerTitle} numberOfLines={1}>{tripName}</Text>
-          <View style={styles.headerButton} />
+      <LinearGradient
+        colors={[colors.gradient.start, colors.gradient.middle, colors.gradient.end]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.gradientContainer}
+      >
+        <View style={styles.container}>
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={colors.primary} />
+          </View>
         </View>
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={colors.primary} />
-        </View>
-      </SafeAreaView>
+      </LinearGradient>
     );
   }
 
   if (error) {
     return (
-      <SafeAreaView style={styles.container} edges={['top']}>
-        <View style={styles.header}>
-          <Pressable style={styles.headerButton} onPress={handleBackPress}>
-            <MaterialIcons name="arrow-back" size={24} color={colors.text.primary.light} />
-          </Pressable>
-          <Text style={styles.headerTitle} numberOfLines={1}>{tripName}</Text>
-          <View style={styles.headerButton} />
+      <LinearGradient
+        colors={[colors.gradient.start, colors.gradient.middle, colors.gradient.end]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.gradientContainer}
+      >
+        <View style={styles.container}>
+          <View style={styles.errorContainer}>
+            <MaterialIcons name="error-outline" size={32} color={colors.status.error} />
+            <Text style={styles.errorTitle}>Unable to load trip timeline</Text>
+            <Text style={styles.errorSubtitle}>Please try again in a moment.</Text>
+          </View>
         </View>
-        <View style={styles.errorContainer}>
-          <MaterialIcons name="error-outline" size={32} color={colors.status.error} />
-          <Text style={styles.errorTitle}>Unable to load trip timeline</Text>
-          <Text style={styles.errorSubtitle}>Please try again in a moment.</Text>
-        </View>
-      </SafeAreaView>
+      </LinearGradient>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-        <View style={styles.header}>
-        <Pressable style={styles.headerButton} onPress={handleBackPress}>
-            <MaterialIcons name="arrow-back" size={24} color={colors.text.primary.light} />
-        </Pressable>
-        <Text style={styles.headerTitle} numberOfLines={1}>{tripName}</Text>
-        <View style={styles.headerActionWrap}>
-          <Pressable
-            style={({ pressed }) => [styles.headerButton, pressed && styles.headerActionPressed]}
-            onPress={() => setMenuVisible(true)}
-            accessibilityLabel="Trip options"
-          >
-            <MaterialIcons name="more-vert" size={24} color={colors.text.primary.light} />
-          </Pressable>
-          <GlassDropdownMenu
-            visible={menuVisible}
-            onClose={() => setMenuVisible(false)}
-            actions={[{ label: 'Delete trip', icon: 'delete-outline', destructive: true }]}
-            onSelect={handleMenuSelect}
-            style={styles.menuDropdown}
-          />
-        </View>
-        </View>
-
-      {menuVisible && (
-        <Pressable
-          style={styles.menuScrim}
-          onPress={() => setMenuVisible(false)}
-          accessibilityLabel="Close menu"
-        />
-      )}
-
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
-        <FadeInView duration={150} delay={0}>
+    <LinearGradient
+      colors={[colors.gradient.start, colors.gradient.middle, colors.gradient.end]}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+      style={styles.gradientContainer}
+    >
+      <View style={styles.container}>
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={[styles.scrollContent, { paddingTop: topOffset + 72 }]}
+          showsVerticalScrollIndicator={false}
+        >
           <View style={styles.mapSection}>
             <Pressable style={styles.mapContainer}>
+              <BlurView intensity={24} tint="light" style={[StyleSheet.absoluteFill, glassStyles.blurContent]} />
+              <View style={styles.glassOverlay} pointerEvents="none" />
               <ImageBackground
                 source={{ uri: mapImageUrl }}
                 style={styles.mapImage}
@@ -210,126 +189,158 @@ export default function TripOverviewScreen() {
                   <MaterialIcons name="location-on" size={30} color={colors.status.error} />
                 </View>
 
-                <View style={styles.mapBadge}>
+                <BlurView intensity={40} tint="light" style={[styles.mapBadge, glassStyles.blurContentPill]}>
                   <MaterialIcons name="map" size={14} color={colors.primary} />
-                  <Text style={styles.mapBadgeText}>View Map</Text>
-                </View>
+                  <Text style={styles.mapBadgeText}>Expand View</Text>
+                </BlurView>
               </ImageBackground>
             </Pressable>
           </View>
-        </FadeInView>
 
-        <FadeInView duration={150} delay={60}>
           <View style={styles.filterSection}>
-            <SegmentedControl
-              options={TIMELINE_FILTER_OPTIONS}
-              selectedValue={selectedFilter}
-              onValueChange={setSelectedFilter}
-            />
+            <BlurView intensity={24} tint="light" style={[styles.filterContainer, glassStyles.blurContent]}>
+              <View style={styles.glassOverlay} pointerEvents="none" />
+              <SegmentedControl
+                options={TIMELINE_FILTER_OPTIONS}
+                selectedValue={selectedFilter}
+                onValueChange={setSelectedFilter}
+              />
+            </BlurView>
           </View>
-        </FadeInView>
 
-        <View style={styles.timeline}>
-          {Object.entries(groupedByDate).map(([date, items], dateIndex) => (
-            <View key={date} style={styles.dateGroup}>
-              <View style={styles.dateHeader}>
-                <View style={styles.dateLine} />
-                <Text style={styles.dateText}>{date}</Text>
-                <View style={styles.dateLine} />
+          <View style={styles.timeline}>
+            {Object.entries(groupedByDate).map(([date, items], dateIndex) => (
+              <View key={date} style={styles.dateGroup}>
+                <View style={styles.dateHeader}>
+                  <View style={styles.dateLine} />
+                  <Text style={styles.dateText}>{date}</Text>
+                  <View style={styles.dateLine} />
+                </View>
+
+                {items.map((item, itemIndex) => {
+                  const cardDelay = 120 + (dateIndex * items.length + itemIndex) * 50;
+
+                  return (
+                    <TimelineCard
+                      key={item.id}
+                      type={item.type}
+                      time={item.time}
+                      title={item.title}
+                      subtitle={item.subtitle}
+                      metadata={item.metadata}
+                      actionLabel={item.actionLabel}
+                      actionIcon={item.actionIcon as keyof typeof MaterialIcons.glyphMap}
+                      thumbnailUrl={item.thumbnailUrl}
+                      onPress={() => handleReservationPress(item.id)}
+                      onActionPress={() => handleReservationPress(item.id)}
+                      delay={cardDelay}
+                    />
+                  );
+                })}
+              </View>
+            ))}
+
+            {filteredItems.length === 0 && (
+              <View style={styles.emptyState}>
+                <MaterialIcons name="event-note" size={48} color={colors.text.tertiary.light} />
+                <Text style={styles.emptyStateText}>No reservations found</Text>
+              </View>
+            )}
+          </View>
+        </ScrollView>
+
+        <View style={[styles.topNavContainer, { top: topOffset }]}>
+          <BlurView intensity={24} tint="light" style={[styles.topNavBlur, glassStyles.blurContentLarge]}>
+            <View style={styles.glassOverlay} pointerEvents="none" />
+            <View style={styles.topNavContent}>
+              <Pressable 
+                style={({ pressed }) => pressed && styles.navButtonPressed}
+                onPress={handleBackPress}
+              >
+                <View style={styles.navButton}>
+                  <MaterialIcons name="arrow-back" size={22} color={colors.text.primary.light} />
+                </View>
+              </Pressable>
+
+              <View style={styles.headerCenter}>
+                <Text style={styles.headerLabel}>Trip</Text>
+                <Text style={styles.headerTitle} numberOfLines={1}>{tripName}</Text>
               </View>
 
-              {items.map((item, itemIndex) => {
-                const isLastInDate = itemIndex === items.length - 1;
-                const hasNextDateGroup = dateIndex < Object.keys(groupedByDate).length - 1;
-                const showConnector = !isLastInDate;
-                const connectorToNextDay = isLastInDate && hasNextDateGroup;
-                const connectorFromPreviousDay = dateIndex > 0 && itemIndex === 0;
-                
-                const cardDelay = 120 + (dateIndex * items.length + itemIndex) * 50;
-
-                return (
-                  <TimelineCard
-                    key={item.id}
-                    type={item.type}
-                    time={item.time}
-                    title={item.title}
-                    subtitle={item.subtitle}
-                    metadata={item.metadata}
-                    actionLabel={item.actionLabel}
-                    actionIcon={item.actionIcon as keyof typeof MaterialIcons.glyphMap}
-                    thumbnailUrl={item.thumbnailUrl}
-                    showConnector={showConnector}
-                    connectorToNextDay={connectorToNextDay}
-                    connectorFromPreviousDay={connectorFromPreviousDay}
-                    onPress={() => handleReservationPress(item.id)}
-                    onActionPress={() => handleReservationPress(item.id)}
-                    delay={cardDelay}
-                  />
-                );
-              })}
+              <Pressable 
+                style={({ pressed }) => pressed && styles.navButtonPressed}
+                onPress={() => setMenuVisible(true)}
+                accessibilityLabel="Trip options"
+              >
+                <View style={styles.navButton}>
+                  <MaterialIcons name="more-horiz" size={22} color={colors.text.primary.light} />
+                </View>
+              </Pressable>
             </View>
-          ))}
-
-          {filteredItems.length === 0 && (
-            <View style={styles.emptyState}>
-              <MaterialIcons name="event-note" size={48} color={colors.text.tertiary.light} />
-              <Text style={styles.emptyStateText}>No reservations found</Text>
-            </View>
-          )}
+          </BlurView>
         </View>
-      </ScrollView>
 
-      {addMenuVisible && (
-        <Pressable style={styles.addMenuScrim} onPress={handleCloseAddMenu} accessibilityLabel="Close add menu" />
-      )}
-
-      <View style={styles.fabContainer} pointerEvents="box-none">
-        {addMenuVisible && (
-          <Animated.View
-            style={[
-              styles.addMenuDropdown,
-              { opacity: addMenuAnimation.opacity, transform: [{ scale: addMenuAnimation.scale }] },
-            ]}
-          >
+        {menuVisible && (
+          <>
             <Pressable
-              style={({ pressed }) => [styles.addMenuItem, styles.addMenuItemBorder, pressed && styles.addMenuItemPressed]}
-              onPress={handleAddFlight}
-            >
-              <MaterialIcons name="flight" size={20} color={colors.primary} />
-              <Text style={styles.addMenuItemText}>Add Flight</Text>
-            </Pressable>
-            <Pressable
-              style={({ pressed }) => [styles.addMenuItem, styles.addMenuItemBorder, pressed && styles.addMenuItemPressed]}
-              onPress={handleAddHotel}
-            >
-              <MaterialIcons name="hotel" size={20} color={colors.primary} />
-              <Text style={styles.addMenuItemText}>Add Hotel</Text>
-            </Pressable>
-            <Pressable
-              style={({ pressed }) => [styles.addMenuItem, pressed && styles.addMenuItemPressed]}
-              onPress={handleAddTrain}
-            >
-              <MaterialIcons name="train" size={20} color={colors.primary} />
-              <Text style={styles.addMenuItemText}>Add Train</Text>
-            </Pressable>
-          </Animated.View>
+              style={styles.menuScrim}
+              onPress={() => setMenuVisible(false)}
+              accessibilityLabel="Close menu"
+            />
+            <GlassDropdownMenu
+              visible={menuVisible}
+              onClose={() => setMenuVisible(false)}
+              actions={[{ label: 'Delete trip', icon: 'delete-outline', destructive: true }]}
+              onSelect={() => handleDeleteTrip()}
+              style={[styles.deleteMenuDropdown, { top: topOffset + 64 }]}
+            />
+          </>
         )}
-        <Pressable
-          style={({ pressed }) => [styles.fab, pressed && styles.fabPressed]}
-          onPress={() => (addMenuVisible ? handleCloseAddMenu() : handleOpenAddMenu())}
-          accessibilityLabel={addMenuVisible ? 'Close add menu' : 'Add reservation'}
-        >
-          <MaterialIcons name="add" size={28} color={colors.white} />
-        </Pressable>
+
+        {addMenuVisible && (
+          <Pressable style={styles.addMenuScrim} onPress={handleCloseAddMenu} accessibilityLabel="Close add menu" />
+        )}
+
+        <View style={[styles.fabContainer, { bottom: insets.bottom + 56 }]} pointerEvents="box-none">
+          <GlassDropdownMenu
+            visible={addMenuVisible}
+            onClose={handleCloseAddMenu}
+            actions={[
+              { label: 'Add Flight', icon: 'flight' },
+              { label: 'Add Hotel', icon: 'hotel' },
+              { label: 'Add Train', icon: 'train' },
+            ]}
+            onSelect={(index) => {
+              if (index === 0) handleAddFlight();
+              if (index === 1) handleAddHotel();
+              if (index === 2) handleAddTrain();
+            }}
+            style={styles.addMenuDropdown}
+          />
+          <Pressable
+            style={({ pressed }) => [styles.fabWrapper, pressed && styles.fabPressed]}
+            onPress={() => (addMenuVisible ? handleCloseAddMenu() : handleOpenAddMenu())}
+            accessibilityLabel={addMenuVisible ? 'Close add menu' : 'Add reservation'}
+          >
+            <BlurView intensity={24} tint="light" style={styles.fabBlur}>
+              <View style={styles.fabGlassOverlay} pointerEvents="none" />
+              <View style={styles.fabContent}>
+                <MaterialIcons name="add" size={28} color={colors.primary} />
+              </View>
+            </BlurView>
+          </Pressable>
+        </View>
       </View>
-    </SafeAreaView>
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
+  gradientContainer: {
+    flex: 1,
+  },
   container: {
     flex: 1,
-    backgroundColor: colors.background.light,
   },
   loadingContainer: {
     flex: 1,
@@ -345,81 +356,107 @@ const styles = StyleSheet.create({
   },
   errorTitle: {
     fontSize: 16,
-    fontWeight: '700',
+    fontFamily: fontFamilies.semibold,
     color: colors.text.primary.light,
     textAlign: 'center',
   },
   errorSubtitle: {
     fontSize: 14,
-    fontWeight: '500',
+    fontFamily: fontFamilies.medium,
     color: colors.text.secondary.light,
     textAlign: 'center',
   },
-  header: {
-    flexDirection: 'row',
+  topNavContainer: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
     alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    backgroundColor: colors.background.light,
+    zIndex: 60,
   },
-  headerButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+  topNavBlur: {
+    ...glassStyles.navBarWrapper,
+    width: '90%',
+    maxWidth: 360,
+    borderWidth: 1,
+    position: 'relative',
+    height: 56,
+    justifyContent: 'center',
+  },
+  topNavContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+  },
+  navButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  headerActionWrap: {
-    position: 'relative',
-    minWidth: 40,
-    alignItems: 'flex-end',
+  navButtonPressed: {
+    opacity: 0.6,
   },
-  headerActionPressed: {
-    backgroundColor: colors.background.light,
+  headerCenter: {
+    flex: 1,
+    alignItems: 'center',
+    marginHorizontal: 8,
+  },
+  headerLabel: {
+    fontSize: 9,
+    fontFamily: fontFamilies.semibold,
+    color: colors.primary,
+    textTransform: 'uppercase',
+    letterSpacing: 2,
+    marginBottom: 1,
+    opacity: 0.8,
+  },
+  headerTitle: {
+    fontSize: 16,
+    fontFamily: fontFamilies.semibold,
+    color: colors.text.primary.light,
+    letterSpacing: -0.3,
+  },
+  glassOverlay: {
+    ...glassStyles.cardOverlay,
+    backgroundColor: glassColors.overlayStrong,
   },
   menuScrim: {
     position: 'absolute',
-    top: 56,
+    top: 0,
     left: 0,
     right: 0,
     bottom: 0,
-    zIndex: 1,
+    zIndex: 50,
     backgroundColor: 'transparent',
   },
-  menuDropdown: {
-    top: 44,
-    right: 0,
+  deleteMenuDropdown: {
+    position: 'absolute',
+    right: 24,
+    zIndex: 70,
   },
-  headerTitle: {
-    flex: 1,
-    textAlign: 'center',
-    fontSize: 18,
-    fontWeight: '700',
-    color: colors.text.primary.light,
-    letterSpacing: -0.3,
-    marginHorizontal: 8,
+  deleteMenuItemText: {
+    fontSize: 15,
+    fontFamily: fontFamilies.semibold,
+    color: colors.status.error,
   },
   scrollView: {
     flex: 1,
   },
   scrollContent: {
-    paddingBottom: 40,
+    paddingBottom: 120,
+    gap: 16,
   },
   mapSection: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
+    paddingHorizontal: 20,
   },
   mapContainer: {
+    ...glassStyles.cardWrapper,
     width: '100%',
-    height: 192,
-    borderRadius: 12,
-    overflow: 'hidden',
-    shadowColor: colors.black,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
+    height: 180,
+    borderWidth: 1,
+    boxShadow: glassShadows.elevated,
   },
   mapImage: {
     flex: 1,
@@ -427,7 +464,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   mapImageStyle: {
-    borderRadius: 12,
+    borderRadius: 24,
   },
   pin: {
     position: 'absolute',
@@ -441,36 +478,34 @@ const styles = StyleSheet.create({
     right: '33%',
   },
   mapBadge: {
+    ...glassStyles.pillContainer,
     position: 'absolute',
     bottom: 12,
     right: 12,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
-    backgroundColor: colors.surface.light,
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 9999,
-    shadowColor: colors.black,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
+    gap: 6,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 20,
+    borderColor: glassColors.borderStrong,
   },
   mapBadgeText: {
-    fontSize: 12,
-    fontWeight: '700',
+    fontSize: 13,
+    fontFamily: fontFamilies.semibold,
     color: colors.text.primary.light,
   },
   filterSection: {
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: 'transparent',
+    paddingHorizontal: 20,
+  },
+  filterContainer: {
+    ...glassStyles.cardWrapper,
+    padding: 4,
+    boxShadow: glassShadows.card,
   },
   timeline: {
-    paddingHorizontal: 16,
-    paddingTop: 24,
+    paddingHorizontal: 20,
+    paddingTop: 8,
   },
   dateGroup: {
     gap: 16,
@@ -480,18 +515,18 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 16,
-    marginBottom: 16,
+    marginBottom: 8,
   },
   dateLine: {
     flex: 1,
     height: 1,
-    backgroundColor: colors.border.light,
+    backgroundColor: 'rgba(148, 163, 184, 0.4)',
   },
   dateText: {
-    fontSize: 12,
-    fontWeight: '700',
+    fontSize: 11,
+    fontFamily: fontFamilies.semibold,
     textTransform: 'uppercase',
-    letterSpacing: 1,
+    letterSpacing: 2,
     color: colors.text.secondary.light,
   },
   emptyState: {
@@ -502,7 +537,7 @@ const styles = StyleSheet.create({
   },
   emptyStateText: {
     fontSize: 16,
-    fontWeight: '500',
+    fontFamily: fontFamilies.medium,
     color: colors.text.tertiary.light,
   },
   addMenuScrim: {
@@ -512,61 +547,45 @@ const styles = StyleSheet.create({
   },
   fabContainer: {
     position: 'absolute',
-    bottom: 24,
     right: 20,
-    alignItems: 'flex-end',
+    alignItems: 'center',
     zIndex: 10,
   },
   addMenuDropdown: {
     position: 'absolute',
-    bottom: 56,
+    bottom: 70,
     right: 0,
-    backgroundColor: colors.surface.light,
-    borderRadius: borderRadius.md,
-    minWidth: 180,
-    borderWidth: 1,
-    borderColor: colors.border.light,
-    shadowColor: colors.black,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.12,
-    shadowRadius: 12,
-    elevation: 6,
-    overflow: 'hidden',
-    marginBottom: 8,
-  },
-  addMenuItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.lg,
-  },
-  addMenuItemBorder: {
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.border.light,
-  },
-  addMenuItemPressed: {
-    backgroundColor: colors.background.light,
   },
   addMenuItemText: {
     fontSize: 15,
-    fontWeight: '600',
+    fontFamily: fontFamilies.semibold,
     color: colors.text.primary.light,
   },
-  fab: {
+  fabWrapper: {
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: colors.primary,
+    overflow: 'hidden',
+    borderWidth: glassConstants.borderWidth.card,
+    borderColor: glassColors.border,
+    boxShadow: glassShadows.elevated,
+  },
+  fabBlur: {
+    ...StyleSheet.absoluteFillObject,
+    borderRadius: 26,
+    overflow: 'hidden',
+  },
+  fabGlassOverlay: {
+    ...glassStyles.cardOverlay,
+    backgroundColor: glassColors.overlayStrong,
+  },
+  fabContent: {
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: colors.black,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 6,
-    elevation: 4,
   },
   fabPressed: {
     opacity: 0.9,
+    transform: [{ scale: 0.95 }],
   },
 });

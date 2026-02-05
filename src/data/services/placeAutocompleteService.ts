@@ -1,8 +1,3 @@
-/**
- * Place/city autocomplete via Geoapify. Set EXPO_PUBLIC_GEOAPIFY_API_KEY in .env.
- * Display: "City, StateCode (State)" for US/CA/AU; "City, Country" elsewhere.
- */
-
 const API_URL = 'https://api.geoapify.com/v1/geocode/autocomplete';
 const DEBOUNCE_MS = 50;
 const MIN_LEN = 2;
@@ -30,11 +25,6 @@ export interface PlaceAutocompleteService {
   cancel: () => void;
 }
 
-/**
- * Creates an instance with its own debounce timer and abort controller.
- * Use one instance per component (e.g. per DestinationAutocomplete) so unmounting
- * one doesn't cancel another's in-flight request.
- */
 export function createPlaceAutocompleteService(): PlaceAutocompleteService {
   let debounceTimer: ReturnType<typeof setTimeout> | null = null;
   let lastAbort: AbortController | null = null;
@@ -73,7 +63,6 @@ export function createPlaceAutocompleteService(): PlaceAutocompleteService {
   };
 }
 
-/** @deprecated Use createPlaceAutocompleteService() per component. Singleton for backward compat. */
 let debounceTimer: ReturnType<typeof setTimeout> | null = null;
 let lastAbort: AbortController | null = null;
 

@@ -9,8 +9,9 @@ import {
   ActivityIndicator,
   Keyboard,
 } from 'react-native';
+import { BlurView } from 'expo-blur';
 import { MaterialIcons } from '@expo/vector-icons';
-import { borderRadius, colors, spacing } from '../../theme';
+import { borderRadius, colors, spacing, fontFamilies, glassStyles, glassColors } from '../../theme';
 import {
   isPlaceAutocompleteAvailable,
   createPlaceAutocompleteService,
@@ -24,6 +25,8 @@ interface DestinationAutocompleteProps {
   onSelectSuggestion?: (displayText: string) => void;
   placeholder?: string;
   style?: object;
+  /** Use liquid glass card styling */
+  variant?: 'default' | 'glass';
 }
 
 export function DestinationAutocomplete({
@@ -33,6 +36,7 @@ export function DestinationAutocomplete({
   onSelectSuggestion,
   placeholder = 'e.g. Paris, Tokyo',
   style,
+  variant = 'default',
 }: DestinationAutocompleteProps) {
   const [suggestions, setSuggestions] = useState<PlaceSuggestion[]>([]);
   const [loading, setLoading] = useState(false);
@@ -97,7 +101,6 @@ export function DestinationAutocomplete({
   );
 
   const handleBlur = useCallback(() => {
-    // Delay hiding so press on a suggestion can register
     setTimeout(() => setDropdownVisible(false), 200);
   }, []);
 
@@ -117,9 +120,9 @@ export function DestinationAutocomplete({
     [handleSelect]
   );
 
-  return (
-    <View style={[styles.container, style]}>
-      <Text style={styles.label}>{label}</Text>
+  const inputContent = (
+    <>
+      <Text style={[styles.label, variant === 'glass' && styles.labelGlass]}>{label}</Text>
       <View style={styles.inputContainer}>
         <MaterialIcons
           name="location-on"
@@ -129,7 +132,11 @@ export function DestinationAutocomplete({
         />
         <TextInput
           ref={inputRef}
-          style={[styles.input, styles.inputWithLeftIcon]}
+          style={[
+            styles.input,
+            styles.inputWithLeftIcon,
+            variant === 'glass' && styles.inputGlass,
+          ]}
           value={value}
           onChangeText={handleChangeText}
           placeholder={placeholder}
@@ -146,7 +153,7 @@ export function DestinationAutocomplete({
         )}
       </View>
       {hasApi && dropdownVisible && suggestions.length > 0 && (
-        <View style={styles.dropdown}>
+        <View style={[styles.dropdown, variant === 'glass' && styles.dropdownGlass]}>
           <ScrollView
             style={styles.dropdownList}
             keyboardShouldPersistTaps="handled"
@@ -157,6 +164,25 @@ export function DestinationAutocomplete({
           </ScrollView>
         </View>
       )}
+    </>
+  );
+
+  if (variant === 'glass') {
+    return (
+      <View style={[styles.container, style]}>
+        <View style={styles.glassWrapper}>
+          <BlurView intensity={24} tint="light" style={[styles.glassBlur, glassStyles.blurContent]}>
+            <View style={styles.glassOverlay} pointerEvents="none" />
+            <View style={styles.glassContent}>{inputContent}</View>
+          </BlurView>
+        </View>
+      </View>
+    );
+  }
+
+  return (
+    <View style={[styles.container, style]}>
+      {inputContent}
     </View>
   );
 }
@@ -165,11 +191,30 @@ const styles = StyleSheet.create({
   container: {
     width: '100%',
   },
+  glassWrapper: {
+    ...glassStyles.cardWrapper,
+    overflow: 'hidden',
+    width: '100%',
+  },
+  glassBlur: {
+    padding: 12,
+    position: 'relative',
+  },
+  glassOverlay: {
+    ...glassStyles.cardOverlay,
+    backgroundColor: glassColors.overlayStrong,
+  },
+  glassContent: {
+    position: 'relative',
+  },
   label: {
     fontSize: 14,
-    fontWeight: '500',
+    fontFamily: fontFamilies.medium,
     color: colors.text.secondary.light,
     marginBottom: spacing.sm,
+  },
+  labelGlass: {
+    color: colors.text.primary.light,
   },
   inputContainer: {
     position: 'relative',
@@ -183,8 +228,12 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface.light,
     paddingHorizontal: spacing.lg,
     fontSize: 16,
-    fontWeight: '400',
+    fontFamily: fontFamilies.regular,
     color: colors.text.primary.light,
+  },
+  inputGlass: {
+    backgroundColor: 'rgba(255, 255, 255, 0.5)',
+    borderColor: glassColors.border,
   },
   inputWithLeftIcon: {
     paddingLeft: 48,
@@ -209,6 +258,10 @@ const styles = StyleSheet.create({
     maxHeight: 240,
     overflow: 'hidden',
   },
+  dropdownGlass: {
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    borderColor: glassColors.border,
+  },
   dropdownList: {
     maxHeight: 236,
   },
@@ -225,6 +278,7 @@ const styles = StyleSheet.create({
   suggestionText: {
     flex: 1,
     fontSize: 15,
+    fontFamily: fontFamilies.regular,
     color: colors.text.primary.light,
   },
 });

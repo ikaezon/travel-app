@@ -3,7 +3,6 @@ import { View, ActivityIndicator, StyleSheet } from 'react-native';
 import { colors } from '../../theme';
 
 interface LoadingViewProps {
-  /** Optional container style override */
   style?: object;
 }
 

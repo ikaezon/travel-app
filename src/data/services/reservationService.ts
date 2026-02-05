@@ -12,12 +12,8 @@ import {
 } from '../supabase';
 import { wrapDatabaseError, hasError } from '../supabase/errors';
 
-// Feature flag for fallback behavior when timeline item has no exact match
 const ENABLE_RESERVATION_FALLBACK = true;
 
-/**
- * Helper to fetch attachments for a reservation
- */
 async function fetchAttachments(reservationId: string): Promise<Attachment[]> {
   const response = await supabase
     .from('attachments')
@@ -31,9 +27,6 @@ async function fetchAttachments(reservationId: string): Promise<Attachment[]> {
   return (response.data as DbAttachment[]).map(mapAttachmentFromDb);
 }
 
-/**
- * Helper to fetch attachments for multiple reservations
- */
 async function fetchAttachmentsForReservations(
   reservationIds: string[]
 ): Promise<Map<string, Attachment[]>> {
@@ -50,7 +43,6 @@ async function fetchAttachmentsForReservations(
     throw wrapDatabaseError(response.error, 'fetchAttachmentsForReservations');
   }
 
-  // Group attachments by reservation_id
   const attachmentMap = new Map<string, Attachment[]>();
   for (const row of response.data as DbAttachment[]) {
     const attachments = attachmentMap.get(row.reservation_id) || [];
@@ -62,11 +54,6 @@ async function fetchAttachmentsForReservations(
 }
 
 export const reservationService = {
-  /**
-   * Get all reservations (with attachments).
-   * Note: Currently returns all rows from the reservations table with no user or trip filtering.
-   * When auth and RLS are enabled, scope by user/trip in the query or via RLS policies.
-   */
   async getAllReservations(): Promise<Reservation[]> {
     const response = await supabase
       .from('reservations')
@@ -86,9 +73,6 @@ export const reservationService = {
     );
   },
 
-  /**
-   * Get reservations for a specific trip (with attachments)
-   */
   async getReservationsByTripId(tripId: string): Promise<Reservation[]> {
     const response = await supabase
       .from('reservations')
@@ -109,9 +93,6 @@ export const reservationService = {
     );
   },
 
-  /**
-   * Get a single reservation by ID (with attachments)
-   */
   async getReservationById(reservationId: string): Promise<Reservation | null> {
     const response = await supabase
       .from('reservations')
@@ -130,12 +111,7 @@ export const reservationService = {
     return mapReservationFromDb(response.data as DbReservation, attachments);
   },
 
-  /**
-   * Get reservation associated with a timeline item
-   * Matches by trip_id and type
-   */
   async getReservationByTimelineId(timelineId: string): Promise<Reservation | null> {
-    // First, get the timeline item to find trip_id and type
     const timelineResponse = await supabase
       .from('timeline_items')
       .select('*')
@@ -151,7 +127,6 @@ export const reservationService = {
 
     const timelineItem = timelineResponse.data as DbTimelineItem;
 
-    // Find reservation matching trip_id and type
     const reservationResponse = await supabase
       .from('reservations')
       .select('*')
@@ -161,9 +136,7 @@ export const reservationService = {
       .single();
 
     if (reservationResponse.error) {
-      // No exact match found
       if (reservationResponse.error.code === 'PGRST116') {
-        // Fallback: return first reservation for this trip if enabled
         if (ENABLE_RESERVATION_FALLBACK) {
           const fallbackResponse = await supabase
             .from('reservations')
@@ -188,14 +161,9 @@ export const reservationService = {
     return mapReservationFromDb(reservationResponse.data as DbReservation, attachments);
   },
 
-  /**
-   * Create a new reservation
-   * Note: attachments should be created separately after the reservation
-   */
   async createReservation(
     reservationData: Omit<Reservation, 'id'>
   ): Promise<Reservation> {
-    // Extract attachments (they're created separately)
     const { attachments: _, tripId, ...restData } = reservationData;
     const dbData = mapReservationToDb(restData as Omit<Reservation, 'id' | 'attachments'>, tripId);
 
@@ -209,18 +177,13 @@ export const reservationService = {
       throw wrapDatabaseError(response.error, 'createReservation');
     }
 
-    // Return with empty attachments (they can be added separately)
     return mapReservationFromDb(response.data as DbReservation, []);
   },
 
-  /**
-   * Update an existing reservation
-   */
   async updateReservation(
     reservationId: string,
     updates: Partial<Reservation>
   ): Promise<Reservation | null> {
-    // Remove attachments from updates (they're managed separately)
     const { attachments: _, ...restUpdates } = updates;
     const dbUpdates = mapReservationUpdateToDb(restUpdates);
 
@@ -242,9 +205,6 @@ export const reservationService = {
     return mapReservationFromDb(response.data as DbReservation, attachments);
   },
 
-  /**
-   * Delete a reservation (attachments are cascade deleted by FK)
-   */
   async deleteReservation(reservationId: string): Promise<boolean> {
     const response = await supabase
       .from('reservations')
@@ -258,10 +218,6 @@ export const reservationService = {
     return true;
   },
 
-  /**
-   * Upload a file to Storage and create an attachment row for a reservation.
-   * Requires a public bucket named "attachments" in Supabase Storage.
-   */
   async createAttachmentFromFile(
     reservationId: string,
     fileUri: string,

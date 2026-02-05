@@ -17,7 +17,7 @@ import { TripCard } from '../../components/domain/TripCard';
 import { pickImageFromLibrary } from '../../native';
 import { QuickActionCard } from '../../components/domain/QuickActionCard';
 import { LoadingView, ErrorView } from '../../components/ui';
-import { colors, spacing, borderRadius } from '../../theme';
+import { colors, spacing, borderRadius, fontFamilies, glassStyles, glassColors, glassShadows, glassConstants } from '../../theme';
 import { MainStackParamList } from '../../navigation/types';
 import { QUICK_ACTION_ROUTES } from '../../constants';
 import { useCurrentUser, useUpcomingTrips, useQuickActions } from '../../hooks';
@@ -126,7 +126,6 @@ export default function TripDashboardScreen() {
       style={styles.gradientContainer}
     >
       <View style={styles.container}>
-        {/* Scrollable Content */}
         <ScrollView
           style={styles.scrollView}
           contentContainerStyle={[styles.scrollContent, { paddingTop: topOffset + 72 }]}
@@ -136,7 +135,7 @@ export default function TripDashboardScreen() {
             <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>Upcoming Trips</Text>
               <Pressable onPress={handleSeeAllPress}>
-                <BlurView intensity={24} tint="light" style={styles.seeAllButtonContainer}>
+                <BlurView intensity={24} tint="light" style={[styles.seeAllButtonContainer, glassStyles.blurContentPill]}>
                   <View style={styles.glassOverlay} pointerEvents="none" />
                   <Text style={styles.seeAllButton}>See All</Text>
                 </BlurView>
@@ -184,25 +183,21 @@ export default function TripDashboardScreen() {
           </View>
         </ScrollView>
 
-        {/* Floating Top Nav Bar - Identical to Bottom TabBar */}
         <View style={[styles.topNavContainer, { top: topOffset }]}>
-          <BlurView intensity={24} tint="light" style={styles.topNavBlur}>
+          <BlurView intensity={24} tint="light" style={[styles.topNavBlur, glassStyles.blurContentLarge]}>
             <View style={styles.glassOverlay} pointerEvents="none" />
             <View style={styles.topNavContent}>
-              {/* Left Button */}
               <Pressable style={({ pressed }) => pressed && styles.navButtonPressed}>
                 <View style={styles.navButton}>
                   <MaterialIcons name="menu" size={22} color={colors.text.primary.light} />
                 </View>
               </Pressable>
 
-              {/* Center Title */}
               <View style={styles.headerCenter}>
                 <Text style={styles.headerLabel}>Dashboard</Text>
                 <Text style={styles.headerTitle}>My Trips</Text>
               </View>
 
-              {/* Right Button */}
               <Pressable style={({ pressed }) => pressed && styles.navButtonPressed}>
                 <View style={styles.navButton}>
                   <MaterialIcons name="more-horiz" size={22} color={colors.text.primary.light} />
@@ -223,7 +218,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  // Floating Top Nav Bar (identical structure to TabBar)
   topNavContainer: {
     position: 'absolute',
     left: 0,
@@ -232,17 +226,12 @@ const styles = StyleSheet.create({
     zIndex: 60,
   },
   topNavBlur: {
+    ...glassStyles.navBarWrapper,
     width: '90%',
     maxWidth: 340,
-    borderRadius: 32, // rounded-[2rem]
-    overflow: 'hidden',
-    borderWidth: 2,
-    borderColor: 'rgba(255, 255, 255, 0.6)', // border-white/60
     position: 'relative',
     height: 56,
     justifyContent: 'center',
-    // Diffuse shadow (Material Design style)
-    boxShadow: '0 6px 24px 4px rgba(0, 0, 0, 0.08)',
   },
   topNavContent: {
     flexDirection: 'row',
@@ -265,7 +254,7 @@ const styles = StyleSheet.create({
   },
   headerLabel: {
     fontSize: 9,
-    fontWeight: '800',
+    fontFamily: fontFamilies.semibold,
     color: colors.primary,
     textTransform: 'uppercase',
     letterSpacing: 2,
@@ -274,58 +263,57 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 16,
-    fontWeight: '800',
+    fontFamily: fontFamilies.semibold,
     color: colors.text.primary.light,
     letterSpacing: -0.3,
   },
   glassOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(255, 255, 255, 0.5)',
+    ...glassStyles.cardOverlay,
+    backgroundColor: glassColors.overlayStrong,
   },
   scrollView: {
     flex: 1,
   },
   scrollContent: {
-    gap: 12, // Further reduced to move quick actions up
+    gap: 12,
     paddingBottom: 100,
   },
   section: {
-    gap: 12, // Reduced from 16
+    gap: 12,
   },
   sectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 24, // px-6
+    paddingHorizontal: 24,
   },
   sectionTitle: {
-    fontSize: 20, // text-xl
-    fontWeight: '800', // font-extrabold
-    color: colors.text.primary.light, // text-slate-900
-    letterSpacing: -0.3, // tracking-tight
+    fontSize: 20,
+    fontFamily: fontFamilies.semibold,
+    color: colors.text.primary.light,
+    letterSpacing: -0.3,
   },
   seeAllButtonContainer: {
-    paddingHorizontal: 12, // px-3
-    paddingVertical: 6, // py-1.5
-    borderRadius: borderRadius.full,
+    ...glassStyles.pillContainer,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
     borderWidth: 1.5,
-    borderColor: 'rgba(255, 255, 255, 0.6)', // border-white/60
-    overflow: 'hidden',
+    borderColor: glassColors.border,
   },
   seeAllButton: {
-    fontSize: 14, // text-sm
-    fontWeight: '700', // font-bold
-    color: colors.primary, // text-blue-600
+    fontSize: 14,
+    fontFamily: fontFamilies.semibold,
+    color: colors.primary,
   },
   tripsCarousel: {
-    paddingHorizontal: 24, // px-6
-    paddingBottom: 8, // pb-2
-    gap: 20, // gap-5
+    paddingHorizontal: 24,
+    paddingBottom: 8,
+    gap: 20,
   },
   quickActionsSection: {
-    paddingHorizontal: 24, // px-6
+    paddingHorizontal: 24,
   },
   actionsContainer: {
-    gap: 12, // Reduced from 16
+    gap: 12,
   },
 });

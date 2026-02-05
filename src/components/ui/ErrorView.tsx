@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
-import { colors, spacing } from '../../theme';
+import { colors, spacing, fontFamilies } from '../../theme';
 
 interface ErrorViewProps {
   title?: string;
@@ -52,13 +52,13 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 16,
-    fontWeight: '700',
+    fontFamily: fontFamilies.semibold,
     color: colors.text.primary.light,
     textAlign: 'center',
   },
   subtitle: {
     fontSize: 14,
-    fontWeight: '500',
+    fontFamily: fontFamilies.medium,
     color: colors.text.secondary.light,
     textAlign: 'center',
   },
@@ -72,7 +72,7 @@ const styles = StyleSheet.create({
   },
   retryButtonText: {
     fontSize: 15,
-    fontWeight: '600',
+    fontFamily: fontFamilies.semibold,
     color: colors.primary,
   },
 });

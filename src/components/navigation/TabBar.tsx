@@ -4,7 +4,7 @@ import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { BlurView } from 'expo-blur';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { colors, spacing, borderRadius } from '../../theme';
+import { colors, spacing, borderRadius, fontFamilies, glassStyles, glassColors, glassShadows } from '../../theme';
 import { TAB_CONFIG } from '../../constants';
 
 export function TabBar({ state, descriptors, navigation }: BottomTabBarProps) {
@@ -13,7 +13,7 @@ export function TabBar({ state, descriptors, navigation }: BottomTabBarProps) {
 
   return (
     <View style={[styles.container, { bottom: bottomOffset }]}>
-      <BlurView intensity={24} tint="light" style={styles.blurContainer}>
+      <BlurView intensity={24} tint="light" style={[styles.blurContainer, glassStyles.blurContentLarge]}>
         <View style={styles.glassOverlay} pointerEvents="none" />
         <View style={styles.tabBar}>
           {state.routes.map((route, index) => {
@@ -77,30 +77,15 @@ const styles = StyleSheet.create({
     zIndex: 60,
   },
   blurContainer: {
+    ...glassStyles.navBarWrapper,
     width: '90%',
     maxWidth: 340,
-    borderRadius: 32, // rounded-[2rem]
-    overflow: 'hidden',
-    borderWidth: 2,
-    borderColor: 'rgba(255, 255, 255, 0.6)', // border-white/60
     position: 'relative',
-    height: 64, // h-16
+    height: 64,
     justifyContent: 'center',
-    ...Platform.select({
-      ios: {
-        shadowColor: colors.black,
-        shadowOffset: { width: 0, height: 10 },
-        shadowOpacity: 0.05,
-        shadowRadius: 15,
-      },
-      android: {
-        elevation: 8,
-      },
-    }),
   },
   glassOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(255, 255, 255, 0.45)', // bg-white/40-45
+    ...glassStyles.cardOverlay,
   },
   tabBar: {
     flexDirection: 'row',
@@ -119,7 +104,7 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 10,
-    fontWeight: '700',
+    fontFamily: fontFamilies.semibold,
   },
   labelActive: {
     color: colors.primary,

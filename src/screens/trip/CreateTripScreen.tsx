@@ -7,17 +7,25 @@ import {
   Pressable,
   Platform,
   Keyboard,
-  ActivityIndicator,
   Alert,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
+import { BlurView } from 'expo-blur';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { DestinationAutocomplete } from '../../components/ui/DestinationAutocomplete';
 import { FormInput } from '../../components/ui/FormInput';
 import { DateRangePickerInput } from '../../components/ui/DateRangePickerInput';
-import { colors, spacing, borderRadius } from '../../theme';
+import { ShimmerButton } from '../../components/ui/ShimmerButton';
+import {
+  colors,
+  spacing,
+  fontFamilies,
+  glassStyles,
+  glassColors,
+} from '../../theme';
 import { MainStackParamList } from '../../navigation/types';
 import { useCreateTrip } from '../../hooks';
 import { formatCalendarDateToDisplay, daysBetween } from '../../utils/dateFormat';
@@ -36,12 +44,15 @@ type NavigationProp = NativeStackNavigationProp<MainStackParamList, 'CreateTrip'
 
 export default function CreateTripScreen() {
   const navigation = useNavigation<NavigationProp>();
+  const insets = useSafeAreaInsets();
   const { createTrip, isSubmitting } = useCreateTrip();
   const [destination, setDestination] = useState('');
   const [startDate, setStartDate] = useState<string | null>(null);
   const [endDate, setEndDate] = useState<string | null>(null);
   const [imageUrl, setImageUrl] = useState('');
   const [keyboardHeight, setKeyboardHeight] = useState(0);
+
+  const topOffset = insets.top + 8;
 
   const dateRangeDisplay = useMemo(() => {
     if (!startDate) return '';
@@ -107,134 +118,147 @@ export default function CreateTripScreen() {
     }
   };
 
+  const handleBackPress = () => {
+    if (!isSubmitting) navigation.goBack();
+  };
+
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      <View style={styles.header}>
-        <Pressable
-          style={styles.backButton}
-          onPress={() => !isSubmitting && navigation.goBack()}
-          accessibilityLabel="Go back"
-          disabled={isSubmitting}
-        >
-          <MaterialIcons
-            name="arrow-back"
-            size={24}
-            color={colors.text.primary.light}
-          />
-        </Pressable>
-        <Text style={styles.title}>New Trip</Text>
-        <View style={styles.headerSpacer} />
-      </View>
-
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={[
-          styles.scrollContent,
-          { paddingBottom: spacing.xxl + keyboardHeight },
-        ]}
-        showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
-      >
-        <DestinationAutocomplete
-          label="Destination"
-          value={destination}
-          onChangeText={setDestination}
-          placeholder="e.g. Paris, France or Tokyo, Japan"
-        />
-
-        <DateRangePickerInput
-          label="Date range"
-          startDate={startDate}
-          endDate={endDate}
-          onRangeChange={(start, end) => {
-            setStartDate(start);
-            setEndDate(end);
-          }}
-          placeholder="Tap to select dates"
-        />
-
-        <FormInput
-          label="Cover image URL (optional)"
-          value={imageUrl}
-          onChangeText={setImageUrl}
-          placeholder="Leave blank for default"
-          iconName="image"
-        />
-
-        <Pressable
-          style={({ pressed }) => [
-            styles.saveButton,
-            (pressed || isSubmitting) && styles.saveButtonPressed,
-            isSubmitting && styles.saveButtonDisabled,
+    <LinearGradient
+      colors={[colors.gradient.start, colors.gradient.middle, colors.gradient.end]}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+      style={styles.gradientContainer}
+    >
+      <View style={styles.container}>
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={[
+            styles.scrollContent,
+            { paddingTop: topOffset + 72, paddingBottom: spacing.xxl + keyboardHeight },
           ]}
-          onPress={handleSave}
-          disabled={isSubmitting}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
         >
-          {isSubmitting ? (
-            <ActivityIndicator size="small" color={colors.white} />
-          ) : (
-            <Text style={styles.saveButtonText}>Create Trip</Text>
-          )}
-        </Pressable>
-      </ScrollView>
-    </SafeAreaView>
+          <DestinationAutocomplete
+            label="Destination"
+            value={destination}
+            onChangeText={setDestination}
+            placeholder="e.g. Paris, France or Tokyo, Japan"
+            variant="glass"
+          />
+
+          <DateRangePickerInput
+            label="Date range"
+            startDate={startDate}
+            endDate={endDate}
+            onRangeChange={(start, end) => {
+              setStartDate(start);
+              setEndDate(end);
+            }}
+            placeholder="Tap to select dates"
+            variant="glass"
+          />
+
+          <FormInput
+            label="Cover image URL (optional)"
+            value={imageUrl}
+            onChangeText={setImageUrl}
+            placeholder="Leave blank for default"
+            iconName="image"
+            variant="glass"
+          />
+
+          <ShimmerButton
+            label="Create Trip"
+            iconName="add"
+            onPress={handleSave}
+            disabled={isSubmitting}
+            loading={isSubmitting}
+            variant="boardingPass"
+          />
+        </ScrollView>
+
+        <View style={[styles.headerContainer, { top: topOffset }]}>
+          <BlurView intensity={24} tint="light" style={[styles.headerBlur, glassStyles.blurContentLarge]}>
+            <View style={styles.glassOverlay} pointerEvents="none" />
+            <View style={styles.headerContent}>
+              <Pressable
+                style={({ pressed }) => [styles.backButton, pressed && styles.backButtonPressed]}
+                onPress={handleBackPress}
+                accessibilityLabel="Go back"
+                disabled={isSubmitting}
+              >
+                <MaterialIcons
+                  name="arrow-back"
+                  size={22}
+                  color={colors.text.primary.light}
+                />
+              </Pressable>
+              <Text style={styles.headerTitle}>New Trip</Text>
+              <View style={styles.headerSpacer} />
+            </View>
+          </BlurView>
+        </View>
+      </View>
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
+  gradientContainer: {
+    flex: 1,
+  },
   container: {
     flex: 1,
-    backgroundColor: colors.surface.light,
   },
-  header: {
-    flexDirection: 'row',
+  headerContainer: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
     alignItems: 'center',
+    zIndex: 60,
+  },
+  headerBlur: {
+    ...glassStyles.navBarWrapper,
+    width: '90%',
+    maxWidth: 340,
+    position: 'relative',
+    height: 56,
+    justifyContent: 'center',
+  },
+  headerContent: {
+    flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-    backgroundColor: colors.surface.light,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border.light,
+    alignItems: 'center',
+    paddingHorizontal: 16,
+  },
+  glassOverlay: {
+    ...glassStyles.cardOverlay,
+    backgroundColor: glassColors.overlayStrong,
   },
   backButton: {
-    padding: spacing.xs,
-    marginLeft: -spacing.xs,
+    width: 36,
+    height: 36,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  title: {
-    fontSize: 18,
-    fontWeight: '700',
+  backButtonPressed: {
+    opacity: 0.6,
+  },
+  headerTitle: {
+    fontSize: 16,
+    fontFamily: fontFamilies.semibold,
     color: colors.text.primary.light,
+    letterSpacing: -0.3,
   },
   headerSpacer: {
-    width: 32,
+    width: 36,
   },
   scrollView: {
     flex: 1,
-    backgroundColor: colors.surface.light,
   },
   scrollContent: {
-    padding: spacing.lg,
-    gap: spacing.lg,
-    paddingBottom: spacing.xxl,
-  },
-  saveButton: {
-    marginTop: spacing.lg,
-    backgroundColor: colors.primary,
-    paddingVertical: spacing.lg,
-    borderRadius: borderRadius.md,
-    alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: 52,
-  },
-  saveButtonPressed: {
-    opacity: 0.9,
-  },
-  saveButtonDisabled: {
-    opacity: 0.7,
-  },
-  saveButtonText: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: colors.white,
+    paddingHorizontal: 24,
+    gap: 12,
   },
 });

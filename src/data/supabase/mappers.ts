@@ -1,9 +1,3 @@
-/**
- * Database mappers
- * Convert between database types (snake_case) and app types (camelCase)
- * Centralized mapping logic for consistency and testability
- */
-
 import type { User, Trip, TimelineItem, Reservation, Attachment } from '../../types';
 import type {
   DbUser,
@@ -19,10 +13,6 @@ import type {
   DbAttachmentInsert,
   DbUserUpdate,
 } from './database.types';
-
-// ============================================
-// USER MAPPERS
-// ============================================
 
 export function mapUserFromDb(row: DbUser): User {
   return {
@@ -48,10 +38,6 @@ export function mapUserToDb(user: Partial<User>): DbUserUpdate {
   
   return mapped;
 }
-
-// ============================================
-// TRIP MAPPERS
-// ============================================
 
 export function mapTripFromDb(row: DbTrip): Trip {
   return {
@@ -90,10 +76,6 @@ export function mapTripUpdateToDb(updates: Partial<Trip>): DbTripUpdate {
   return mapped;
 }
 
-// ============================================
-// TIMELINE ITEM MAPPERS
-// ============================================
-
 export function mapTimelineItemFromDb(row: DbTimelineItem): TimelineItem {
   return {
     id: row.id,
@@ -125,10 +107,6 @@ export function mapTimelineItemToDb(item: Omit<TimelineItem, 'id'>): DbTimelineI
   };
 }
 
-// ============================================
-// ATTACHMENT MAPPERS
-// ============================================
-
 export function mapAttachmentFromDb(row: DbAttachment): Attachment {
   return {
     id: row.id,
@@ -146,13 +124,9 @@ export function mapAttachmentToDb(attachment: Omit<Attachment, 'id'>, reservatio
     date: attachment.date || null,
     size: attachment.size || null,
     thumbnail_url: attachment.thumbnailUrl || null,
-    storage_path: null, // Set when uploading to Supabase Storage
+    storage_path: null,
   };
 }
-
-// ============================================
-// RESERVATION MAPPERS
-// ============================================
 
 export function mapReservationFromDb(row: DbReservation, attachments: Attachment[] = []): Reservation {
   return {
