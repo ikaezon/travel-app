@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { View, Text, ImageBackground, StyleSheet, Pressable, Animated } from 'react-native';
+import { BlurView } from 'expo-blur';
 import { MaterialIcons } from '@expo/vector-icons';
 import { colors, spacing, borderRadius } from '../../theme';
 import { TripIconType } from '../../types';
@@ -14,6 +15,26 @@ interface TripCardProps {
   delay?: number;
 }
 
+// Calculate preparation percentage based on days until trip
+// const getPreparationPercent = (durationLabel: string): number => {
+//   const days = parseInt(durationLabel.replace(/\D/g, ''), 10) || 30;
+//   if (days <= 7) return 95;
+//   if (days <= 14) return 80;
+//   if (days <= 30) return 60;
+//   return 45;
+// };
+
+const getAccentColor = (iconName: TripIconType): string => {
+  switch (iconName) {
+    case 'hotel':
+      return colors.accent.indigo;
+    case 'train':
+      return colors.status.success;
+    default:
+      return colors.accent.blue;
+  }
+};
+
 export const TripCard = React.memo(function TripCard({
   destination,
   dateRange,
@@ -24,6 +45,7 @@ export const TripCard = React.memo(function TripCard({
   delay = 0,
 }: TripCardProps) {
   const fadeAnim = useRef(new Animated.Value(0)).current;
+  const accentColor = getAccentColor(iconName);
 
   useEffect(() => {
     Animated.timing(fadeAnim, {
@@ -50,56 +72,77 @@ export const TripCard = React.memo(function TripCard({
   return (
     <Animated.View style={{ opacity: fadeAnim }}>
       <Pressable
-        style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
+        style={({ pressed }) => [styles.cardWrapper, pressed && styles.cardPressed]}
         onPress={onPress}
       >
-      <View style={styles.imageContainer}>
-        <ImageBackground source={{ uri: imageUrl }} style={styles.image} resizeMode="cover">
-          <View style={styles.durationBadge}>
-            <MaterialIcons name="flight-takeoff" size={14} color={colors.text.primary.light} />
-            <Text style={styles.durationText}>{durationLabel}</Text>
-          </View>
-        </ImageBackground>
-      </View>
+        {/* Liquid Glass Background */}
+        <BlurView intensity={24} tint="light" style={StyleSheet.absoluteFill} />
+        <View style={styles.cardOverlay} pointerEvents="none" />
 
-      <View style={styles.content}>
-        <View style={styles.header}>
-          <View style={styles.textContainer}>
-            <Text style={styles.destination} numberOfLines={1}>
-              {destination}
-            </Text>
-            <Text style={styles.dateRange} numberOfLines={1}>
-              {dateRange}
-            </Text>
+        {/* Content Container */}
+        <View style={styles.innerContainer}>
+          {/* Image Section */}
+          <View style={styles.imageFrame}>
+            <ImageBackground 
+              source={{ uri: imageUrl }} 
+              style={styles.image} 
+              resizeMode="cover"
+            >
+              <BlurView intensity={40} tint="light" style={styles.durationBadge}>
+                <MaterialIcons name="flight-takeoff" size={14} color={colors.text.primary.light} />
+                <Text style={styles.durationText}>{durationLabel}</Text>
+              </BlurView>
+            </ImageBackground>
           </View>
-          <View style={styles.iconBadge}>
-            <MaterialIcons name={getIconName()} size={20} color={colors.primary} />
+
+          {/* Content Section */}
+          <View style={styles.content}>
+            <View style={styles.header}>
+              <View style={styles.textContainer}>
+                <Text style={styles.destination} numberOfLines={1}>
+                  {destination}
+                </Text>
+                <Text style={styles.dateRange} numberOfLines={1}>
+                  {dateRange}
+                </Text>
+              </View>
+              <BlurView intensity={40} tint="light" style={styles.iconBadge}>
+                <MaterialIcons name={getIconName()} size={24} color={accentColor} />
+              </BlurView>
+            </View>
           </View>
         </View>
-      </View>
       </Pressable>
     </Animated.View>
   );
 });
 
 const styles = StyleSheet.create({
-  card: {
-    width: 280,
-    borderRadius: borderRadius.lg,
-    backgroundColor: colors.white,
+  cardWrapper: {
+    width: 300,
+    borderRadius: 40, // rounded-[2.5rem]
     overflow: 'hidden',
-    shadowColor: colors.black,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 20,
-    elevation: 2,
+    borderWidth: 2,
+    borderColor: 'rgba(255, 255, 255, 0.6)', // border-white/60
+    // Diffuse shadow behind card (Material Design style)
+    boxShadow: '0 2px 5px 2px rgba(0, 0, 0, 0.02)',
+    position: 'relative',
   },
   cardPressed: {
-    opacity: 0.9,
+    transform: [{ scale: 0.98 }],
   },
-  imageContainer: {
-    height: 160,
+  cardOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(255, 255, 255, 0.45)', // bg-white/40-45
+  },
+  innerContainer: {
+    padding: 8, // p-2
+    gap: 12,
+  },
+  imageFrame: {
+    height: 140, // h-44 -> Reduced to fit on screen
     width: '100%',
+    borderRadius: 28, // rounded-[1.8rem]
     overflow: 'hidden',
   },
   image: {
@@ -110,26 +153,25 @@ const styles = StyleSheet.create({
   durationBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.xs,
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    paddingHorizontal: 10,
-    paddingVertical: spacing.xs,
+    gap: 4,
+    paddingHorizontal: 12, 
+    paddingVertical: 6, 
     borderRadius: borderRadius.full,
-    margin: spacing.md,
-    shadowColor: colors.black,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
+    margin: 12,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.8)',
+    backgroundColor: 'rgba(255, 255, 255, 0.4)',
   },
   durationText: {
     fontSize: 12,
-    fontWeight: '700',
+    fontWeight: '800',
     color: colors.text.primary.light,
   },
   content: {
-    padding: spacing.lg,
-    gap: spacing.md,
+    paddingHorizontal: 16, // p-6 sides -> reduced to match compact look
+    paddingBottom: 16,
+    gap: 8, 
   },
   header: {
     flexDirection: 'row',
@@ -138,21 +180,52 @@ const styles = StyleSheet.create({
   },
   textContainer: {
     flex: 1,
-    gap: spacing.xs,
   },
   destination: {
-    fontSize: 18,
-    fontWeight: '700',
+    fontSize: 18, 
+    fontWeight: '800', 
     color: colors.text.primary.light,
   },
   dateRange: {
-    fontSize: 12,
-    fontWeight: '500',
+    fontSize: 14, 
+    fontWeight: '600', 
     color: colors.text.secondary.light,
+    marginTop: 4, 
   },
   iconBadge: {
-    backgroundColor: colors.primaryLight,
-    padding: spacing.sm,
-    borderRadius: borderRadius.sm,
+    padding: 10, 
+    borderRadius: 16, 
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.8)',
+    backgroundColor: 'rgba(255, 255, 255, 0.4)',
+  },
+  progressSection: {
+    gap: 8, 
+  },
+  progressLabels: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  progressLabel: {
+    fontSize: 12, 
+    fontWeight: '700', 
+    color: colors.text.secondary.light,
+  },
+  progressTrack: {
+    height: 12, 
+    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+    borderRadius: borderRadius.full,
+    overflow: 'hidden',
+    padding: 2, 
+  },
+  progressFill: {
+    height: '100%',
+    borderRadius: borderRadius.full,
+    shadowColor: colors.primary,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.5,
+    shadowRadius: 12,
   },
 });

@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, Pressable, Platform } from 'react-native';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
+import { BlurView } from 'expo-blur';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, spacing, borderRadius } from '../../theme';
@@ -8,113 +9,130 @@ import { TAB_CONFIG } from '../../constants';
 
 export function TabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
-  const bottomPadding = Math.max(insets.bottom, spacing.md);
+  const bottomOffset = Math.max(insets.bottom, spacing.lg);
 
   return (
-    <View style={[styles.container, { paddingBottom: bottomPadding }]}>
-      <View style={styles.tabBar}>
-        {state.routes.map((route, index) => {
-          const { options } = descriptors[route.key];
-          const isFocused = state.index === index;
-          const config = TAB_CONFIG[route.name] || { icon: 'home', label: route.name };
+    <View style={[styles.container, { bottom: bottomOffset }]}>
+      <BlurView intensity={24} tint="light" style={styles.blurContainer}>
+        <View style={styles.glassOverlay} pointerEvents="none" />
+        <View style={styles.tabBar}>
+          {state.routes.map((route, index) => {
+            const { options } = descriptors[route.key];
+            const isFocused = state.index === index;
+            const config = TAB_CONFIG[route.name] || { icon: 'home', label: route.name };
 
-          const onPress = () => {
-            const event = navigation.emit({
-              type: 'tabPress',
-              target: route.key,
-              canPreventDefault: true,
-            });
+            const onPress = () => {
+              const event = navigation.emit({
+                type: 'tabPress',
+                target: route.key,
+                canPreventDefault: true,
+              });
 
-            if (!isFocused && !event.defaultPrevented) {
-              navigation.navigate(route.name);
-            }
-          };
+              if (!isFocused && !event.defaultPrevented) {
+                navigation.navigate(route.name);
+              }
+            };
 
-          const onLongPress = () => {
-            navigation.emit({
-              type: 'tabLongPress',
-              target: route.key,
-            });
-          };
+            const onLongPress = () => {
+              navigation.emit({
+                type: 'tabLongPress',
+                target: route.key,
+              });
+            };
 
-          return (
-            <Pressable
-              key={route.key}
-              accessibilityRole="button"
-              accessibilityState={isFocused ? { selected: true } : {}}
-              accessibilityLabel={options.tabBarAccessibilityLabel}
-              onPress={onPress}
-              onLongPress={onLongPress}
-              style={styles.tabItem}
-            >
-              <View style={[styles.iconContainer, isFocused && styles.iconContainerActive]}>
+            return (
+              <Pressable
+                key={route.key}
+                accessibilityRole="button"
+                accessibilityState={isFocused ? { selected: true } : {}}
+                accessibilityLabel={options.tabBarAccessibilityLabel}
+                onPress={onPress}
+                onLongPress={onLongPress}
+                style={styles.tabItem}
+              >
                 <MaterialIcons
                   name={config.icon}
-                  size={24}
-                  color={isFocused ? colors.primary : colors.text.secondary.light}
+                  size={26}
+                  color={isFocused ? colors.primary : colors.text.tertiary.light}
                 />
-              </View>
-              <Text style={[styles.label, isFocused ? styles.labelActive : styles.labelInactive]}>
-                {config.label}
-              </Text>
-            </Pressable>
-          );
-        })}
-      </View>
+                <Text style={[styles.label, isFocused ? styles.labelActive : styles.labelInactive]}>
+                  {config.label}
+                </Text>
+                {isFocused && <View style={styles.activeIndicator} />}
+              </Pressable>
+            );
+          })}
+        </View>
+      </BlurView>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: 'rgba(255, 255, 255, 0.98)',
-    borderTopWidth: 1,
-    borderTopColor: colors.border.light,
-    paddingTop: spacing.sm,
-    paddingHorizontal: spacing.lg,
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+    zIndex: 60,
+  },
+  blurContainer: {
+    width: '90%',
+    maxWidth: 340,
+    borderRadius: 32, // rounded-[2rem]
+    overflow: 'hidden',
+    borderWidth: 2,
+    borderColor: 'rgba(255, 255, 255, 0.6)', // border-white/60
+    position: 'relative',
+    height: 64, // h-16
+    justifyContent: 'center',
     ...Platform.select({
       ios: {
         shadowColor: colors.black,
-        shadowOffset: { width: 0, height: -2 },
+        shadowOffset: { width: 0, height: 10 },
         shadowOpacity: 0.05,
-        shadowRadius: 8,
+        shadowRadius: 15,
       },
       android: {
         elevation: 8,
       },
     }),
   },
+  glassOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(255, 255, 255, 0.45)', // bg-white/40-45
+  },
   tabBar: {
     flexDirection: 'row',
     justifyContent: 'space-around',
     alignItems: 'center',
+    paddingHorizontal: spacing.xl,
+    paddingVertical: spacing.md,
   },
   tabItem: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: spacing.xs,
     gap: spacing.xxs,
-  },
-  iconContainer: {
-    width: 48,
-    height: 32,
-    borderRadius: borderRadius.lg,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  iconContainerActive: {
-    backgroundColor: colors.primaryLight,
+    position: 'relative',
+    paddingVertical: spacing.xs,
   },
   label: {
-    fontSize: 12,
-    fontWeight: '500',
+    fontSize: 10,
+    fontWeight: '700',
   },
   labelActive: {
     color: colors.primary,
-    fontWeight: '600',
   },
   labelInactive: {
-    color: colors.text.secondary.light,
+    color: colors.text.tertiary.light,
+  },
+  activeIndicator: {
+    position: 'absolute',
+    bottom: -spacing.xs,
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: colors.primary,
   },
 });

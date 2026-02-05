@@ -13,3 +13,4 @@ export { LoadingView } from './LoadingView';
 export { ErrorView } from './ErrorView';
 export { GlassDropdownMenu } from './GlassDropdownMenu';
 export type { GlassDropdownAction } from './GlassDropdownMenu';
+export { GlassView } from './GlassView';
