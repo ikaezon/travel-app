@@ -195,3 +195,142 @@ export function cancelDebounce(): void {
   lastAbort?.abort();
   lastAbort = null;
 }
+
+// Address autocomplete types and functions
+export interface AddressSuggestion {
+  formatted: string;
+  street?: string;
+  houseNumber?: string;
+  city?: string;
+  state?: string;
+  postcode?: string;
+  country?: string;
+  placeId: string;
+  lat?: number;
+  lon?: number;
+}
+
+function formatAddressLabel(p: Record<string, unknown>): string {
+  // Return the full formatted address from Geoapify
+  return (p.formatted as string) ?? '';
+}
+
+function featuresToAddressSuggestions(features: ApiFeature[]): AddressSuggestion[] {
+  const seen = new Set<string>();
+  return features
+    .map((f) => {
+      const p = f.properties ?? {};
+      const formatted = formatAddressLabel(p);
+      if (!formatted || seen.has(formatted)) return null;
+      seen.add(formatted);
+      return {
+        formatted,
+        street: p.street as string | undefined,
+        houseNumber: p.housenumber as string | undefined,
+        city: p.city as string | undefined,
+        state: p.state as string | undefined,
+        postcode: p.postcode as string | undefined,
+        country: p.country as string | undefined,
+        placeId: (p.place_id as string) ?? `${formatted}-${Math.random().toString(36).slice(2)}`,
+        lat: p.lat as number | undefined,
+        lon: p.lon as number | undefined,
+      } as AddressSuggestion;
+    })
+    .filter((s): s is AddressSuggestion => s !== null);
+}
+
+async function fetchAddressSuggestionsRaw(
+  text: string,
+  apiKeyVal: string,
+  signal: AbortSignal | undefined
+): Promise<AddressSuggestion[]> {
+  const params = new URLSearchParams({ 
+    text, 
+    apiKey: apiKeyVal, 
+    limit: '8',
+    // Don't filter by type to get all address types (street, building, etc.)
+  });
+  const res = await fetch(`${API_URL}?${params}`, { signal });
+  if (!res.ok) return [];
+  const data = (await res.json()) as ApiResponse;
+  return featuresToAddressSuggestions(data.features ?? []);
+}
+
+const addressCache = new Map<string, { list: AddressSuggestion[]; ts: number }>();
+
+function getAddressCached(q: string): AddressSuggestion[] | null {
+  const key = `addr:${q.trim().toLowerCase()}`;
+  const ent = addressCache.get(key);
+  if (!ent || Date.now() - ent.ts > CACHE_TTL_MS) {
+    if (ent) addressCache.delete(key);
+    return null;
+  }
+  return ent.list;
+}
+
+function setAddressCached(q: string, list: AddressSuggestion[]): void {
+  const key = `addr:${q.trim().toLowerCase()}`;
+  if (addressCache.size >= MAX_CACHE) addressCache.delete(addressCache.keys().next().value!);
+  addressCache.set(key, { list, ts: Date.now() });
+}
+
+export async function fetchAddressSuggestions(query: string, signal?: AbortSignal): Promise<AddressSuggestion[]> {
+  const q = query.trim();
+  const key = apiKey();
+  if (q.length < MIN_LEN || !key || key === 'your_geoapify_api_key') return [];
+
+  const cached = getAddressCached(q);
+  if (cached) return cached;
+
+  try {
+    const list = await fetchAddressSuggestionsRaw(q, key, signal);
+    setAddressCached(q, list);
+    return list;
+  } catch (e) {
+    if (e instanceof Error && e.name === 'AbortError') return [];
+    return [];
+  }
+}
+
+export interface AddressAutocompleteService {
+  debouncedFetchSuggestions: (query: string, onResult: (suggestions: AddressSuggestion[]) => void) => void;
+  cancel: () => void;
+}
+
+export function createAddressAutocompleteService(): AddressAutocompleteService {
+  let timer: ReturnType<typeof setTimeout> | null = null;
+  let abort: AbortController | null = null;
+
+  return {
+    debouncedFetchSuggestions(query: string, onResult: (suggestions: AddressSuggestion[]) => void): void {
+      const q = query.trim();
+      if (timer) clearTimeout(timer);
+      timer = null;
+
+      if (q.length < MIN_LEN) {
+        onResult([]);
+        return;
+      }
+
+      timer = setTimeout(async () => {
+        timer = null;
+        abort?.abort();
+        const ac = new AbortController();
+        abort = ac;
+
+        const cached = getAddressCached(q);
+        if (cached) onResult(cached);
+
+        const list = await fetchAddressSuggestions(q, ac.signal);
+        if (!ac.signal.aborted) onResult(list);
+      }, DEBOUNCE_MS);
+    },
+
+    cancel(): void {
+      if (timer) clearTimeout(timer);
+      timer = null;
+      abort?.abort();
+      abort = null;
+    },
+  };
+}

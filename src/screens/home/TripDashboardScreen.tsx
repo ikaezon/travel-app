@@ -10,7 +10,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
-import { MaterialIcons } from '@expo/vector-icons';
+import { Menu, MoreHorizontal } from 'lucide-react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { TripCard } from '../../components/domain/TripCard';
@@ -172,7 +172,7 @@ export default function TripDashboardScreen() {
                   key={action.id}
                   title={action.title}
                   subtitle={action.subtitle}
-                  iconName={action.iconName as keyof typeof MaterialIcons.glyphMap}
+                  iconKey={action.iconKey as import('../../constants').QuickActionIconKey}
                   iconColor={action.iconColor}
                   iconBgColor={action.iconBgColor}
                   onPress={() => handleQuickActionPress(action.route)}
@@ -189,7 +189,7 @@ export default function TripDashboardScreen() {
             <View style={styles.topNavContent}>
               <Pressable style={({ pressed }) => pressed && styles.navButtonPressed}>
                 <View style={styles.navButton}>
-                  <MaterialIcons name="menu" size={22} color={colors.text.primary.light} />
+                  <Menu size={22} color={colors.text.primary.light} strokeWidth={2} />
                 </View>
               </Pressable>
 
@@ -200,7 +200,7 @@ export default function TripDashboardScreen() {
 
               <Pressable style={({ pressed }) => pressed && styles.navButtonPressed}>
                 <View style={styles.navButton}>
-                  <MaterialIcons name="more-horiz" size={22} color={colors.text.primary.light} />
+                  <MoreHorizontal size={22} color={colors.text.primary.light} strokeWidth={2} />
                 </View>
               </Pressable>
             </View>

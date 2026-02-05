@@ -17,6 +17,7 @@ import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { FormInput } from '../../components/ui/FormInput';
 import { DatePickerInput } from '../../components/ui/DatePickerInput';
+import { TimePickerInput } from '../../components/ui/TimePickerInput';
 import { ShimmerButton } from '../../components/ui/ShimmerButton';
 import {
   colors,
@@ -76,7 +77,7 @@ export default function TrainEntryScreen() {
 
     setIsSubmitting(true);
     try {
-      await reservationService.createReservation({
+      const reservation = await reservationService.createReservation({
         tripId,
         type: 'train',
         providerName,
@@ -100,6 +101,7 @@ export default function TrainEntryScreen() {
         metadata: seat.trim() ? `Seat: ${seat.trim()}` : undefined,
         actionLabel: 'View Ticket',
         actionIcon: 'confirmation-number',
+        reservationId: reservation.id,
       });
 
       setIsSubmitting(false);
@@ -166,11 +168,11 @@ export default function TrainEntryScreen() {
             iconName="event"
             variant="glass"
           />
-          <FormInput
+          <TimePickerInput
             label="Time"
             value={time}
-            onChangeText={setTime}
-            placeholder="e.g. 09:30 AM"
+            onChange={setTime}
+            placeholder="Tap to select time"
             iconName="schedule"
             variant="glass"
           />

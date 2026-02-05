@@ -41,6 +41,37 @@ export function parseToCalendarDate(value: string): string | null {
   return null;
 }
 
+/**
+ * Parse time string (e.g. "3:00 PM", "11:00 AM") to minutes since midnight for sorting.
+ * Returns 0 for unparseable/TBD so they sort first, or 24*60 for end-of-day.
+ */
+function parseTimeToMinutes(value: string): number {
+  const trimmed = value.trim().toUpperCase();
+  if (!trimmed || trimmed === 'TBD') return 24 * 60;
+  const match = trimmed.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)?$/i);
+  if (!match) return 0;
+  let hours = parseInt(match[1], 10);
+  const minutes = parseInt(match[2], 10);
+  const period = match[3];
+  if (period === 'PM' && hours !== 12) hours += 12;
+  else if (period === 'AM' && hours === 12) hours = 0;
+  return hours * 60 + minutes;
+}
+
+export function sortTimelineItemsByDateAndTime<T extends { date: string; time: string }>(
+  items: T[]
+): T[] {
+  return [...items].sort((a, b) => {
+    const dateA = parseToCalendarDate(a.date) ?? '9999-12-31';
+    const dateB = parseToCalendarDate(b.date) ?? '9999-12-31';
+    const dateCmp = dateA.localeCompare(dateB);
+    if (dateCmp !== 0) return dateCmp;
+    const timeA = parseTimeToMinutes(a.time);
+    const timeB = parseTimeToMinutes(b.time);
+    return timeA - timeB;
+  });
+}
+
 export function daysBetween(startDate: string, endDate: string): number {
   const start = new Date(startDate);
   const end = new Date(endDate);

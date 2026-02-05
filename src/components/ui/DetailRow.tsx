@@ -20,15 +20,19 @@ export function DetailRow({
   return (
     <View style={[styles.container, showBorder && styles.borderBottom]}>
       <Text style={styles.label}>{label}</Text>
-      <Text
-        style={[
-          styles.value,
-          valueColor && { color: valueColor },
-          isMonospace && styles.monospace,
-        ]}
-      >
-        {value}
-      </Text>
+      <View style={styles.valueWrapper}>
+        <Text
+          style={[
+            styles.value,
+            valueColor && { color: valueColor },
+            isMonospace && styles.monospace,
+          ]}
+          numberOfLines={4}
+          ellipsizeMode="tail"
+        >
+          {value}
+        </Text>
+      </View>
     </View>
   );
 }
@@ -49,6 +53,11 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: fontFamilies.regular,
     color: colors.text.secondary.light,
+    flexShrink: 0,
+  },
+  valueWrapper: {
+    flex: 1,
+    minWidth: 0,
   },
   value: {
     fontSize: 14,

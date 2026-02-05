@@ -54,6 +54,7 @@ export interface Reservation {
   vehicleInfo?: string;
   boardingZone?: string;
   priority?: string;
+  address?: string;
   attachments: Attachment[];
 }
 
@@ -69,7 +70,7 @@ export interface QuickAction {
   id: string;
   title: string;
   subtitle: string;
-  iconName: string;
+  iconKey: string;
   iconColor: string;
   iconBgColor: string;
   route: string;

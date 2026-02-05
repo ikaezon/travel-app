@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import {
   View,
@@ -10,6 +10,8 @@ import {
   Image,
   ActivityIndicator,
   Alert,
+  Linking,
+  Platform,
 } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -25,6 +27,7 @@ import { useReservationByTimelineId } from '../../hooks';
 import { getReservationStatusConfig } from '../../constants';
 import { colors, spacing, fontFamilies, glassStyles, glassColors, glassConstants, glassShadows } from '../../theme';
 import { reservationService, tripService } from '../../data';
+import { shortenCountryInAddress } from '../../utils/addressFormat';
 
 type NavigationProp = NativeStackNavigationProp<MainStackParamList>;
 type ReservationDetailRouteProp = RouteProp<MainStackParamList, 'ReservationDetail'>;
@@ -91,10 +94,61 @@ export default function ReservationDetailScreen() {
     [handleEditReservation, handleAddAttachments, handleDeleteReservation]
   );
 
+  const getDirectionsAddress = useCallback(() => {
+    if (!reservation) return null;
+    // Use explicit address if available, otherwise fall back to route for hotels
+    if (reservation.address) return reservation.address;
+    if (reservation.type === 'hotel' && reservation.route) return reservation.route;
+    return null;
+  }, [reservation]);
+
+  const handleOpenDirections = useCallback(() => {
+    const address = getDirectionsAddress();
+    if (!address) {
+      Alert.alert('No Address', 'No address available for directions.');
+      return;
+    }
+
+    const encodedAddress = encodeURIComponent(address);
+    
+    // Use Apple Maps on iOS, Google Maps on Android
+    const url = Platform.select({
+      ios: `maps://maps.apple.com/?daddr=${encodedAddress}`,
+      android: `geo:0,0?q=${encodedAddress}`,
+      default: `https://maps.apple.com/?daddr=${encodedAddress}`,
+    });
+
+    Linking.canOpenURL(url).then((supported) => {
+      if (supported) {
+        Linking.openURL(url);
+      } else {
+        // Fallback to web URL
+        Linking.openURL(`https://maps.apple.com/?daddr=${encodedAddress}`);
+      }
+    });
+  }, [getDirectionsAddress]);
+
   const topOffset = insets.top + 8;
   const showContent = Boolean(!isLoading && !error && reservation);
   const headerTitle = reservation?.providerName || 'Reservation Details';
   const statusConfig = reservation ? getReservationStatusConfig(reservation.status) : null;
+
+  const displayAddress = useMemo(() => {
+    const addr = reservation?.address || (reservation?.type === 'hotel' ? reservation?.route : null);
+    return addr ? shortenCountryInAddress(addr) : '';
+  }, [reservation?.address, reservation?.route, reservation?.type]);
+
+  const dateDisplayText = useMemo(() => {
+    if (!reservation) return '';
+    const d = reservation.duration?.trim() || '';
+    const hasDuration = d && d !== '—' && d !== '-';
+    if (reservation.type === 'hotel') {
+      if (d.includes(' - ')) return d;
+      if (d === reservation.date) return reservation.date;
+      return hasDuration ? `${reservation.date} • ${d}` : reservation.date;
+    }
+    return hasDuration ? `${reservation.date} • ${d}` : reservation.date;
+  }, [reservation]);
 
   let content: React.ReactNode;
 
@@ -124,11 +178,11 @@ export default function ReservationDetailScreen() {
         style={styles.scrollView}
         contentContainerStyle={[styles.scrollContent, { paddingTop: topOffset + 72 }]}
         showsVerticalScrollIndicator={false}
+        removeClippedSubviews={Platform.OS === 'android'}
       >
         <View style={styles.heroSection}>
           <View style={styles.heroCard}>
-            <BlurView intensity={24} tint="light" style={[StyleSheet.absoluteFill, glassStyles.blurContentXLarge]} />
-            <View style={styles.glassOverlay} pointerEvents="none" />
+            <View style={[StyleSheet.absoluteFill, styles.heroCardBg]} pointerEvents="none" />
             <ImageBackground
               source={{ uri: reservation.headerImageUrl }}
               style={styles.heroImage}
@@ -152,24 +206,17 @@ export default function ReservationDetailScreen() {
         <View style={styles.headlineSection}>
           <View style={styles.headlineContent}>
             <View style={styles.headlineLeft}>
-              <Text style={styles.route}>{reservation.route}</Text>
-              <Text style={styles.dateInfo}>
-                {reservation.type === 'hotel'
-                  ? reservation.duration?.includes(' - ')
-                    ? reservation.duration
-                    : reservation.duration === reservation.date
-                      ? reservation.date
-                      : `${reservation.date} • ${reservation.duration}`
-                  : `${reservation.date} • ${reservation.duration}`}
+              <Text style={styles.route}>
+                {reservation.type === 'hotel' ? reservation.providerName : reservation.route}
               </Text>
+              <Text style={styles.dateInfo}>{dateDisplayText}</Text>
             </View>
             {statusConfig && (
-              <BlurView intensity={40} tint="light" style={[styles.statusBadge, glassStyles.blurContentPill]}>
-                <View style={[styles.statusOverlay, { backgroundColor: statusConfig.bgColor }]} pointerEvents="none" />
+              <View style={[styles.statusBadge, styles.statusBadgeSolid, { backgroundColor: statusConfig.bgColor }]}>
                 <Text style={[styles.statusText, { color: statusConfig.textColor }]}>
                   {statusConfig.label}
                 </Text>
-              </BlurView>
+              </View>
             )}
           </View>
         </View>
@@ -184,8 +231,7 @@ export default function ReservationDetailScreen() {
 
         <View style={styles.detailsSection}>
           <View style={styles.detailsCard}>
-            <BlurView intensity={24} tint="light" style={[StyleSheet.absoluteFill, glassStyles.blurContent]} />
-            <View style={styles.glassOverlay} pointerEvents="none" />
+            <View style={[StyleSheet.absoluteFill, styles.cardSolidBg]} pointerEvents="none" />
             <View style={styles.detailsList}>
               <DetailRow
                 label="Confirmation"
@@ -213,8 +259,18 @@ export default function ReservationDetailScreen() {
                 <DetailRow
                   label={reservation.type === 'flight' ? 'Aircraft' : 'Vehicle'}
                   value={reservation.vehicleInfo}
-                  showBorder={false}
+                  showBorder={Boolean(getDirectionsAddress())}
                 />
+              )}
+              {getDirectionsAddress() && (
+                <Pressable onPress={handleOpenDirections}>
+                  <DetailRow
+                    label="Address"
+                    value={displayAddress}
+                    valueColor={colors.primary}
+                    showBorder={false}
+                  />
+                </Pressable>
               )}
             </View>
           </View>
@@ -231,8 +287,7 @@ export default function ReservationDetailScreen() {
                   pressed && styles.attachmentCardPressed,
                 ]}
               >
-                <BlurView intensity={24} tint="light" style={[StyleSheet.absoluteFill, glassStyles.blurContent]} />
-                <View style={styles.glassOverlay} pointerEvents="none" />
+                <View style={[StyleSheet.absoluteFill, styles.cardSolidBg]} pointerEvents="none" />
                 {attachment.thumbnailUrl && (
                   <Image
                     source={{ uri: attachment.thumbnailUrl }}
@@ -257,17 +312,20 @@ export default function ReservationDetailScreen() {
 
         <View style={styles.bottomActions}>
           <Pressable style={({ pressed }) => [styles.actionButton, pressed && styles.actionButtonPressed]}>
-            <BlurView intensity={24} tint="light" style={[StyleSheet.absoluteFill, glassStyles.blurContentPill]} />
-            <View style={styles.glassOverlay} pointerEvents="none" />
+            <View style={[StyleSheet.absoluteFill, styles.actionButtonBg]} pointerEvents="none" />
             <MaterialIcons name="calendar-today" size={20} color={colors.text.primary.light} />
             <Text style={styles.actionButtonText}>Calendar</Text>
           </Pressable>
-          <Pressable style={({ pressed }) => [styles.actionButton, styles.actionButtonPrimary, pressed && styles.actionButtonPressed]}>
-            <BlurView intensity={24} tint="light" style={[StyleSheet.absoluteFill, glassStyles.blurContentPill]} />
-            <View style={[styles.glassOverlay, { backgroundColor: glassColors.overlayBlue }]} pointerEvents="none" />
-            <MaterialIcons name="directions" size={20} color={colors.primary} />
-            <Text style={[styles.actionButtonText, styles.actionButtonTextPrimary]}>Directions</Text>
-          </Pressable>
+          {getDirectionsAddress() && (
+            <Pressable 
+              style={({ pressed }) => [styles.actionButton, styles.actionButtonPrimary, pressed && styles.actionButtonPressed]}
+              onPress={handleOpenDirections}
+            >
+              <View style={[StyleSheet.absoluteFill, styles.actionButtonBg, styles.actionButtonBgPrimary]} pointerEvents="none" />
+              <MaterialIcons name="directions" size={20} color={colors.primary} />
+              <Text style={[styles.actionButtonText, styles.actionButtonTextPrimary]}>Directions</Text>
+            </Pressable>
+          )}
         </View>
       </ScrollView>
     );
@@ -290,7 +348,7 @@ export default function ReservationDetailScreen() {
         )}
 
         <View style={[styles.topNavContainer, { top: topOffset }]}>
-          <BlurView intensity={24} tint="light" style={[styles.topNavBlur, glassStyles.blurContentLarge]}>
+          <BlurView intensity={16} tint="light" style={[styles.topNavBlur, glassStyles.blurContentLarge]}>
             <View style={styles.glassOverlay} pointerEvents="none" />
             <View style={styles.topNavContent}>
               <Pressable
@@ -464,6 +522,10 @@ const styles = StyleSheet.create({
   heroSection: {
     paddingHorizontal: 20,
   },
+  heroCardBg: {
+    backgroundColor: colors.glass.background,
+    borderRadius: glassConstants.radiusInner.cardXLarge,
+  },
   heroCard: {
     ...glassStyles.cardWrapperLarge,
     minHeight: 220,
@@ -526,15 +588,13 @@ const styles = StyleSheet.create({
     ...glassStyles.pillContainer,
     paddingHorizontal: 12,
     paddingVertical: 6,
-    borderColor: glassColors.borderStrong,
-    backgroundColor: glassColors.overlay,
+    borderColor: glassColors.border,
     justifyContent: 'center',
     alignItems: 'center',
     minWidth: 90,
   },
-  statusOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    opacity: 0.15,
+  statusBadgeSolid: {
+    opacity: 0.9,
   },
   statusText: {
     fontSize: 12,
@@ -551,6 +611,10 @@ const styles = StyleSheet.create({
   },
   detailsSection: {
     paddingHorizontal: 20,
+  },
+  cardSolidBg: {
+    backgroundColor: colors.glass.background,
+    borderRadius: glassConstants.radiusInner.card,
   },
   detailsCard: {
     ...glassStyles.cardWrapper,
@@ -617,6 +681,13 @@ const styles = StyleSheet.create({
     gap: 8,
     paddingVertical: 16,
     position: 'relative',
+  },
+  actionButtonBg: {
+    backgroundColor: colors.glass.background,
+    borderRadius: glassConstants.radius.pill,
+  },
+  actionButtonBgPrimary: {
+    backgroundColor: glassColors.overlayBlue,
   },
   actionButtonPrimary: {
     borderColor: glassColors.borderBlue,

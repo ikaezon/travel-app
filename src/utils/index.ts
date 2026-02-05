@@ -1,1 +1,1 @@
-export {};
+export { shortenCountryInAddress } from './addressFormat';

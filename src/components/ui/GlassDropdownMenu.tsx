@@ -34,6 +34,8 @@ interface GlassDropdownMenuProps {
   actions: GlassDropdownAction[];
   onSelect: (index: number) => void;
   style?: StyleProp<ViewStyle>;
+  /** When true, applies a uniform subtle background to all menu items */
+  uniformItemBackground?: boolean;
 }
 
 export function GlassDropdownMenu({
@@ -42,6 +44,7 @@ export function GlassDropdownMenu({
   actions,
   onSelect,
   style,
+  uniformItemBackground,
 }: GlassDropdownMenuProps) {
   const animation = useMenuAnimation(visible);
 
@@ -74,6 +77,7 @@ export function GlassDropdownMenu({
               style={({ pressed }) => [
                 styles.item,
                 !isLast && styles.itemBorder,
+                uniformItemBackground && styles.itemUniformBackground,
                 pressed && styles.itemPressed,
               ]}
               onPress={() => handlePress(index)}
@@ -133,6 +137,9 @@ const styles = StyleSheet.create({
   },
   itemPressed: {
     backgroundColor: MENU.itemPressed,
+  },
+  itemUniformBackground: {
+    backgroundColor: 'rgba(255, 255, 255, 0.12)',
   },
   icon: {
     marginRight: MENU.iconGap,

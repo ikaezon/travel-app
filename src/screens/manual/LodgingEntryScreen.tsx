@@ -16,6 +16,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { FormInput } from '../../components/ui/FormInput';
+import { AddressAutocomplete } from '../../components/ui/AddressAutocomplete';
 import { DateRangePickerInput } from '../../components/ui/DateRangePickerInput';
 import { TripSelector } from '../../components/domain';
 import { ShimmerButton } from '../../components/ui/ShimmerButton';
@@ -117,7 +118,7 @@ export default function LodgingEntryScreen() {
 
     setIsSubmitting(true);
     try {
-      await reservationService.createReservation({
+      const reservation = await reservationService.createReservation({
         tripId: selectedTripId,
         type: 'hotel',
         providerName: title,
@@ -128,6 +129,7 @@ export default function LodgingEntryScreen() {
         confirmationCode: confirmationNumber.trim() || '—',
         statusText: 'Confirmed',
         headerImageUrl: DEFAULT_RESERVATION_HEADER_IMAGE,
+        address: address.trim() || undefined,
         attachments: [],
       });
 
@@ -140,6 +142,7 @@ export default function LodgingEntryScreen() {
         metadata,
         actionLabel: 'Get Directions',
         actionIcon: 'directions',
+        reservationId: reservation.id,
       });
 
       setIsSubmitting(false);
@@ -190,12 +193,11 @@ export default function LodgingEntryScreen() {
             iconName="hotel"
             variant="glass"
           />
-          <FormInput
+          <AddressAutocomplete
             label="Address"
             value={address}
             onChangeText={setAddress}
-            placeholder="Street, city, country"
-            iconName="location-on"
+            placeholder="Search for an address..."
             variant="glass"
           />
           <View onLayout={handleDateFieldLayout}>

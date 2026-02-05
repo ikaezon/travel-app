@@ -8,6 +8,7 @@ import type {
   DbTripInsert,
   DbTripUpdate,
   DbTimelineItemInsert,
+  DbTimelineItemUpdate,
   DbReservationInsert,
   DbReservationUpdate,
   DbAttachmentInsert,
@@ -92,9 +93,12 @@ export function mapTimelineItemFromDb(row: DbTimelineItem): TimelineItem {
   };
 }
 
-export function mapTimelineItemToDb(item: Omit<TimelineItem, 'id'>): DbTimelineItemInsert {
+export function mapTimelineItemToDb(
+  item: Omit<TimelineItem, 'id'> & { reservationId?: string }
+): DbTimelineItemInsert {
   return {
     trip_id: item.tripId,
+    reservation_id: item.reservationId || null,
     type: item.type,
     date: item.date,
     time: item.time,
@@ -105,6 +109,23 @@ export function mapTimelineItemToDb(item: Omit<TimelineItem, 'id'>): DbTimelineI
     action_icon: item.actionIcon || null,
     thumbnail_url: item.thumbnailUrl || null,
   };
+}
+
+export function mapTimelineItemUpdateToDb(
+  updates: Partial<TimelineItem> & { reservationId?: string }
+): DbTimelineItemUpdate {
+  const mapped: DbTimelineItemUpdate = {};
+  if (updates.reservationId !== undefined) mapped.reservation_id = updates.reservationId || null;
+  if (updates.type !== undefined) mapped.type = updates.type;
+  if (updates.date !== undefined) mapped.date = updates.date;
+  if (updates.time !== undefined) mapped.time = updates.time;
+  if (updates.title !== undefined) mapped.title = updates.title;
+  if (updates.subtitle !== undefined) mapped.subtitle = updates.subtitle || null;
+  if (updates.metadata !== undefined) mapped.metadata = updates.metadata || null;
+  if (updates.actionLabel !== undefined) mapped.action_label = updates.actionLabel || null;
+  if (updates.actionIcon !== undefined) mapped.action_icon = updates.actionIcon || null;
+  if (updates.thumbnailUrl !== undefined) mapped.thumbnail_url = updates.thumbnailUrl || null;
+  return mapped;
 }
 
 export function mapAttachmentFromDb(row: DbAttachment): Attachment {
@@ -148,6 +169,7 @@ export function mapReservationFromDb(row: DbReservation, attachments: Attachment
     vehicleInfo: row.vehicle_info ?? undefined,
     boardingZone: row.boarding_zone ?? undefined,
     priority: row.priority ?? undefined,
+    address: row.address ?? undefined,
     attachments,
   };
 }
@@ -171,6 +193,7 @@ export function mapReservationToDb(reservation: Omit<Reservation, 'id' | 'attach
     vehicle_info: reservation.vehicleInfo || null,
     boarding_zone: reservation.boardingZone || null,
     priority: reservation.priority || null,
+    address: reservation.address || null,
   };
 }
 
@@ -193,6 +216,7 @@ export function mapReservationUpdateToDb(updates: Partial<Reservation>): DbReser
   if (updates.vehicleInfo !== undefined) mapped.vehicle_info = updates.vehicleInfo || null;
   if (updates.boardingZone !== undefined) mapped.boarding_zone = updates.boardingZone || null;
   if (updates.priority !== undefined) mapped.priority = updates.priority || null;
+  if (updates.address !== undefined) mapped.address = updates.address || null;
   
   return mapped;
 }

@@ -17,6 +17,8 @@ import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { FormInput } from '../../components/ui/FormInput';
 import { DatePickerInput } from '../../components/ui/DatePickerInput';
+import { TimePickerInput } from '../../components/ui/TimePickerInput';
+import { DualAirportInput } from '../../components/ui/DualAirportInput';
 import { TripSelector } from '../../components/domain';
 import { ShimmerButton } from '../../components/ui/ShimmerButton';
 import {
@@ -183,21 +185,13 @@ export default function FlightEntryScreen() {
             iconName="confirmation-number"
             variant="glass"
           />
-          <FormInput
-            label="Departure airport"
-            value={departureAirport}
-            onChangeText={setDepartureAirport}
-            placeholder="e.g. SFO"
-            iconName="flight-takeoff"
-            variant="glass"
-          />
-          <FormInput
-            label="Arrival airport"
-            value={arrivalAirport}
-            onChangeText={setArrivalAirport}
-            placeholder="e.g. JFK"
-            iconName="flight-land"
-            variant="glass"
+          <DualAirportInput
+            departureValue={departureAirport}
+            arrivalValue={arrivalAirport}
+            onDepartureChange={setDepartureAirport}
+            onArrivalChange={setArrivalAirport}
+            departurePlaceholder="SFO"
+            arrivalPlaceholder="JFK"
           />
           <View onLayout={handleDateFieldLayout}>
             <DatePickerInput
@@ -211,11 +205,11 @@ export default function FlightEntryScreen() {
               variant="glass"
             />
           </View>
-          <FormInput
+          <TimePickerInput
             label="Departure time"
             value={departureTime}
-            onChangeText={setDepartureTime}
-            placeholder="e.g. 10:30 AM"
+            onChange={setDepartureTime}
+            placeholder="Tap to select time"
             iconName="schedule"
             variant="glass"
           />

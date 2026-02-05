@@ -1,13 +1,15 @@
 import React, { useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, Pressable, Animated } from 'react-native';
 import { BlurView } from 'expo-blur';
-import { MaterialIcons } from '@expo/vector-icons';
-import { colors, borderRadius, fontFamilies, glassStyles, glassConstants, glassColors } from '../../theme';
+import { QUICK_ACTION_ICON_MAP, ChevronRight, type QuickActionIconKey } from '../../constants/quickActionIcons';
+import { colors, borderRadius, fontFamilies, glassStyles } from '../../theme';
+
+export type { QuickActionIconKey };
 
 interface QuickActionCardProps {
   title: string;
   subtitle: string;
-  iconName: keyof typeof MaterialIcons.glyphMap;
+  iconKey: QuickActionIconKey;
   iconColor: string;
   iconBgColor: string;
   onPress?: () => void;
@@ -17,11 +19,12 @@ interface QuickActionCardProps {
 export function QuickActionCard({
   title,
   subtitle,
-  iconName,
+  iconKey,
   iconColor,
   onPress,
   delay = 0,
 }: QuickActionCardProps) {
+  const IconComponent = QUICK_ACTION_ICON_MAP[iconKey];
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -45,7 +48,7 @@ export function QuickActionCard({
           <View style={styles.cardOverlay} pointerEvents="none" />
           <View style={styles.content}>
             <BlurView intensity={50} tint="light" style={[styles.iconContainer, glassStyles.blurContentIcon]}>
-              <MaterialIcons name={iconName} size={28} color={iconColor} />
+              {IconComponent && <IconComponent size={26} color={iconColor} strokeWidth={2} />}
             </BlurView>
             <View style={styles.textContainer}>
               <Text style={styles.title}>{title}</Text>
@@ -53,7 +56,7 @@ export function QuickActionCard({
             </View>
           </View>
           <BlurView intensity={50} tint="light" style={[styles.chevronContainer, glassStyles.blurContentIcon]}>
-            <MaterialIcons name="chevron-right" size={20} color={colors.text.tertiary.light} />
+            <ChevronRight size={20} color={colors.text.tertiary.light} strokeWidth={2} />
           </BlurView>
         </BlurView>
       </Pressable>

@@ -17,6 +17,7 @@ import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { FormInput } from '../../components/ui/FormInput';
 import { DatePickerInput } from '../../components/ui/DatePickerInput';
+import { TimePickerInput } from '../../components/ui/TimePickerInput';
 import { ShimmerButton } from '../../components/ui/ShimmerButton';
 import { MainStackParamList } from '../../navigation/types';
 import { colors, fontFamilies, glassStyles, glassColors } from '../../theme';
@@ -172,12 +173,13 @@ export default function ReviewDetailsScreen({
                 style={styles.halfWidth}
                 variant="glass"
               />
-              <FormInput
+              <TimePickerInput
                 label="Time"
                 value={formData.time}
-                onChangeText={(text) =>
+                onChange={(text) =>
                   setFormData((prev) => ({ ...prev, time: text }))
                 }
+                placeholder="Tap to select"
                 iconName="schedule"
                 style={styles.halfWidth}
                 variant="glass"

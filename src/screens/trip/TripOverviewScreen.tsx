@@ -24,6 +24,7 @@ import { useTripTimeline, useDeleteTrip } from '../../hooks';
 import { colors, spacing, borderRadius, fontFamilies, glassStyles, glassColors, glassShadows, glassConstants } from '../../theme';
 import { TIMELINE_FILTER_OPTIONS } from '../../constants';
 import { mockImages } from '../../data/mocks';
+import { sortTimelineItemsByDateAndTime } from '../../utils/dateFormat';
 
 type NavigationProp = NativeStackNavigationProp<MainStackParamList, 'TripOverview'>;
 type TripOverviewRouteProp = RouteProp<MainStackParamList, 'TripOverview'>;
@@ -57,15 +58,14 @@ export default function TripOverviewScreen() {
 
   const mapImageUrl = mockImages.mapPlaceholder;
 
-  const groupedByDate = useMemo(
-    () =>
-      filteredItems.reduce((acc, item) => {
-        if (!acc[item.date]) acc[item.date] = [];
-        acc[item.date].push(item);
-        return acc;
-      }, {} as Record<string, typeof timeline>),
-    [filteredItems]
-  );
+  const groupedByDate = useMemo(() => {
+    const sorted = sortTimelineItemsByDateAndTime(filteredItems);
+    return sorted.reduce((acc, item) => {
+      if (!acc[item.date]) acc[item.date] = [];
+      acc[item.date].push(item);
+      return acc;
+    }, {} as Record<string, typeof timeline>);
+  }, [filteredItems]);
 
   const handleBackPress = useCallback(() => navigation.goBack(), [navigation]);
 

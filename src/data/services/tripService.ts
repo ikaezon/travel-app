@@ -8,6 +8,7 @@ import {
   mapTripUpdateToDb,
   mapTimelineItemFromDb,
   mapTimelineItemToDb,
+  mapTimelineItemUpdateToDb,
   DbTrip,
   DbTimelineItem,
 } from '../supabase';
@@ -93,7 +94,7 @@ export const tripService = {
 
   async createTimelineItem(
     tripId: string,
-    item: Omit<TimelineItem, 'id' | 'tripId'>
+    item: Omit<TimelineItem, 'id' | 'tripId'> & { reservationId?: string }
   ): Promise<TimelineItem> {
     const dbData = mapTimelineItemToDb({ ...item, tripId });
 
@@ -105,6 +106,28 @@ export const tripService = {
 
     if (hasError(response)) {
       throw wrapDatabaseError(response.error, 'createTimelineItem');
+    }
+
+    return mapTimelineItemFromDb(response.data as DbTimelineItem);
+  },
+
+  async updateTimelineItem(
+    timelineItemId: string,
+    updates: Partial<Pick<TimelineItem, 'subtitle' | 'title' | 'date' | 'time' | 'metadata'>> & {
+      reservationId?: string;
+    }
+  ): Promise<TimelineItem | null> {
+    const dbUpdates = mapTimelineItemUpdateToDb(updates);
+
+    const response = await supabase
+      .from('timeline_items')
+      .update(dbUpdates)
+      .eq('id', timelineItemId)
+      .select()
+      .single();
+
+    if (hasError(response)) {
+      throw wrapDatabaseError(response.error, 'updateTimelineItem');
     }
 
     return mapTimelineItemFromDb(response.data as DbTimelineItem);

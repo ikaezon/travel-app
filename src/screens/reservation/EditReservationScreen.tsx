@@ -17,6 +17,8 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { FormInput } from '../../components/ui/FormInput';
+import { AddressAutocomplete } from '../../components/ui/AddressAutocomplete';
+import { DualAirportInput } from '../../components/ui/DualAirportInput';
 import { DatePickerInput } from '../../components/ui/DatePickerInput';
 import { DateRangePickerInput } from '../../components/ui/DateRangePickerInput';
 import { ShimmerButton } from '../../components/ui/ShimmerButton';
@@ -29,7 +31,7 @@ import {
 } from '../../theme';
 import { MainStackParamList } from '../../navigation/types';
 import { useReservationByTimelineId } from '../../hooks';
-import { reservationService } from '../../data';
+import { reservationService, tripService } from '../../data';
 import { formatCalendarDateToLongDisplay, parseToCalendarDate } from '../../utils/dateFormat';
 
 type NavigationProp = NativeStackNavigationProp<MainStackParamList, 'EditReservation'>;
@@ -44,6 +46,8 @@ export default function EditReservationScreen() {
   const { reservation, isLoading } = useReservationByTimelineId(reservationId);
   const [providerName, setProviderName] = useState('');
   const [routeText, setRouteText] = useState('');
+  const [departureAirport, setDepartureAirport] = useState('');
+  const [arrivalAirport, setArrivalAirport] = useState('');
   const [date, setDate] = useState('');
   const [checkInDate, setCheckInDate] = useState<string | null>(null);
   const [checkOutDate, setCheckOutDate] = useState<string | null>(null);
@@ -51,6 +55,7 @@ export default function EditReservationScreen() {
   const [terminal, setTerminal] = useState('');
   const [gate, setGate] = useState('');
   const [seat, setSeat] = useState('');
+  const [address, setAddress] = useState('');
   const [keyboardHeight, setKeyboardHeight] = useState(0);
   const [saving, setSaving] = useState(false);
 
@@ -65,6 +70,17 @@ export default function EditReservationScreen() {
       setTerminal(reservation.terminal ?? '');
       setGate(reservation.gate ?? '');
       setSeat(reservation.seat ?? '');
+      setAddress(reservation.address ?? '');
+
+      if (reservation.type === 'flight' && reservation.route) {
+        const parts = reservation.route.split(/\s*[→\-–—]\s*|\s+to\s+/i).map((s) => s.trim());
+        if (parts.length >= 2) {
+          setDepartureAirport(parts[0] || '');
+          setArrivalAirport(parts[1] || '');
+        } else if (parts.length === 1 && parts[0]) {
+          setDepartureAirport(parts[0]);
+        }
+      }
 
       if (reservation.type === 'hotel' && reservation.duration) {
         const parts = reservation.duration.split(/\s*-\s*/);
@@ -113,17 +129,29 @@ export default function EditReservationScreen() {
         finalDate = startDisplay;
       }
 
+      const finalRoute =
+        reservation.type === 'flight'
+          ? [departureAirport.trim(), arrivalAirport.trim()].filter(Boolean).join(' → ') || routeText
+          : reservation.type === 'hotel'
+            ? providerName
+            : routeText;
+
       const updated = await reservationService.updateReservation(reservation.id, {
         providerName,
-        route: routeText,
+        route: finalRoute,
         date: finalDate,
         duration: finalDuration,
         confirmationCode,
         terminal: terminal || undefined,
         gate: gate || undefined,
         seat: seat || undefined,
+        address: address.trim() || undefined,
       });
       if (updated) {
+        await tripService.updateTimelineItem(reservationId, {
+          subtitle: finalRoute || routeText,
+          reservationId: reservation.id,
+        });
         navigation.goBack();
       } else {
         Alert.alert('Error', 'Could not update reservation. It may have been deleted.');
@@ -196,21 +224,41 @@ export default function EditReservationScreen() {
           keyboardShouldPersistTaps="handled"
         >
           <FormInput
-            label="Provider"
+            label={isHotel ? 'Property name' : 'Provider'}
             value={providerName}
             onChangeText={setProviderName}
-            placeholder="e.g. Air France"
-            iconName="business"
+            placeholder={isHotel ? 'e.g. Hilton Downtown' : 'e.g. Air France'}
+            iconName={isHotel ? 'hotel' : 'business'}
             variant="glass"
           />
-          <FormInput
-            label="Route"
-            value={routeText}
-            onChangeText={setRouteText}
-            placeholder="e.g. LAX → CDG"
-            iconName="route"
-            variant="glass"
-          />
+          {isFlight ? (
+            <DualAirportInput
+              departureValue={departureAirport}
+              arrivalValue={arrivalAirport}
+              onDepartureChange={setDepartureAirport}
+              onArrivalChange={setArrivalAirport}
+              departurePlaceholder="LAX"
+              arrivalPlaceholder="CDG"
+            />
+          ) : !isHotel ? (
+            <FormInput
+              label="Route"
+              value={routeText}
+              onChangeText={setRouteText}
+              placeholder="e.g. Paris → London"
+              iconName="route"
+              variant="glass"
+            />
+          ) : null}
+          {isHotel && (
+            <AddressAutocomplete
+              label="Address"
+              value={address}
+              onChangeText={setAddress}
+              placeholder="Search for an address..."
+              variant="glass"
+            />
+          )}
           {isHotel ? (
             <DateRangePickerInput
               label="Check-in / Check-out dates"

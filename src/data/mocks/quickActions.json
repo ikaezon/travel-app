@@ -4,7 +4,7 @@
       "id": "action-0",
       "title": "Create Trip",
       "subtitle": "Add a new trip",
-      "iconName": "add-location",
+      "iconKey": "map-pin-plus",
       "iconColor": "#059669",
       "iconBgColor": "rgba(5, 150, 105, 0.1)",
       "route": "CreateTrip"
@@ -13,7 +13,7 @@
       "id": "action-1",
       "title": "Upload Screenshot",
       "subtitle": "Import tickets from photos",
-      "iconName": "add-a-photo",
+      "iconKey": "image-plus",
       "iconColor": "#2563eb",
       "iconBgColor": "rgba(37, 99, 235, 0.1)",
       "route": "ScreenshotUpload"
@@ -22,7 +22,7 @@
       "id": "action-2",
       "title": "Manual Entry",
       "subtitle": "Add details yourself",
-      "iconName": "edit-note",
+      "iconKey": "pen-square",
       "iconColor": "#ea580c",
       "iconBgColor": "rgba(234, 88, 12, 0.1)",
       "route": "ManualEntryOptions"

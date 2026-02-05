@@ -31,6 +31,7 @@ export interface DbTrip {
 export interface DbTimelineItem {
   id: string;
   trip_id: string;
+  reservation_id: string | null;
   type: DbReservationType;
   date: string;
   time: string;
@@ -63,6 +64,7 @@ export interface DbReservation {
   vehicle_info: string | null;
   boarding_zone: string | null;
   priority: string | null;
+  address: string | null;
   created_at: string;
   updated_at: string;
 }
