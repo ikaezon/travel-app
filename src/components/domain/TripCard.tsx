@@ -144,7 +144,7 @@ const styles = StyleSheet.create({
   imageFrame: {
     height: 140,
     width: '100%',
-    borderRadius: glassConstants.radius.card,
+    borderRadius: glassConstants.radius.cardLarge,
     overflow: 'hidden',
   },
   image: {
