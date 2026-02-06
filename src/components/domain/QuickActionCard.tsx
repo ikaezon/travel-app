@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useCallback } from 'react';
 import { View, Text, StyleSheet, Pressable, Animated } from 'react-native';
 import { BlurView } from 'expo-blur';
 import {
@@ -28,6 +28,11 @@ interface QuickActionCardProps {
   delay?: number;
 }
 
+// Spring configs matching the nav bar bubble feel
+const PRESS_SPRING = { tension: 280, friction: 14, useNativeDriver: true };
+const RELEASE_SPRING = { tension: 200, friction: 18, useNativeDriver: true };
+const PRESS_SCALE = 1.03;
+
 export function QuickActionCard({
   title,
   subtitle,
@@ -38,6 +43,7 @@ export function QuickActionCard({
 }: QuickActionCardProps) {
   const IconComponent = QUICK_ACTION_ICON_MAP[iconKey];
   const fadeAnim = useRef(new Animated.Value(0)).current;
+  const scaleAnim = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
     Animated.timing(fadeAnim, {
@@ -48,11 +54,21 @@ export function QuickActionCard({
     }).start();
   }, [fadeAnim, delay]);
 
+  const handlePressIn = useCallback(() => {
+    Animated.spring(scaleAnim, { ...PRESS_SPRING, toValue: PRESS_SCALE }).start();
+  }, [scaleAnim]);
+
+  const handlePressOut = useCallback(() => {
+    Animated.spring(scaleAnim, { ...RELEASE_SPRING, toValue: 1 }).start();
+  }, [scaleAnim]);
+
   return (
-    <Animated.View style={{ opacity: fadeAnim }}>
+    <Animated.View style={{ opacity: fadeAnim, transform: [{ scale: scaleAnim }] }}>
       <Pressable
-        style={({ pressed }) => [styles.cardWrapper, pressed && styles.cardPressed]}
+        style={styles.cardWrapper}
         onPress={onPress}
+        onPressIn={handlePressIn}
+        onPressOut={handlePressOut}
         accessibilityRole="button"
         accessibilityLabel={`${title}. ${subtitle}`}
       >
@@ -90,9 +106,6 @@ const styles = StyleSheet.create({
   },
   cardOverlay: {
     ...glassStyles.cardOverlay,
-  },
-  cardPressed: {
-    transform: [{ scale: 0.97 }],
   },
   content: {
     flexDirection: 'row',

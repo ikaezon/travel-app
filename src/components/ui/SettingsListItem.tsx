@@ -1,8 +1,9 @@
 import React from 'react';
-import { View, Text, StyleSheet, Pressable } from 'react-native';
+import { View, Text, StyleSheet, Pressable, Animated } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { MaterialIcons } from '@expo/vector-icons';
 import { colors, spacing, fontFamilies, glassStyles, glassColors } from '../../theme';
+import { usePressAnimation } from '../../hooks';
 
 interface SettingsListItemProps {
   label: string;
@@ -22,6 +23,8 @@ export function SettingsListItem({
   showChevron = true,
   variant = 'default',
 }: SettingsListItemProps) {
+  const { scaleAnim, onPressIn, onPressOut } = usePressAnimation();
+
   const content = (
     <View style={variant === 'glass' ? styles.glassContainer : styles.container}>
       <View style={styles.leftContent}>
@@ -53,12 +56,16 @@ export function SettingsListItem({
     );
     if (onPress) {
       return (
+        <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
         <Pressable
-          style={({ pressed }) => [styles.glassPressable, pressed && styles.glassPressed]}
+          style={styles.glassPressable}
           onPress={onPress}
+          onPressIn={onPressIn}
+          onPressOut={onPressOut}
         >
           {wrapper}
         </Pressable>
+        </Animated.View>
       );
     }
     return <View style={styles.glassPressable}>{wrapper}</View>;
@@ -96,9 +103,6 @@ const styles = StyleSheet.create({
   glassPressable: {
     ...glassStyles.cardWrapper,
     overflow: 'hidden',
-  },
-  glassPressed: {
-    transform: [{ scale: 0.97 }],
   },
   glassBlur: {
     flexDirection: 'row',

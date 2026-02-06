@@ -78,3 +78,61 @@ export function daysBetween(startDate: string, endDate: string): number {
   const diff = Math.round((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
   return Math.max(0, diff) + 1;
 }
+
+/**
+ * Converts 24-hour time format to 12-hour format with AM/PM.
+ * Also normalizes existing 12-hour format (removes leading zeros, standardizes AM/PM).
+ * Returns original value if unparseable or special value (TBD).
+ * 
+ * @example
+ * formatTimeTo12Hour("15:00") // "3:00 PM"
+ * formatTimeTo12Hour("09:30") // "9:30 AM"
+ * formatTimeTo12Hour("00:00") // "12:00 AM"
+ * formatTimeTo12Hour("12:00") // "12:00 PM"
+ * formatTimeTo12Hour("06:54 AM") // "6:54 AM" (removes leading zero)
+ * formatTimeTo12Hour("06:54am") // "6:54 AM" (normalizes case and spacing)
+ */
+export function formatTimeTo12Hour(time: string): string {
+  const trimmed = time.trim();
+  
+  // Return special values as-is
+  if (!trimmed || trimmed === 'TBD') {
+    return trimmed;
+  }
+  
+  // Check if already in 12-hour format (with or without space, any case)
+  const match12Hour = trimmed.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)/i);
+  if (match12Hour) {
+    let hours = parseInt(match12Hour[1], 10);
+    const minutes = match12Hour[2];
+    const period = match12Hour[3].toUpperCase();
+    
+    // Normalize: remove leading zeros from hours, ensure proper spacing
+    return `${hours}:${minutes} ${period}`;
+  }
+  
+  // Parse 24-hour format (HH:MM or H:MM)
+  const match24Hour = trimmed.match(/^(\d{1,2}):(\d{2})$/);
+  if (!match24Hour) {
+    return trimmed; // Return original if not parseable
+  }
+  
+  let hours = parseInt(match24Hour[1], 10);
+  const minutes = match24Hour[2];
+  
+  // Validate hours
+  if (hours < 0 || hours > 23) {
+    return trimmed;
+  }
+  
+  const period = hours >= 12 ? 'PM' : 'AM';
+  
+  // Convert to 12-hour format
+  if (hours === 0) {
+    hours = 12; // Midnight
+  } else if (hours > 12) {
+    hours -= 12;
+  }
+  
+  return `${hours}:${minutes} ${period}`;
+}

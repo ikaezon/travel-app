@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useCallback } from 'react';
 import { View, Text, ImageBackground, StyleSheet, Pressable, Animated } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -26,6 +26,11 @@ const getAccentColor = (iconName: TripIconType): string => {
   }
 };
 
+// Spring configs matching the nav bar bubble feel
+const PRESS_SPRING = { tension: 280, friction: 14, useNativeDriver: true };
+const RELEASE_SPRING = { tension: 200, friction: 18, useNativeDriver: true };
+const PRESS_SCALE = 1.03;
+
 export const TripCard = React.memo(function TripCard({
   destination,
   dateRange,
@@ -36,6 +41,7 @@ export const TripCard = React.memo(function TripCard({
   delay = 0,
 }: TripCardProps) {
   const fadeAnim = useRef(new Animated.Value(0)).current;
+  const scaleAnim = useRef(new Animated.Value(1)).current;
   const accentColor = getAccentColor(iconName);
 
   useEffect(() => {
@@ -46,6 +52,14 @@ export const TripCard = React.memo(function TripCard({
       useNativeDriver: true,
     }).start();
   }, [fadeAnim, delay]);
+
+  const handlePressIn = useCallback(() => {
+    Animated.spring(scaleAnim, { ...PRESS_SPRING, toValue: PRESS_SCALE }).start();
+  }, [scaleAnim]);
+
+  const handlePressOut = useCallback(() => {
+    Animated.spring(scaleAnim, { ...RELEASE_SPRING, toValue: 1 }).start();
+  }, [scaleAnim]);
 
   const getIconName = (): keyof typeof MaterialIcons.glyphMap => {
     switch (iconName) {
@@ -61,10 +75,12 @@ export const TripCard = React.memo(function TripCard({
   };
 
   return (
-    <Animated.View style={{ opacity: fadeAnim }}>
+    <Animated.View style={{ opacity: fadeAnim, transform: [{ scale: scaleAnim }] }}>
       <Pressable
-        style={({ pressed }) => [styles.cardWrapper, pressed && styles.cardPressed]}
+        style={styles.cardWrapper}
         onPress={onPress}
+        onPressIn={handlePressIn}
+        onPressOut={handlePressOut}
       >
         <BlurView intensity={24} tint="light" style={[StyleSheet.absoluteFill, glassStyles.blurContentXLarge]} />
         <View style={styles.cardOverlay} pointerEvents="none" />
@@ -109,9 +125,6 @@ const styles = StyleSheet.create({
     ...glassStyles.cardWrapperLarge,
     width: 300,
     position: 'relative',
-  },
-  cardPressed: {
-    transform: [{ scale: 0.98 }],
   },
   cardOverlay: {
     ...glassStyles.cardOverlay,

@@ -6,6 +6,7 @@ import {
   Pressable,
   ActivityIndicator,
   Alert,
+  Animated,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -14,7 +15,7 @@ import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { colors, spacing, borderRadius, fontFamilies } from '../../theme';
 import { MainStackParamList } from '../../navigation/types';
-import { useReservationByTimelineId, useCreateAttachment } from '../../hooks';
+import { useReservationByTimelineId, useCreateAttachment, usePressAnimation } from '../../hooks';
 
 type NavigationProp = NativeStackNavigationProp<MainStackParamList, 'ReservationAttachments'>;
 type ReservationAttachmentsRouteProp = RouteProp<MainStackParamList, 'ReservationAttachments'>;
@@ -25,6 +26,7 @@ export default function ReservationAttachmentsScreen() {
   const timelineItemId = route.params?.timelineItemId ?? '';
   const { reservation, isLoading } = useReservationByTimelineId(timelineItemId);
   const { createAttachment, isCreating: uploading } = useCreateAttachment();
+  const primaryAnim = usePressAnimation();
 
   const openCameraRoll = async () => {
     if (!reservation) return;
@@ -96,13 +98,15 @@ export default function ReservationAttachmentsScreen() {
         <Text style={styles.subtext}>
           Choose from your camera roll to attach to this reservation.
         </Text>
+        <Animated.View style={{ transform: [{ scale: primaryAnim.scaleAnim }] }}>
         <Pressable
-          style={({ pressed }) => [
+          style={[
             styles.primaryButton,
-            pressed && styles.primaryButtonPressed,
             uploading && styles.primaryButtonDisabled,
           ]}
           onPress={openCameraRoll}
+          onPressIn={primaryAnim.onPressIn}
+          onPressOut={primaryAnim.onPressOut}
           disabled={uploading}
         >
           {uploading ? (
@@ -114,6 +118,7 @@ export default function ReservationAttachmentsScreen() {
             </>
           )}
         </Pressable>
+        </Animated.View>
       </View>
     </SafeAreaView>
   );
@@ -191,9 +196,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.xl,
     borderRadius: borderRadius.md,
     minWidth: 240,
-  },
-  primaryButtonPressed: {
-    opacity: 0.9,
   },
   primaryButtonDisabled: {
     opacity: 0.7,

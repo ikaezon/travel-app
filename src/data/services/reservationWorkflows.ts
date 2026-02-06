@@ -143,7 +143,7 @@ export async function createLodgingReservation(
     date: checkInDate,
     time: '15:00',
     title: providerName,
-    subtitle: address?.trim() || providerName,
+    subtitle: providerName,
     metadata: confirmationNumber?.trim() ? `Conf: #${confirmationNumber.trim()}` : undefined,
     actionLabel: 'Get Directions',
     actionIcon: 'directions',

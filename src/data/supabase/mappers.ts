@@ -14,6 +14,7 @@ import type {
   DbAttachmentInsert,
   DbUserUpdate,
 } from './database.types';
+import { formatTimeTo12Hour } from '../../utils/dateFormat';
 
 export function mapUserFromDb(row: DbUser): User {
   return {
@@ -83,7 +84,7 @@ export function mapTimelineItemFromDb(row: DbTimelineItem): TimelineItem {
     tripId: row.trip_id,
     type: row.type,
     date: row.date,
-    time: row.time,
+    time: formatTimeTo12Hour(row.time),
     title: row.title,
     subtitle: row.subtitle ?? '',
     metadata: row.metadata ?? undefined,

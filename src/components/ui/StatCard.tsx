@@ -1,8 +1,9 @@
 import React from 'react';
-import { View, Text, StyleSheet, Pressable } from 'react-native';
+import { View, Text, StyleSheet, Pressable, Animated } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { MaterialIcons } from '@expo/vector-icons';
 import { colors, spacing, fontFamilies, glassStyles, glassColors, glassConstants } from '../../theme';
+import { usePressAnimation } from '../../hooks';
 
 interface StatCardProps {
   label: string;
@@ -12,6 +13,8 @@ interface StatCardProps {
 }
 
 export function StatCard({ label, value, iconName, onPress }: StatCardProps) {
+  const { scaleAnim, onPressIn, onPressOut } = usePressAnimation();
+
   const content = (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -24,12 +27,12 @@ export function StatCard({ label, value, iconName, onPress }: StatCardProps) {
 
   if (onPress) {
     return (
+      <Animated.View style={{ transform: [{ scale: scaleAnim }], flex: 1, minWidth: 0 }}>
       <Pressable
-        style={({ pressed }) => [
-          styles.cardWrapper,
-          pressed && styles.cardPressed,
-        ]}
+        style={styles.cardWrapper}
         onPress={onPress}
+        onPressIn={onPressIn}
+        onPressOut={onPressOut}
         accessibilityRole="button"
         accessibilityLabel={`${label}: ${value}`}
       >
@@ -37,6 +40,7 @@ export function StatCard({ label, value, iconName, onPress }: StatCardProps) {
         <View style={styles.cardOverlay} pointerEvents="none" />
         {content}
       </Pressable>
+      </Animated.View>
     );
   }
 
@@ -56,10 +60,6 @@ const styles = StyleSheet.create({
     minWidth: 0,
     borderWidth: glassConstants.borderWidth.cardThin,
     position: 'relative',
-  },
-  cardPressed: {
-    opacity: 0.9,
-    transform: [{ scale: 0.98 }],
   },
   cardOverlay: {
     ...glassStyles.cardOverlay,

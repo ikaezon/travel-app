@@ -8,6 +8,7 @@ import {
   ImageBackground,
   Platform,
   Keyboard,
+  Animated,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -22,6 +23,7 @@ import { ShimmerButton } from '../../components/ui/ShimmerButton';
 import { MainStackParamList } from '../../navigation/types';
 import { colors, fontFamilies, glassStyles, glassColors } from '../../theme';
 import { mockImages, mockReviewDetailsDefaults } from '../../data/mocks';
+import { usePressAnimation } from '../../hooks';
 
 type NavigationProp = NativeStackNavigationProp<MainStackParamList>;
 type ReviewDetailsRouteProp = RouteProp<MainStackParamList, 'ReviewDetails'>;
@@ -57,6 +59,9 @@ export default function ReviewDetailsScreen({
   const [keyboardHeight, setKeyboardHeight] = useState(0);
 
   const topOffset = insets.top + 8;
+  const sourceAnim = usePressAnimation();
+  const backAnim = usePressAnimation();
+  const helpAnim = usePressAnimation();
 
   useEffect(() => {
     const showSub = Keyboard.addListener(
@@ -100,7 +105,8 @@ export default function ReviewDetailsScreen({
           keyboardShouldPersistTaps="handled"
         >
           <View style={styles.sourceSection}>
-            <Pressable style={({ pressed }) => [styles.sourceCard, pressed && styles.sourceCardPressed]}>
+            <Animated.View style={{ transform: [{ scale: sourceAnim.scaleAnim }] }}>
+            <Pressable style={styles.sourceCard} onPressIn={sourceAnim.onPressIn} onPressOut={sourceAnim.onPressOut}>
               <BlurView intensity={24} tint="light" style={[StyleSheet.absoluteFill, glassStyles.blurContent]} />
               <View style={styles.sourceCardInner}>
                 <View style={styles.glassOverlay} pointerEvents="none" />
@@ -129,6 +135,7 @@ export default function ReviewDetailsScreen({
               </View>
               </View>
             </Pressable>
+            </Animated.View>
           </View>
 
           <View style={styles.sectionHeader}>
@@ -218,16 +225,22 @@ export default function ReviewDetailsScreen({
           <BlurView intensity={24} tint="light" style={[styles.headerBlur, glassStyles.blurContentLarge]}>
             <View style={styles.glassOverlay} pointerEvents="none" />
             <View style={styles.headerContent}>
+              <Animated.View style={{ transform: [{ scale: backAnim.scaleAnim }] }}>
               <Pressable
-                style={({ pressed }) => [styles.headerButton, pressed && styles.headerButtonPressed]}
+                style={styles.headerButton}
                 onPress={handleBackPress}
+                onPressIn={backAnim.onPressIn}
+                onPressOut={backAnim.onPressOut}
               >
                 <MaterialIcons name="arrow-back" size={22} color={colors.text.primary.light} />
               </Pressable>
+              </Animated.View>
               <Text style={styles.headerTitle}>Review Details</Text>
-              <Pressable style={styles.helpButton}>
+              <Animated.View style={{ transform: [{ scale: helpAnim.scaleAnim }] }}>
+              <Pressable style={styles.helpButton} onPressIn={helpAnim.onPressIn} onPressOut={helpAnim.onPressOut}>
                 <Text style={styles.helpText}>Help</Text>
               </Pressable>
+              </Animated.View>
             </View>
           </BlurView>
         </View>
@@ -274,9 +287,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  headerButtonPressed: {
-    opacity: 0.6,
-  },
   headerTitle: {
     flex: 1,
     textAlign: 'center',
@@ -312,9 +322,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     padding: 16,
     position: 'relative',
-  },
-  sourceCardPressed: {
-    transform: [{ scale: 0.98 }],
   },
   sourceCardInner: {
     flex: 1,

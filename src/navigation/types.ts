@@ -29,6 +29,7 @@ export type MainStackParamList = {
   FlightEntry: { tripId?: string };
   LodgingEntry: { tripId?: string };
   TrainEntry: { tripId: string };
+  MapExpand: { tripId: string; tripName?: string };
 };
 
 export type MainTabParamList = {

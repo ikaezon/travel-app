@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, Pressable } from 'react-native';
+import { View, Text, StyleSheet, Pressable, Animated } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
@@ -14,6 +14,7 @@ import {
   glassColors,
 } from '../../theme';
 import { MainStackParamList } from '../../navigation/types';
+import { usePressAnimation } from '../../hooks';
 
 const MANUAL_ENTRY_OPTIONS = [
   {
@@ -38,10 +39,39 @@ const MANUAL_ENTRY_OPTIONS = [
 
 type NavigationProp = NativeStackNavigationProp<MainStackParamList>;
 
+function OptionCard({ option, onPress }: { option: typeof MANUAL_ENTRY_OPTIONS[number]; onPress: () => void }) {
+  const { scaleAnim, onPressIn, onPressOut } = usePressAnimation();
+  return (
+    <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
+      <Pressable
+        style={styles.optionCardWrapper}
+        onPress={onPress}
+        onPressIn={onPressIn}
+        onPressOut={onPressOut}
+      >
+        <BlurView intensity={24} tint="light" style={[styles.optionCardBlur, glassStyles.blurContent]}>
+          <View style={styles.glassOverlay} pointerEvents="none" />
+          <View style={styles.optionCardContent}>
+            <View style={[styles.optionIconContainer, { backgroundColor: option.iconBgColor }]}>
+              <MaterialIcons name={option.iconName} size={28} color={option.iconColor} />
+            </View>
+            <View style={styles.optionTextContainer}>
+              <Text style={styles.optionTitle}>{option.title}</Text>
+              <Text style={styles.optionSubtitle}>{option.subtitle}</Text>
+            </View>
+            <MaterialIcons name="chevron-right" size={24} color={colors.text.secondary.light} />
+          </View>
+        </BlurView>
+      </Pressable>
+    </Animated.View>
+  );
+}
+
 export default function ManualEntryOptionsScreen() {
   const navigation = useNavigation<NavigationProp>();
   const insets = useSafeAreaInsets();
   const topOffset = insets.top + 8;
+  const backAnim = usePressAnimation();
 
   return (
     <LinearGradient
@@ -55,25 +85,11 @@ export default function ManualEntryOptionsScreen() {
           <Text style={styles.subtitle}>What would you like to add?</Text>
           <View style={styles.optionsList}>
             {MANUAL_ENTRY_OPTIONS.map((option) => (
-              <Pressable
+              <OptionCard
                 key={option.id}
-                style={({ pressed }) => [styles.optionCardWrapper, pressed && styles.optionCardPressed]}
+                option={option}
                 onPress={() => navigation.navigate(option.route)}
-              >
-                <BlurView intensity={24} tint="light" style={[styles.optionCardBlur, glassStyles.blurContent]}>
-                  <View style={styles.glassOverlay} pointerEvents="none" />
-                  <View style={styles.optionCardContent}>
-                    <View style={[styles.optionIconContainer, { backgroundColor: option.iconBgColor }]}>
-                      <MaterialIcons name={option.iconName} size={28} color={option.iconColor} />
-                    </View>
-                    <View style={styles.optionTextContainer}>
-                      <Text style={styles.optionTitle}>{option.title}</Text>
-                      <Text style={styles.optionSubtitle}>{option.subtitle}</Text>
-                    </View>
-                    <MaterialIcons name="chevron-right" size={24} color={colors.text.secondary.light} />
-                  </View>
-                </BlurView>
-              </Pressable>
+              />
             ))}
           </View>
         </View>
@@ -82,13 +98,17 @@ export default function ManualEntryOptionsScreen() {
           <BlurView intensity={24} tint="light" style={[styles.headerBlur, glassStyles.blurContentLarge]}>
             <View style={styles.glassOverlay} pointerEvents="none" />
             <View style={styles.headerContent}>
+              <Animated.View style={{ transform: [{ scale: backAnim.scaleAnim }] }}>
               <Pressable
-                style={({ pressed }) => [styles.backButton, pressed && styles.backButtonPressed]}
+                style={styles.backButton}
                 onPress={() => navigation.goBack()}
+                onPressIn={backAnim.onPressIn}
+                onPressOut={backAnim.onPressOut}
                 accessibilityLabel="Go back"
               >
                 <MaterialIcons name="arrow-back" size={22} color={colors.text.primary.light} />
               </Pressable>
+              </Animated.View>
               <Text style={styles.headerTitle}>Manual Entry</Text>
               <View style={styles.headerSpacer} />
             </View>
@@ -137,9 +157,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  backButtonPressed: {
-    opacity: 0.6,
-  },
   headerTitle: {
     fontSize: 16,
     fontFamily: fontFamilies.semibold,
@@ -165,9 +182,6 @@ const styles = StyleSheet.create({
   optionCardWrapper: {
     ...glassStyles.cardWrapper,
     overflow: 'hidden',
-  },
-  optionCardPressed: {
-    transform: [{ scale: 0.97 }],
   },
   optionCardBlur: {
     padding: 12,

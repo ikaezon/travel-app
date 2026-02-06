@@ -10,6 +10,7 @@ import {
   Keyboard,
   ActivityIndicator,
   Alert,
+  Animated,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -32,7 +33,7 @@ import {
   glassColors,
 } from '../../theme';
 import { MainStackParamList } from '../../navigation/types';
-import { useReservationByTimelineId, useUpdateReservation } from '../../hooks';
+import { useReservationByTimelineId, useUpdateReservation, usePressAnimation } from '../../hooks';
 import { tripService } from '../../data';
 import { formatCalendarDateToLongDisplay, parseToCalendarDate } from '../../utils/dateFormat';
 
@@ -47,6 +48,7 @@ export default function EditReservationScreen() {
 
   const { reservation, isLoading } = useReservationByTimelineId(timelineItemId);
   const { updateReservation, isUpdating } = useUpdateReservation();
+  const backAnim = usePressAnimation();
   const [providerName, setProviderName] = useState('');
   const [routeText, setRouteText] = useState('');
   const [departureAirport, setDepartureAirport] = useState('');
@@ -85,20 +87,29 @@ export default function EditReservationScreen() {
         }
       }
 
-      if (reservation.type === 'hotel' && reservation.duration) {
-        const parts = reservation.duration.split(/\s*-\s*/);
-        if (parts.length >= 2) {
-          const start = parseToCalendarDate(parts[0].trim());
-          const end = parseToCalendarDate(parts[1].trim());
-          if (start) setCheckInDate(start);
-          if (end) setCheckOutDate(end);
-        } else {
-          const single = parseToCalendarDate(reservation.duration.trim());
-          if (single) {
-            setCheckInDate(single);
-            setCheckOutDate(single);
+      if (reservation.type === 'hotel') {
+        // Parse date range from duration (e.g. "February 5, 2025 - February 8, 2025" or "2025-02-05 - 2025-02-08")
+        // Same pattern as flight: pre-populate from existing data when editing
+        let parsedStart: string | null = null;
+        let parsedEnd: string | null = null;
+        const duration = reservation.duration?.trim();
+        if (duration) {
+          const parts = duration.split(/\s*[-–—]\s*/); // hyphen, en-dash, em-dash
+          if (parts.length >= 2) {
+            parsedStart = parseToCalendarDate(parts[0].trim());
+            parsedEnd = parseToCalendarDate(parts[1].trim());
+          } else {
+            parsedStart = parseToCalendarDate(duration);
+            parsedEnd = parsedStart;
           }
         }
+        // Fallback: use reservation.date when duration is empty (same as flight uses date directly)
+        if (!parsedStart && reservation.date) {
+          parsedStart = parseToCalendarDate(reservation.date);
+          parsedEnd = parsedStart;
+        }
+        if (parsedStart) setCheckInDate(parsedStart);
+        if (parsedEnd) setCheckOutDate(parsedEnd);
       }
     }
   }, [reservation]);
@@ -367,13 +378,17 @@ export default function EditReservationScreen() {
           <BlurView intensity={24} tint="light" style={[styles.headerBlur, glassStyles.blurContentLarge]}>
             <View style={styles.glassOverlay} pointerEvents="none" />
             <View style={styles.headerContent}>
+              <Animated.View style={{ transform: [{ scale: backAnim.scaleAnim }] }}>
               <Pressable
-                style={({ pressed }) => [styles.backButton, pressed && styles.backButtonPressed]}
+                style={styles.backButton}
                 onPress={handleBackPress}
+                onPressIn={backAnim.onPressIn}
+                onPressOut={backAnim.onPressOut}
                 accessibilityLabel="Go back"
               >
                 <MaterialIcons name="arrow-back" size={22} color={colors.text.primary.light} />
               </Pressable>
+              </Animated.View>
               <Text style={styles.headerTitle}>Edit reservation</Text>
               <View style={styles.headerSpacer} />
             </View>
@@ -421,9 +436,6 @@ const styles = StyleSheet.create({
     height: 36,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  backButtonPressed: {
-    opacity: 0.6,
   },
   headerTitle: {
     fontSize: 16,

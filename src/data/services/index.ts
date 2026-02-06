@@ -18,3 +18,9 @@ export {
   createPlaceAutocompleteService,
 } from './placeAutocompleteService';
 export type { PlaceSuggestion, PlaceAutocompleteService } from './placeAutocompleteService';
+export {
+  geocodeAddress,
+  geocodeAddresses,
+  isGeocodingAvailable,
+} from './geocodingService';
+export type { GeocodeResult } from './geocodingService';

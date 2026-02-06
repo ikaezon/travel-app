@@ -22,6 +22,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { StatCard } from '../../components/ui/StatCard';
 import { DetailRow } from '../../components/ui/DetailRow';
 import { GlassDropdownMenu } from '../../components/ui/GlassDropdownMenu';
+import { GlassNavHeader } from '../../components/navigation/GlassNavHeader';
 import { MainStackParamList } from '../../navigation/types';
 import { useReservationByTimelineId } from '../../hooks';
 import { colors, spacing, fontFamilies, glassStyles, glassColors, glassConstants, glassShadows } from '../../theme';
@@ -347,43 +348,17 @@ export default function ReservationDetailScreen() {
           />
         )}
 
-        <View style={[styles.topNavContainer, { top: topOffset }]}>
-          <BlurView intensity={16} tint="light" style={[styles.topNavBlur, glassStyles.blurContentLarge]}>
-            <View style={styles.glassOverlay} pointerEvents="none" />
-            <View style={styles.topNavContent}>
-              <Pressable
-                style={({ pressed }) => pressed && styles.navButtonPressed}
-                onPress={handleBackPress}
-                accessibilityLabel="Go back"
-              >
-                <View style={styles.navButton}>
-                  <MaterialIcons name="arrow-back" size={22} color={colors.text.primary.light} />
-                </View>
-              </Pressable>
-
-              <View style={styles.headerCenter}>
-                <Text style={styles.headerLabel}>Reservation</Text>
-                <Text style={styles.headerTitle} numberOfLines={1}>
-                  {headerTitle}
-                </Text>
-              </View>
-
-              {showContent ? (
-                <Pressable
-                  style={({ pressed }) => pressed && styles.navButtonPressed}
-                  onPress={() => setMenuVisible(true)}
-                  accessibilityLabel="More options"
-                >
-                  <View style={styles.navButton}>
-                    <MaterialIcons name="more-horiz" size={22} color={colors.text.primary.light} />
-                  </View>
-                </Pressable>
-              ) : (
-                <View style={styles.navButton} />
-              )}
-            </View>
-          </BlurView>
-        </View>
+        <GlassNavHeader
+          title={headerTitle}
+          label="Reservation"
+          onBackPress={handleBackPress}
+          rightAction={{
+            icon: 'more-horiz',
+            onPress: () => setMenuVisible(true),
+            accessibilityLabel: 'More options',
+          }}
+          showRightAction={showContent}
+        />
 
         {showContent && (
           <GlassDropdownMenu
@@ -441,62 +416,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: fontFamilies.regular,
     color: colors.text.secondary.light,
-  },
-  topNavContainer: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    alignItems: 'center',
-    zIndex: 60,
-  },
-  topNavBlur: {
-    ...glassStyles.navBarWrapper,
-    width: '90%',
-    maxWidth: 360,
-    borderWidth: 1,
-    position: 'relative',
-    height: 56,
-    justifyContent: 'center',
-  },
-  topNavContent: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-  },
-  navButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  navButtonPressed: {
-    opacity: 0.6,
-  },
-  headerCenter: {
-    flex: 1,
-    alignItems: 'center',
-    marginHorizontal: 8,
-  },
-  headerLabel: {
-    fontSize: 9,
-    fontFamily: fontFamilies.semibold,
-    color: colors.primary,
-    textTransform: 'uppercase',
-    letterSpacing: 2,
-    marginBottom: 1,
-    opacity: 0.8,
-  },
-  headerTitle: {
-    fontSize: 16,
-    fontFamily: fontFamilies.semibold,
-    color: colors.text.primary.light,
-    letterSpacing: -0.3,
-  },
-  glassOverlay: {
-    ...glassStyles.cardOverlay,
-    backgroundColor: glassColors.overlayStrong,
   },
   menuScrim: {
     position: 'absolute',

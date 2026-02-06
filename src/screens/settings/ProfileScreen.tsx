@@ -8,6 +8,7 @@ import {
   Pressable,
   ActivityIndicator,
   Alert,
+  Animated,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -23,7 +24,7 @@ import {
   glassStyles,
   glassColors,
 } from '../../theme';
-import { useProfileUser, useAppSettings } from '../../hooks';
+import { useProfileUser, useAppSettings, usePressAnimation } from '../../hooks';
 
 interface ProfileScreenProps {
   onEditPress?: () => void;
@@ -51,6 +52,9 @@ export default function ProfileScreen({
 
   const isLoading = userLoading || settingsLoading;
   const topOffset = insets.top + 8;
+  const profileAnim = usePressAnimation();
+  const signOutAnim = usePressAnimation();
+  const editAnim = usePressAnimation();
 
   useEffect(() => {
     if (settings?.darkMode !== undefined) {
@@ -117,9 +121,12 @@ export default function ProfileScreen({
           showsVerticalScrollIndicator={false}
         >
           <View style={styles.section}>
+            <Animated.View style={{ transform: [{ scale: profileAnim.scaleAnim }] }}>
             <Pressable
-              style={({ pressed }) => [styles.profileCardWrapper, pressed && styles.cardPressed]}
+              style={styles.profileCardWrapper}
               onPress={onEditPress}
+              onPressIn={profileAnim.onPressIn}
+              onPressOut={profileAnim.onPressOut}
             >
               <BlurView intensity={24} tint="light" style={[styles.profileCardBlur, glassStyles.blurContent]}>
                 <View style={styles.glassOverlay} pointerEvents="none" />
@@ -142,6 +149,7 @@ export default function ProfileScreen({
                 </View>
               </BlurView>
             </Pressable>
+            </Animated.View>
           </View>
 
           <View style={styles.section}>
@@ -202,12 +210,12 @@ export default function ProfileScreen({
           </View>
 
           <View style={styles.section}>
+            <Animated.View style={{ transform: [{ scale: signOutAnim.scaleAnim }] }}>
             <Pressable
-              style={({ pressed }) => [
-                styles.signOutCardWrapper,
-                pressed && styles.cardPressed,
-              ]}
+              style={styles.signOutCardWrapper}
               onPress={onLogOutPress}
+              onPressIn={signOutAnim.onPressIn}
+              onPressOut={signOutAnim.onPressOut}
             >
               <BlurView intensity={24} tint="light" style={[styles.signOutBlur, glassStyles.blurContent]}>
                 <View style={[styles.glassOverlay, styles.signOutOverlay]} pointerEvents="none" />
@@ -217,6 +225,7 @@ export default function ProfileScreen({
                 </View>
               </BlurView>
             </Pressable>
+            </Animated.View>
             <Text style={styles.versionText}>
               Version {settings?.appVersion || '1.0.0'}
             </Text>
@@ -232,12 +241,16 @@ export default function ProfileScreen({
                 <Text style={styles.headerLabel}>Profile</Text>
                 <Text style={styles.headerTitle}>Settings</Text>
               </View>
+              <Animated.View style={{ transform: [{ scale: editAnim.scaleAnim }] }}>
               <Pressable
-                style={({ pressed }) => [styles.navButton, pressed && styles.navButtonPressed]}
+                style={styles.navButton}
                 onPress={onEditPress}
+                onPressIn={editAnim.onPressIn}
+                onPressOut={editAnim.onPressOut}
               >
                 <Text style={styles.editText}>Edit</Text>
               </Pressable>
+              </Animated.View>
             </View>
           </BlurView>
         </View>
@@ -279,9 +292,6 @@ const styles = StyleSheet.create({
     minHeight: 36,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  navButtonPressed: {
-    opacity: 0.6,
   },
   headerCenter: {
     alignItems: 'center',
@@ -340,9 +350,6 @@ const styles = StyleSheet.create({
   profileCardWrapper: {
     ...glassStyles.cardWrapper,
     overflow: 'hidden',
-  },
-  cardPressed: {
-    transform: [{ scale: 0.97 }],
   },
   profileCardBlur: {
     padding: spacing.lg,

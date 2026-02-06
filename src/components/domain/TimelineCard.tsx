@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useCallback } from 'react';
 import { View, Text, ImageBackground, StyleSheet, Pressable, Animated } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -56,6 +56,11 @@ interface TimelineCardProps {
   delay?: number;
 }
 
+// Spring configs matching the nav bar bubble feel
+const PRESS_SPRING = { tension: 280, friction: 14, useNativeDriver: true };
+const RELEASE_SPRING = { tension: 200, friction: 18, useNativeDriver: true };
+const PRESS_SCALE = 1.03;
+
 export const TimelineCard = React.memo(function TimelineCard({
   type,
   time,
@@ -70,6 +75,7 @@ export const TimelineCard = React.memo(function TimelineCard({
   delay = 0,
 }: TimelineCardProps) {
   const fadeAnim = useRef(new Animated.Value(0)).current;
+  const scaleAnim = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
     Animated.timing(fadeAnim, {
@@ -80,6 +86,14 @@ export const TimelineCard = React.memo(function TimelineCard({
     }).start();
     // Note: fadeAnim is a stable ref
   }, [delay]);
+
+  const handlePressIn = useCallback(() => {
+    Animated.spring(scaleAnim, { ...PRESS_SPRING, toValue: PRESS_SCALE }).start();
+  }, [scaleAnim]);
+
+  const handlePressOut = useCallback(() => {
+    Animated.spring(scaleAnim, { ...RELEASE_SPRING, toValue: 1 }).start();
+  }, [scaleAnim]);
 
   const iconConfig = getTimelineIconConfig(type);
   const actionType = getActionType(actionLabel);
@@ -98,12 +112,12 @@ export const TimelineCard = React.memo(function TimelineCard({
           </BlurView>
         </View>
 
+        <Animated.View style={[styles.cardAnimWrapper, { transform: [{ scale: scaleAnim }] }]}>
         <Pressable
-          style={({ pressed }) => [
-            styles.card,
-            pressed && styles.cardPressed,
-          ]}
+          style={styles.card}
           onPress={onPress}
+          onPressIn={handlePressIn}
+          onPressOut={handlePressOut}
         >
           <BlurView intensity={24} tint="light" style={[StyleSheet.absoluteFill, glassStyles.blurContent]} />
           <View style={styles.cardOverlay} pointerEvents="none" />
@@ -187,6 +201,7 @@ export const TimelineCard = React.memo(function TimelineCard({
             </Pressable>
           </View>
         </Pressable>
+        </Animated.View>
       </View>
     </Animated.View>
   );
@@ -223,15 +238,14 @@ const styles = StyleSheet.create({
     ...glassStyles.cardOverlay,
     backgroundColor: 'rgba(255, 255, 255, 0.4)',
   },
+  cardAnimWrapper: {
+    flex: 1,
+  },
   card: {
     ...glassStyles.cardWrapper,
-    flex: 1,
   },
   cardOverlay: {
     ...glassStyles.cardOverlay,
-  },
-  cardPressed: {
-    transform: [{ scale: 0.98 }],
   },
   cardContent: {
     padding: 16,

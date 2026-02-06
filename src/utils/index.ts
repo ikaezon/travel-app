@@ -5,5 +5,6 @@ export {
   parseToCalendarDate,
   sortTimelineItemsByDateAndTime,
   daysBetween,
+  formatTimeTo12Hour,
 } from './dateFormat';
 export { formatReservationDateDisplay, getReservationDisplayAddress } from './reservationFormat';

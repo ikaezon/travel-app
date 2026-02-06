@@ -1,9 +1,17 @@
-import React from 'react';
-import { View, Text, StyleSheet, Pressable } from 'react-native';
+import React, { useRef, useCallback } from 'react';
+import { View, Text, StyleSheet, Pressable, Animated } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, fontFamilies, glassStyles, glassColors } from '../../theme';
+
+// Spring configs matching the bottom tab bar bubble feel
+const PRESS_SPRING = { tension: 280, friction: 14, useNativeDriver: true };
+const RELEASE_SPRING = { tension: 200, friction: 18, useNativeDriver: true };
+const PRESS_SCALE = 1.12;
+
+const BUTTON_SIZE = 36;
+const BUTTON_RADIUS = BUTTON_SIZE / 2;
 
 interface GlassNavHeaderProps {
   /** Main title text */
@@ -20,6 +28,48 @@ interface GlassNavHeaderProps {
   };
   /** Whether to show the right action (useful for conditional rendering) */
   showRightAction?: boolean;
+}
+
+/**
+ * Glass bubble button used in the nav header.
+ * Matches the look and feel of the bottom tab bar pill.
+ */
+function GlassNavButton({
+  icon,
+  onPress,
+  accessibilityLabel,
+}: {
+  icon: keyof typeof MaterialIcons.glyphMap;
+  onPress: () => void;
+  accessibilityLabel: string;
+}) {
+  const scale = useRef(new Animated.Value(1)).current;
+
+  const handlePressIn = useCallback(() => {
+    Animated.spring(scale, { ...PRESS_SPRING, toValue: PRESS_SCALE }).start();
+  }, [scale]);
+
+  const handlePressOut = useCallback(() => {
+    Animated.spring(scale, { ...RELEASE_SPRING, toValue: 1 }).start();
+  }, [scale]);
+
+  return (
+    <Animated.View style={[styles.navButtonOuter, { transform: [{ scale }] }]}>
+      <Pressable
+        onPress={onPress}
+        onPressIn={handlePressIn}
+        onPressOut={handlePressOut}
+        accessibilityLabel={accessibilityLabel}
+        accessibilityRole="button"
+        style={styles.navButtonPressable}
+      >
+        <BlurView intensity={45} tint="light" style={styles.navButtonBlur}>
+          <View style={styles.navButtonOverlay} pointerEvents="none" />
+          <MaterialIcons name={icon} size={22} color={colors.text.primary.light} />
+        </BlurView>
+      </Pressable>
+    </Animated.View>
+  );
 }
 
 /**
@@ -45,14 +95,11 @@ export function GlassNavHeader({
       >
         <View style={styles.glassOverlay} pointerEvents="none" />
         <View style={styles.content}>
-          <Pressable
-            style={({ pressed }) => [styles.navButton, pressed && styles.navButtonPressed]}
+          <GlassNavButton
+            icon="arrow-back"
             onPress={onBackPress}
             accessibilityLabel="Go back"
-            accessibilityRole="button"
-          >
-            <MaterialIcons name="arrow-back" size={22} color={colors.text.primary.light} />
-          </Pressable>
+          />
 
           <View style={styles.titleContainer}>
             {label && <Text style={styles.label}>{label}</Text>}
@@ -62,20 +109,13 @@ export function GlassNavHeader({
           </View>
 
           {rightAction && showRightAction ? (
-            <Pressable
-              style={({ pressed }) => [styles.navButton, pressed && styles.navButtonPressed]}
+            <GlassNavButton
+              icon={rightAction.icon}
               onPress={rightAction.onPress}
               accessibilityLabel={rightAction.accessibilityLabel}
-              accessibilityRole="button"
-            >
-              <MaterialIcons
-                name={rightAction.icon}
-                size={22}
-                color={colors.text.primary.light}
-              />
-            </Pressable>
+            />
           ) : (
-            <View style={styles.navButton} />
+            <View style={styles.navButtonSpacer} />
           )}
         </View>
       </BlurView>
@@ -109,15 +149,31 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 16,
   },
-  navButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 12,
+  navButtonOuter: {
+    width: BUTTON_SIZE,
+    height: BUTTON_SIZE,
+    borderRadius: BUTTON_RADIUS,
+    overflow: 'hidden',
+  },
+  navButtonPressable: {
+    flex: 1,
+  },
+  navButtonBlur: {
+    flex: 1,
+    borderRadius: BUTTON_RADIUS,
+    overflow: 'hidden',
+    borderWidth: 1.5,
+    borderColor: glassColors.borderStrong,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  navButtonPressed: {
-    opacity: 0.6,
+  navButtonOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(255, 255, 255, 0.55)',
+  },
+  navButtonSpacer: {
+    width: BUTTON_SIZE,
+    height: BUTTON_SIZE,
   },
   titleContainer: {
     flex: 1,

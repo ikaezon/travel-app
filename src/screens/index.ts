@@ -13,3 +13,4 @@ export { default as ManualEntryOptionsScreen } from './manual/ManualEntryOptions
 export { default as FlightEntryScreen } from './manual/FlightEntryScreen';
 export { default as LodgingEntryScreen } from './manual/LodgingEntryScreen';
 export { default as TrainEntryScreen } from './manual/TrainEntryScreen';
+export { default as MapExpandScreen } from './trip/MapExpandScreen';

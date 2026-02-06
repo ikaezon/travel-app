@@ -1,9 +1,10 @@
 import React from 'react';
-import { Text, StyleSheet, Pressable, View, ActivityIndicator } from 'react-native';
+import { Text, StyleSheet, Pressable, View, ActivityIndicator, Animated } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { MaterialIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { colors, fontFamilies, glassStyles, glassColors, glassConstants, glassShadows, borderRadius } from '../../theme';
+import { usePressAnimation } from '../../hooks';
 
 interface ShimmerButtonProps {
   label: string;
@@ -24,16 +25,19 @@ export function ShimmerButton({
   variant = 'default',
 }: ShimmerButtonProps) {
   const isDisabled = disabled || loading;
+  const { scaleAnim, onPressIn, onPressOut } = usePressAnimation();
 
   if (variant === 'boardingPass') {
     return (
+      <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
       <Pressable
-        style={({ pressed }) => [
+        style={[
           styles.boardingPassWrapper,
-          pressed && styles.buttonPressed,
           isDisabled && styles.buttonDisabled,
         ]}
         onPress={onPress}
+        onPressIn={onPressIn}
+        onPressOut={onPressOut}
         disabled={isDisabled}
       >
         <BlurView intensity={24} tint="light" style={[StyleSheet.absoluteFill, glassStyles.blurContent]} />
@@ -51,17 +55,20 @@ export function ShimmerButton({
           )}
         </View>
       </Pressable>
+      </Animated.View>
     );
   }
 
   return (
+    <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
     <Pressable
-      style={({ pressed }) => [
+      style={[
         styles.button,
-        pressed && styles.buttonPressed,
         isDisabled && styles.buttonDisabled,
       ]}
       onPress={onPress}
+      onPressIn={onPressIn}
+      onPressOut={onPressOut}
       disabled={isDisabled}
     >
       <LinearGradient
@@ -84,6 +91,7 @@ export function ShimmerButton({
         )}
       </View>
     </Pressable>
+    </Animated.View>
   );
 }
 
@@ -121,9 +129,6 @@ const styles = StyleSheet.create({
     fontFamily: fontFamilies.semibold,
     color: colors.reservation.flight.icon,
     letterSpacing: 0.3,
-  },
-  buttonPressed: {
-    transform: [{ scale: 0.95 }],
   },
   buttonDisabled: {
     opacity: 0.5,

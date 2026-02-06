@@ -5,6 +5,7 @@ import {
   TripListScreen,
   TripOverviewScreen,
   CreateTripScreen,
+  MapExpandScreen,
   ReservationDetailScreen,
   EditReservationScreen,
   ReservationAttachmentsScreen,
@@ -37,6 +38,7 @@ export function MainStackNavigator({ onSignOut }: MainStackNavigatorProps) {
       </Stack.Screen>
       <Stack.Screen name="TripList" component={TripListScreen} />
       <Stack.Screen name="TripOverview" component={TripOverviewScreen} />
+      <Stack.Screen name="MapExpand" component={MapExpandScreen} />
       <Stack.Screen name="CreateTrip" component={CreateTripScreen} />
       <Stack.Screen name="ReservationDetail" component={ReservationDetailScreen} />
       <Stack.Screen name="EditReservation" component={EditReservationScreen} />

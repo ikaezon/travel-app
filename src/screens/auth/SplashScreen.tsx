@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -22,6 +22,7 @@ import {
   glassShadows,
 } from '../../theme';
 import { mockImages } from '../../data/mocks';
+import { usePressAnimation } from '../../hooks';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 const HERO_HEIGHT = Math.max(SCREEN_HEIGHT * 0.45, 360);
@@ -44,6 +45,9 @@ export default function SplashScreen({
 }: SplashScreenProps) {
   const scrollRef = useRef<ScrollView>(null);
   const fadeAnim = useRef(new Animated.Value(0)).current;
+  const emailAnim = usePressAnimation();
+  const appleAnim = usePressAnimation();
+  const googleAnim = usePressAnimation();
 
   useEffect(() => {
     const id = requestAnimationFrame(() => {
@@ -130,12 +134,12 @@ export default function SplashScreen({
           {/* Actions – directly on gradient, like dashboard QuickActionCards */}
           <Animated.View style={[styles.actionsContainer, { opacity: fadeAnim }]}>
             {/* Primary button – boarding pass glass style */}
+            <Animated.View style={{ transform: [{ scale: emailAnim.scaleAnim }] }}>
             <Pressable
-              style={({ pressed }) => [
-                styles.primaryButton,
-                pressed && styles.buttonPressed,
-              ]}
+              style={styles.primaryButton}
               onPress={onEmailPress}
+              onPressIn={emailAnim.onPressIn}
+              onPressOut={emailAnim.onPressOut}
             >
               <BlurView
                 intensity={glassConstants.blur.card}
@@ -148,6 +152,7 @@ export default function SplashScreen({
                 <Text style={styles.primaryButtonText}>Continue with Email</Text>
               </View>
             </Pressable>
+            </Animated.View>
 
             {/* Separator */}
             <View style={styles.separator}>
@@ -157,12 +162,12 @@ export default function SplashScreen({
             </View>
 
             {/* Secondary button – Apple (glass card) */}
+            <Animated.View style={{ transform: [{ scale: appleAnim.scaleAnim }] }}>
             <Pressable
-              style={({ pressed }) => [
-                styles.secondaryButton,
-                pressed && styles.buttonPressed,
-              ]}
+              style={styles.secondaryButton}
               onPress={onApplePress}
+              onPressIn={appleAnim.onPressIn}
+              onPressOut={appleAnim.onPressOut}
             >
               <BlurView
                 intensity={glassConstants.blur.card}
@@ -175,14 +180,15 @@ export default function SplashScreen({
                 <Text style={styles.secondaryButtonText}>Continue with Apple</Text>
               </View>
             </Pressable>
+            </Animated.View>
 
             {/* Secondary button – Google (glass card) */}
+            <Animated.View style={{ transform: [{ scale: googleAnim.scaleAnim }] }}>
             <Pressable
-              style={({ pressed }) => [
-                styles.secondaryButton,
-                pressed && styles.buttonPressed,
-              ]}
+              style={styles.secondaryButton}
               onPress={onGooglePress}
+              onPressIn={googleAnim.onPressIn}
+              onPressOut={googleAnim.onPressOut}
             >
               <BlurView
                 intensity={glassConstants.blur.card}
@@ -195,6 +201,7 @@ export default function SplashScreen({
                 <Text style={styles.secondaryButtonText}>Continue with Google</Text>
               </View>
             </Pressable>
+            </Animated.View>
 
             {/* Footer */}
             <View style={styles.footer}>
@@ -353,9 +360,6 @@ const styles = StyleSheet.create({
   },
 
   // ── Shared ────────────────────────────────────
-  buttonPressed: {
-    transform: [{ scale: 0.97 }],
-  },
 
   // ── Separator ─────────────────────────────────
   separator: {

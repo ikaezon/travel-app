@@ -4,11 +4,10 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  ImageBackground,
   Pressable,
   ActivityIndicator,
-  Animated,
   Alert,
+  Animated,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -18,11 +17,12 @@ import { useNavigation, useRoute, useFocusEffect, RouteProp } from '@react-navig
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { SegmentedControl } from '../../components/ui/SegmentedControl';
 import { TimelineCard } from '../../components/domain/TimelineCard';
+import { TripMapPreview } from '../../components/domain/TripMapPreview';
 import { GlassDropdownMenu } from '../../components/ui/GlassDropdownMenu';
+import { GlassNavHeader } from '../../components/navigation/GlassNavHeader';
 import { MainStackParamList } from '../../navigation/types';
-import { useTripTimeline, useDeleteTrip } from '../../hooks';
+import { useTripTimeline, useDeleteTrip, usePressAnimation } from '../../hooks';
 import { colors, spacing, borderRadius, fontFamilies, glassStyles, glassColors, glassShadows, glassConstants } from '../../theme';
-import { mockImages } from '../../data/mocks';
 import { sortTimelineItemsByDateAndTime } from '../../utils/dateFormat';
 
 const TIMELINE_FILTER_OPTIONS = [
@@ -61,8 +61,6 @@ export default function TripOverviewScreen() {
         : timeline.filter((item) => item.type === selectedFilter),
     [timeline, selectedFilter]
   );
-
-  const mapImageUrl = mockImages.mapPlaceholder;
 
   const groupedByDate = useMemo(() => {
     const sorted = sortTimelineItemsByDateAndTime(filteredItems);
@@ -128,6 +126,12 @@ export default function TripOverviewScreen() {
     navigation.navigate('TrainEntry', { tripId });
   }, [navigation, tripId]);
 
+  const fabAnim = usePressAnimation();
+
+  const handleExpandMap = useCallback(() => {
+    navigation.navigate('MapExpand', { tripId, tripName });
+  }, [navigation, tripId, tripName]);
+
   const topOffset = insets.top + 8;
 
   if (isLoading) {
@@ -180,27 +184,7 @@ export default function TripOverviewScreen() {
           showsVerticalScrollIndicator={false}
         >
           <View style={styles.mapSection}>
-            <Pressable style={styles.mapContainer}>
-              <BlurView intensity={24} tint="light" style={[StyleSheet.absoluteFill, glassStyles.blurContent]} />
-              <View style={styles.glassOverlay} pointerEvents="none" />
-              <ImageBackground
-                source={{ uri: mapImageUrl }}
-                style={styles.mapImage}
-                imageStyle={styles.mapImageStyle}
-              >
-                <View style={[styles.pin, styles.pinLeft]}>
-                  <MaterialIcons name="location-on" size={30} color={colors.primary} />
-                </View>
-                <View style={[styles.pin, styles.pinRight]}>
-                  <MaterialIcons name="location-on" size={30} color={colors.status.error} />
-                </View>
-
-                <BlurView intensity={40} tint="light" style={[styles.mapBadge, glassStyles.blurContentPill]}>
-                  <MaterialIcons name="map" size={14} color={colors.primary} />
-                  <Text style={styles.mapBadgeText}>Expand View</Text>
-                </BlurView>
-              </ImageBackground>
-            </Pressable>
+            <TripMapPreview tripId={tripId} onExpandPress={handleExpandMap} />
           </View>
 
           <View style={styles.filterSection}>
@@ -255,36 +239,16 @@ export default function TripOverviewScreen() {
           </View>
         </ScrollView>
 
-        <View style={[styles.topNavContainer, { top: topOffset }]}>
-          <BlurView intensity={24} tint="light" style={[styles.topNavBlur, glassStyles.blurContentLarge]}>
-            <View style={styles.glassOverlay} pointerEvents="none" />
-            <View style={styles.topNavContent}>
-              <Pressable 
-                style={({ pressed }) => pressed && styles.navButtonPressed}
-                onPress={handleBackPress}
-              >
-                <View style={styles.navButton}>
-                  <MaterialIcons name="arrow-back" size={22} color={colors.text.primary.light} />
-                </View>
-              </Pressable>
-
-              <View style={styles.headerCenter}>
-                <Text style={styles.headerLabel}>Trip</Text>
-                <Text style={styles.headerTitle} numberOfLines={1}>{tripName}</Text>
-              </View>
-
-              <Pressable 
-                style={({ pressed }) => pressed && styles.navButtonPressed}
-                onPress={() => setMenuVisible(true)}
-                accessibilityLabel="Trip options"
-              >
-                <View style={styles.navButton}>
-                  <MaterialIcons name="more-horiz" size={22} color={colors.text.primary.light} />
-                </View>
-              </Pressable>
-            </View>
-          </BlurView>
-        </View>
+        <GlassNavHeader
+          title={tripName}
+          label="Trip"
+          onBackPress={handleBackPress}
+          rightAction={{
+            icon: 'more-horiz',
+            onPress: () => setMenuVisible(true),
+            accessibilityLabel: 'Trip options',
+          }}
+        />
 
         {menuVisible && (
           <>
@@ -323,9 +287,12 @@ export default function TripOverviewScreen() {
             }}
             style={styles.addMenuDropdown}
           />
+          <Animated.View style={{ transform: [{ scale: fabAnim.scaleAnim }] }}>
           <Pressable
-            style={({ pressed }) => [styles.fabWrapper, pressed && styles.fabPressed]}
+            style={styles.fabWrapper}
             onPress={() => (addMenuVisible ? handleCloseAddMenu() : handleOpenAddMenu())}
+            onPressIn={fabAnim.onPressIn}
+            onPressOut={fabAnim.onPressOut}
             accessibilityLabel={addMenuVisible ? 'Close add menu' : 'Add reservation'}
           >
             <BlurView intensity={24} tint="light" style={styles.fabBlur}>
@@ -335,6 +302,7 @@ export default function TripOverviewScreen() {
               </View>
             </BlurView>
           </Pressable>
+          </Animated.View>
         </View>
       </View>
     </LinearGradient>
@@ -372,58 +340,6 @@ const styles = StyleSheet.create({
     color: colors.text.secondary.light,
     textAlign: 'center',
   },
-  topNavContainer: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    alignItems: 'center',
-    zIndex: 60,
-  },
-  topNavBlur: {
-    ...glassStyles.navBarWrapper,
-    width: '90%',
-    maxWidth: 360,
-    borderWidth: 1,
-    position: 'relative',
-    height: 56,
-    justifyContent: 'center',
-  },
-  topNavContent: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-  },
-  navButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  navButtonPressed: {
-    opacity: 0.6,
-  },
-  headerCenter: {
-    flex: 1,
-    alignItems: 'center',
-    marginHorizontal: 8,
-  },
-  headerLabel: {
-    fontSize: 9,
-    fontFamily: fontFamilies.semibold,
-    color: colors.primary,
-    textTransform: 'uppercase',
-    letterSpacing: 2,
-    marginBottom: 1,
-    opacity: 0.8,
-  },
-  headerTitle: {
-    fontSize: 16,
-    fontFamily: fontFamilies.semibold,
-    color: colors.text.primary.light,
-    letterSpacing: -0.3,
-  },
   glassOverlay: {
     ...glassStyles.cardOverlay,
     backgroundColor: glassColors.overlayStrong,
@@ -456,50 +372,6 @@ const styles = StyleSheet.create({
   },
   mapSection: {
     paddingHorizontal: 20,
-  },
-  mapContainer: {
-    ...glassStyles.cardWrapper,
-    width: '100%',
-    height: 180,
-    borderWidth: 1,
-    boxShadow: glassShadows.elevated,
-  },
-  mapImage: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  mapImageStyle: {
-    borderRadius: 24,
-  },
-  pin: {
-    position: 'absolute',
-  },
-  pinLeft: {
-    top: '33%',
-    left: '25%',
-  },
-  pinRight: {
-    bottom: '33%',
-    right: '33%',
-  },
-  mapBadge: {
-    ...glassStyles.pillContainer,
-    position: 'absolute',
-    bottom: 12,
-    right: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 20,
-    borderColor: glassColors.borderStrong,
-  },
-  mapBadgeText: {
-    fontSize: 13,
-    fontFamily: fontFamilies.semibold,
-    color: colors.text.primary.light,
   },
   filterSection: {
     paddingHorizontal: 20,
@@ -589,9 +461,5 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  fabPressed: {
-    opacity: 0.9,
-    transform: [{ scale: 0.95 }],
   },
 });

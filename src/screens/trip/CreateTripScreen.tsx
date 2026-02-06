@@ -8,6 +8,7 @@ import {
   Platform,
   Keyboard,
   Alert,
+  Animated,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -27,7 +28,7 @@ import {
   glassColors,
 } from '../../theme';
 import { MainStackParamList } from '../../navigation/types';
-import { useCreateTrip } from '../../hooks';
+import { useCreateTrip, usePressAnimation } from '../../hooks';
 import { formatCalendarDateToDisplay, daysBetween } from '../../utils/dateFormat';
 import type { Trip } from '../../types';
 
@@ -53,6 +54,7 @@ export default function CreateTripScreen() {
   const [keyboardHeight, setKeyboardHeight] = useState(0);
 
   const topOffset = insets.top + 8;
+  const backAnim = usePressAnimation();
 
   const dateRangeDisplay = useMemo(() => {
     if (!startDate) return '';
@@ -182,9 +184,12 @@ export default function CreateTripScreen() {
           <BlurView intensity={24} tint="light" style={[styles.headerBlur, glassStyles.blurContentLarge]}>
             <View style={styles.glassOverlay} pointerEvents="none" />
             <View style={styles.headerContent}>
+              <Animated.View style={{ transform: [{ scale: backAnim.scaleAnim }] }}>
               <Pressable
-                style={({ pressed }) => [styles.backButton, pressed && styles.backButtonPressed]}
+                style={styles.backButton}
                 onPress={handleBackPress}
+                onPressIn={backAnim.onPressIn}
+                onPressOut={backAnim.onPressOut}
                 accessibilityLabel="Go back"
                 disabled={isSubmitting}
               >
@@ -194,6 +199,7 @@ export default function CreateTripScreen() {
                   color={colors.text.primary.light}
                 />
               </Pressable>
+              </Animated.View>
               <Text style={styles.headerTitle}>New Trip</Text>
               <View style={styles.headerSpacer} />
             </View>
@@ -241,9 +247,6 @@ const styles = StyleSheet.create({
     height: 36,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  backButtonPressed: {
-    opacity: 0.6,
   },
   headerTitle: {
     fontSize: 16,

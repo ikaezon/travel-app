@@ -8,6 +8,7 @@ import {
   Pressable,
   Dimensions,
   ActivityIndicator,
+  Animated,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -19,6 +20,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { ShimmerButton } from '../../components/ui/ShimmerButton';
 import { MainStackParamList } from '../../navigation/types';
 import { colors, fontFamilies, glassStyles, glassColors } from '../../theme';
+import { usePressAnimation } from '../../hooks';
 
 type NavigationProp = NativeStackNavigationProp<MainStackParamList>;
 
@@ -34,6 +36,9 @@ export default function ScreenshotUploadScreen() {
   const navigation = useNavigation<NavigationProp>();
   const insets = useSafeAreaInsets();
   const topOffset = insets.top + 8;
+  const backAnim = usePressAnimation();
+  const cancelAnim = usePressAnimation();
+  const permissionAnim = usePressAnimation();
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -160,9 +165,11 @@ export default function ScreenshotUploadScreen() {
           <Text style={styles.permissionText}>
             Please enable photo library access in Settings to select screenshots.
           </Text>
-          <Pressable style={styles.settingsButton} onPress={requestPermission}>
+          <Animated.View style={{ transform: [{ scale: permissionAnim.scaleAnim }] }}>
+          <Pressable style={styles.settingsButton} onPress={requestPermission} onPressIn={permissionAnim.onPressIn} onPressOut={permissionAnim.onPressOut}>
             <Text style={styles.settingsButtonText}>Request Permission</Text>
           </Pressable>
+          </Animated.View>
         </View>
       </LinearGradient>
     );
@@ -224,14 +231,18 @@ export default function ScreenshotUploadScreen() {
           <BlurView intensity={24} tint="light" style={[styles.headerBlur, glassStyles.blurContentLarge]}>
             <View style={styles.glassOverlay} pointerEvents="none" />
             <View style={styles.headerContent}>
-              <Pressable style={styles.backButton} onPress={handleBackPress}>
+              <Animated.View style={{ transform: [{ scale: backAnim.scaleAnim }] }}>
+              <Pressable style={styles.backButton} onPress={handleBackPress} onPressIn={backAnim.onPressIn} onPressOut={backAnim.onPressOut}>
                 <MaterialIcons name="chevron-left" size={24} color={colors.primary} />
                 <Text style={styles.backText}>Back</Text>
               </Pressable>
+              </Animated.View>
               <Text style={styles.headerTitle}>Upload Screenshot</Text>
-              <Pressable style={styles.cancelButton} onPress={handleCancelPress}>
+              <Animated.View style={{ transform: [{ scale: cancelAnim.scaleAnim }] }}>
+              <Pressable style={styles.cancelButton} onPress={handleCancelPress} onPressIn={cancelAnim.onPressIn} onPressOut={cancelAnim.onPressOut}>
                 <Text style={styles.cancelText}>Cancel</Text>
               </Pressable>
+              </Animated.View>
             </View>
           </BlurView>
         </View>

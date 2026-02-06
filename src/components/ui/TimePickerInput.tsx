@@ -21,6 +21,7 @@ import {
   glassColors,
   glassConstants,
 } from '../../theme';
+import { formatTimeTo12Hour } from '../../utils/dateFormat';
 
 const PICKER_HEIGHT = 320;
 const ANIMATION_DURATION = 250;
@@ -38,6 +39,10 @@ export interface TimePickerInputProps {
   variant?: 'default' | 'glass';
 }
 
+/**
+ * Parses time string to Date object.
+ * Handles both 24-hour format (HH:MM) and 12-hour format (H:MM AM/PM).
+ */
 function parseTimeToDate(value: string): Date {
   const date = new Date();
   date.setSeconds(0);
@@ -48,17 +53,20 @@ function parseTimeToDate(value: string): Date {
     return date;
   }
 
+  // Try to match time with optional AM/PM
   const match = value.match(/(\d{1,2}):(\d{2})\s*(AM|PM)?/i);
   if (match) {
     let hours = parseInt(match[1], 10);
     const minutes = parseInt(match[2], 10);
     const period = match[3]?.toUpperCase();
 
+    // If AM/PM is present, convert to 24-hour
     if (period === 'PM' && hours !== 12) {
       hours += 12;
     } else if (period === 'AM' && hours === 12) {
       hours = 0;
     }
+    // If no AM/PM, assume it's already in 24-hour format
 
     date.setHours(hours, minutes);
   }
@@ -66,21 +74,18 @@ function parseTimeToDate(value: string): Date {
   return date;
 }
 
+/**
+ * Converts Date to 24-hour time format for database storage.
+ * Display formatting (12-hour with AM/PM) is handled by formatTimeTo12Hour utility.
+ */
 function formatDateToTime(date: Date): string {
-  let hours = date.getHours();
+  const hours = date.getHours();
   const minutes = date.getMinutes();
-  const period = hours >= 12 ? 'PM' : 'AM';
-
-  if (hours === 0) {
-    hours = 12;
-  } else if (hours > 12) {
-    hours -= 12;
-  }
-
+  
   const hoursStr = String(hours).padStart(2, '0');
   const minutesStr = String(minutes).padStart(2, '0');
 
-  return `${hoursStr}:${minutesStr} ${period}`;
+  return `${hoursStr}:${minutesStr}`;
 }
 
 export function TimePickerInput({
@@ -180,7 +185,8 @@ export function TimePickerInput({
     closePicker();
   }, [tempDate, onChange, closePicker]);
 
-  const displayText = value || '';
+  // Display in 12-hour format even though stored value is 24-hour
+  const displayText = value ? formatTimeTo12Hour(value) : '';
 
   return (
     <View style={[styles.container, style]}>

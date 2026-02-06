@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
   Animated,
 } from 'react-native';
+import { usePressAnimation } from '../../hooks';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
@@ -42,6 +43,7 @@ interface TripItemProps {
 
 const TripItem = React.memo(function TripItem({ trip, index, onPress }: TripItemProps) {
   const fadeAnim = useRef(new Animated.Value(0)).current;
+  const { scaleAnim, onPressIn, onPressOut } = usePressAnimation();
 
   useEffect(() => {
     Animated.timing(fadeAnim, {
@@ -57,10 +59,12 @@ const TripItem = React.memo(function TripItem({ trip, index, onPress }: TripItem
   const statusDotStyle = TRIP_STATUS_DOT_STYLE[trip.status] ?? { backgroundColor: colors.text.secondary.light };
 
   return (
-    <Animated.View style={{ opacity: fadeAnim }}>
+    <Animated.View style={{ opacity: fadeAnim, transform: [{ scale: scaleAnim }] }}>
       <Pressable
-        style={({ pressed }) => [styles.tripCard, pressed && styles.tripCardPressed]}
+        style={styles.tripCard}
         onPress={() => onPress(trip.id, tripName)}
+        onPressIn={onPressIn}
+        onPressOut={onPressOut}
       >
         <BlurView intensity={glassConstants.blur.card} tint="light" style={[StyleSheet.absoluteFill, glassStyles.blurContentXLarge]} />
         <View style={styles.cardOverlay} pointerEvents="none" />
@@ -136,6 +140,8 @@ export default function TripListScreen() {
     () => navigation.navigate('ScreenshotUpload'),
     [navigation]
   );
+  const backAnim = usePressAnimation();
+  const addAnim = usePressAnimation();
 
   const renderSectionHeader = useCallback(
     ({ section }: { section: TripSection }) => (
@@ -174,9 +180,11 @@ export default function TripListScreen() {
             <BlurView intensity={24} tint="light" style={[styles.headerBlur, glassStyles.blurContentLarge]}>
               <View style={styles.glassOverlay} pointerEvents="none" />
               <View style={styles.headerContent}>
-                <Pressable style={styles.backButton} onPress={handleBackPress}>
+                <Animated.View style={{ transform: [{ scale: backAnim.scaleAnim }] }}>
+                <Pressable style={styles.backButton} onPress={handleBackPress} onPressIn={backAnim.onPressIn} onPressOut={backAnim.onPressOut}>
                   <MaterialIcons name="arrow-back" size={22} color={colors.text.primary.light} />
                 </Pressable>
+                </Animated.View>
                 <Text style={styles.headerTitle}>My Trips</Text>
                 <View style={styles.addButton} />
               </View>
@@ -212,13 +220,17 @@ export default function TripListScreen() {
           <BlurView intensity={24} tint="light" style={[styles.headerBlur, glassStyles.blurContentLarge]}>
             <View style={styles.glassOverlay} pointerEvents="none" />
             <View style={styles.headerContent}>
-              <Pressable style={styles.backButton} onPress={handleBackPress}>
+              <Animated.View style={{ transform: [{ scale: backAnim.scaleAnim }] }}>
+              <Pressable style={styles.backButton} onPress={handleBackPress} onPressIn={backAnim.onPressIn} onPressOut={backAnim.onPressOut}>
                 <MaterialIcons name="arrow-back" size={22} color={colors.text.primary.light} />
               </Pressable>
+              </Animated.View>
               <Text style={styles.headerTitle}>My Trips</Text>
-              <Pressable style={styles.addButton} onPress={handleAddTripPress}>
+              <Animated.View style={{ transform: [{ scale: addAnim.scaleAnim }] }}>
+              <Pressable style={styles.addButton} onPress={handleAddTripPress} onPressIn={addAnim.onPressIn} onPressOut={addAnim.onPressOut}>
                 <MaterialIcons name="add" size={22} color={colors.primary} />
               </Pressable>
+              </Animated.View>
             </View>
           </BlurView>
         </View>
@@ -322,9 +334,6 @@ const styles = StyleSheet.create({
   tripCard: {
     ...glassStyles.cardWrapperLarge,
     position: 'relative',
-  },
-  tripCardPressed: {
-    transform: [{ scale: 0.98 }],
   },
   cardOverlay: {
     ...glassStyles.cardOverlay,

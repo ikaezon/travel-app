@@ -6,6 +6,7 @@ import {
   ScrollView,
   Pressable,
   Alert,
+  Animated,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -20,7 +21,7 @@ import { LoadingView } from '../../components/ui/LoadingView';
 import { ErrorView } from '../../components/ui/ErrorView';
 import { colors, spacing, borderRadius, fontFamilies, glassStyles, glassColors, glassShadows, glassConstants } from '../../theme';
 import { MainStackParamList } from '../../navigation/types';
-import { useCurrentUser, useUpcomingTrips, useQuickActions } from '../../hooks';
+import { useCurrentUser, useUpcomingTrips, useQuickActions, usePressAnimation } from '../../hooks';
 
 const QUICK_ACTION_ROUTES: readonly string[] = ['ManualEntryOptions', 'ScreenshotUpload', 'CreateTrip'];
 
@@ -58,6 +59,9 @@ export default function TripDashboardScreen() {
   const handleSeeAllPress = useCallback(() => navigation.navigate('TripList'), [navigation]);
 
   const handleRetry = useCallback(() => refetchAll(), [refetchAll]);
+  const seeAllAnim = usePressAnimation();
+  const menuAnim = usePressAnimation();
+  const moreAnim = usePressAnimation();
 
   const handleQuickActionPress = useCallback(
     async (route: string) => {
@@ -136,12 +140,14 @@ export default function TripDashboardScreen() {
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>Upcoming Trips</Text>
-              <Pressable onPress={handleSeeAllPress}>
+              <Animated.View style={{ transform: [{ scale: seeAllAnim.scaleAnim }] }}>
+              <Pressable onPress={handleSeeAllPress} onPressIn={seeAllAnim.onPressIn} onPressOut={seeAllAnim.onPressOut}>
                 <BlurView intensity={24} tint="light" style={[styles.seeAllButtonContainer, glassStyles.blurContentPill]}>
                   <View style={styles.glassOverlay} pointerEvents="none" />
                   <Text style={styles.seeAllButton}>See All</Text>
                 </BlurView>
               </Pressable>
+              </Animated.View>
             </View>
 
             <ScrollView
@@ -189,22 +195,26 @@ export default function TripDashboardScreen() {
           <BlurView intensity={24} tint="light" style={[styles.topNavBlur, glassStyles.blurContentLarge]}>
             <View style={styles.glassOverlay} pointerEvents="none" />
             <View style={styles.topNavContent}>
-              <Pressable style={({ pressed }) => pressed && styles.navButtonPressed}>
+              <Animated.View style={{ transform: [{ scale: menuAnim.scaleAnim }] }}>
+              <Pressable onPressIn={menuAnim.onPressIn} onPressOut={menuAnim.onPressOut}>
                 <View style={styles.navButton}>
                   <Menu size={22} color={colors.text.primary.light} strokeWidth={2} />
                 </View>
               </Pressable>
+              </Animated.View>
 
               <View style={styles.headerCenter}>
                 <Text style={styles.headerLabel}>Dashboard</Text>
                 <Text style={styles.headerTitle}>My Trips</Text>
               </View>
 
-              <Pressable style={({ pressed }) => pressed && styles.navButtonPressed}>
+              <Animated.View style={{ transform: [{ scale: moreAnim.scaleAnim }] }}>
+              <Pressable onPressIn={moreAnim.onPressIn} onPressOut={moreAnim.onPressOut}>
                 <View style={styles.navButton}>
                   <MoreHorizontal size={22} color={colors.text.primary.light} strokeWidth={2} />
                 </View>
               </Pressable>
+              </Animated.View>
             </View>
           </BlurView>
         </View>
@@ -247,9 +257,6 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  navButtonPressed: {
-    opacity: 0.6,
   },
   headerCenter: {
     alignItems: 'center',
