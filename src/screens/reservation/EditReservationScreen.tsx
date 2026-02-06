@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
+  TextInput,
   StyleSheet,
   ScrollView,
   Pressable,
@@ -25,13 +26,14 @@ import { ShimmerButton } from '../../components/ui/ShimmerButton';
 import {
   colors,
   spacing,
+  borderRadius,
   fontFamilies,
   glassStyles,
   glassColors,
 } from '../../theme';
 import { MainStackParamList } from '../../navigation/types';
-import { useReservationByTimelineId } from '../../hooks';
-import { reservationService, tripService } from '../../data';
+import { useReservationByTimelineId, useUpdateReservation } from '../../hooks';
+import { tripService } from '../../data';
 import { formatCalendarDateToLongDisplay, parseToCalendarDate } from '../../utils/dateFormat';
 
 type NavigationProp = NativeStackNavigationProp<MainStackParamList, 'EditReservation'>;
@@ -41,9 +43,10 @@ export default function EditReservationScreen() {
   const navigation = useNavigation<NavigationProp>();
   const route = useRoute<EditReservationRouteProp>();
   const insets = useSafeAreaInsets();
-  const reservationId = route.params?.reservationId ?? '';
+  const timelineItemId = route.params?.timelineItemId ?? '';
 
-  const { reservation, isLoading } = useReservationByTimelineId(reservationId);
+  const { reservation, isLoading } = useReservationByTimelineId(timelineItemId);
+  const { updateReservation, isUpdating } = useUpdateReservation();
   const [providerName, setProviderName] = useState('');
   const [routeText, setRouteText] = useState('');
   const [departureAirport, setDepartureAirport] = useState('');
@@ -136,7 +139,8 @@ export default function EditReservationScreen() {
             ? providerName
             : routeText;
 
-      const updated = await reservationService.updateReservation(reservation.id, {
+      // Use hook for reservation update instead of direct service call
+      const updated = await updateReservation(reservation.id, {
         providerName,
         route: finalRoute,
         date: finalDate,
@@ -148,7 +152,9 @@ export default function EditReservationScreen() {
         address: address.trim() || undefined,
       });
       if (updated) {
-        await tripService.updateTimelineItem(reservationId, {
+        await tripService.updateTimelineItem(timelineItemId, {
+          title: providerName,
+          date: finalDate,
           subtitle: finalRoute || routeText,
           reservationId: reservation.id,
         });
@@ -278,41 +284,73 @@ export default function EditReservationScreen() {
               variant="glass"
             />
           )}
-          <FormInput
-            label="Confirmation code"
-            value={confirmationCode}
-            onChangeText={setConfirmationCode}
-            placeholder="Booking reference"
-            iconName="confirmation-number"
-            variant="glass"
-          />
-          {isFlight && (
-            <>
-              <FormInput
-                label="Terminal"
-                value={terminal}
-                onChangeText={setTerminal}
-                placeholder="e.g. 2"
-                iconName="meeting-room"
-                variant="glass"
-              />
-              <FormInput
-                label="Gate"
-                value={gate}
-                onChangeText={setGate}
-                placeholder="e.g. B12"
-                iconName="door-sliding"
-                variant="glass"
-              />
-              <FormInput
-                label="Seat"
-                value={seat}
-                onChangeText={setSeat}
-                placeholder="e.g. 14A"
-                iconName="airline-seat-recline-extra"
-                variant="glass"
-              />
-            </>
+          {isFlight ? (
+            <View style={styles.flightDetailsCard}>
+              <BlurView intensity={24} tint="light" style={[styles.flightDetailsBlur, glassStyles.blurContent]}>
+                <View style={styles.glassOverlay} pointerEvents="none" />
+                <View style={styles.flightDetailsContent}>
+                  <Text style={styles.flightDetailsLabel}>Flight details</Text>
+                  <View style={styles.flightDetailsGrid}>
+                    <View style={styles.flightDetailsInputRow}>
+                      <View style={styles.flightDetailsInputCol}>
+                        <MaterialIcons name="confirmation-number" size={16} color={colors.text.secondary.light} style={styles.flightDetailsIcon} />
+                        <TextInput
+                          style={styles.flightDetailsInput}
+                          value={confirmationCode}
+                          onChangeText={setConfirmationCode}
+                          placeholder="Conf #"
+                          placeholderTextColor={colors.text.tertiary.light}
+                        />
+                      </View>
+                      <View style={styles.flightDetailsDivider} />
+                      <View style={styles.flightDetailsInputCol}>
+                        <MaterialIcons name="meeting-room" size={16} color={colors.text.secondary.light} style={styles.flightDetailsIcon} />
+                        <TextInput
+                          style={styles.flightDetailsInput}
+                          value={terminal}
+                          onChangeText={setTerminal}
+                          placeholder="Terminal"
+                          placeholderTextColor={colors.text.tertiary.light}
+                        />
+                      </View>
+                    </View>
+                    <View style={styles.flightDetailsRowDivider} />
+                    <View style={styles.flightDetailsInputRow}>
+                      <View style={styles.flightDetailsInputCol}>
+                        <MaterialIcons name="door-sliding" size={16} color={colors.text.secondary.light} style={styles.flightDetailsIcon} />
+                        <TextInput
+                          style={styles.flightDetailsInput}
+                          value={gate}
+                          onChangeText={setGate}
+                          placeholder="Gate"
+                          placeholderTextColor={colors.text.tertiary.light}
+                        />
+                      </View>
+                      <View style={styles.flightDetailsDivider} />
+                      <View style={styles.flightDetailsInputCol}>
+                        <MaterialIcons name="airline-seat-recline-extra" size={16} color={colors.text.secondary.light} style={styles.flightDetailsIcon} />
+                        <TextInput
+                          style={styles.flightDetailsInput}
+                          value={seat}
+                          onChangeText={setSeat}
+                          placeholder="Seat"
+                          placeholderTextColor={colors.text.tertiary.light}
+                        />
+                      </View>
+                    </View>
+                  </View>
+                </View>
+              </BlurView>
+            </View>
+          ) : (
+            <FormInput
+              label="Confirmation code"
+              value={confirmationCode}
+              onChangeText={setConfirmationCode}
+              placeholder="Booking reference"
+              iconName="confirmation-number"
+              variant="glass"
+            />
           )}
 
           <ShimmerButton
@@ -407,5 +445,61 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: 24,
     gap: 12,
+  },
+  flightDetailsCard: {
+    ...glassStyles.cardWrapper,
+    overflow: 'hidden',
+    width: '100%',
+  },
+  flightDetailsBlur: {
+    padding: 12,
+    position: 'relative' as const,
+  },
+  flightDetailsContent: {
+    position: 'relative' as const,
+  },
+  flightDetailsLabel: {
+    fontSize: 14,
+    fontFamily: fontFamilies.medium,
+    color: colors.text.primary.light,
+    marginBottom: spacing.sm,
+  },
+  flightDetailsGrid: {
+    backgroundColor: 'rgba(255, 255, 255, 0.5)',
+    borderRadius: borderRadius.md,
+    borderWidth: 1,
+    borderColor: glassColors.border,
+    overflow: 'hidden',
+  },
+  flightDetailsInputRow: {
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    height: 48,
+  },
+  flightDetailsRowDivider: {
+    height: 1,
+    backgroundColor: glassColors.border,
+  },
+  flightDetailsInputCol: {
+    flex: 1,
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    paddingHorizontal: 8,
+    height: '100%' as unknown as number,
+  },
+  flightDetailsIcon: {
+    marginRight: 4,
+  },
+  flightDetailsInput: {
+    flex: 1,
+    fontSize: 15,
+    fontFamily: fontFamilies.regular,
+    color: colors.text.primary.light,
+    height: '100%' as unknown as number,
+  },
+  flightDetailsDivider: {
+    width: 1,
+    height: 28,
+    backgroundColor: glassColors.border,
   },
 });

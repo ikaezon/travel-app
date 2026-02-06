@@ -21,24 +21,38 @@ import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { StatCard } from '../../components/ui/StatCard';
 import { DetailRow } from '../../components/ui/DetailRow';
-import { GlassDropdownMenu } from '../../components/ui';
+import { GlassDropdownMenu } from '../../components/ui/GlassDropdownMenu';
 import { MainStackParamList } from '../../navigation/types';
 import { useReservationByTimelineId } from '../../hooks';
-import { getReservationStatusConfig } from '../../constants';
 import { colors, spacing, fontFamilies, glassStyles, glassColors, glassConstants, glassShadows } from '../../theme';
-import { reservationService, tripService } from '../../data';
+import { deleteReservationWithTimeline } from '../../data';
 import { shortenCountryInAddress } from '../../utils/addressFormat';
+import { formatReservationDateDisplay, getReservationDisplayAddress } from '../../utils/reservationFormat';
+import type { Reservation } from '../../types';
 
 type NavigationProp = NativeStackNavigationProp<MainStackParamList>;
 type ReservationDetailRouteProp = RouteProp<MainStackParamList, 'ReservationDetail'>;
+
+function getReservationStatusConfig(status: Reservation['status']) {
+  switch (status) {
+    case 'confirmed':
+      return { label: 'Confirmed', bgColor: colors.status.successLight, textColor: colors.status.success };
+    case 'pending':
+      return { label: 'Pending', bgColor: colors.status.warningLight, textColor: colors.status.warning };
+    case 'cancelled':
+      return { label: 'Cancelled', bgColor: colors.status.errorLight, textColor: colors.status.error };
+    default:
+      return { label: 'Unknown', bgColor: colors.border.light, textColor: colors.text.tertiary.light };
+  }
+}
 
 export default function ReservationDetailScreen() {
   const navigation = useNavigation<NavigationProp>();
   const route = useRoute<ReservationDetailRouteProp>();
   const insets = useSafeAreaInsets();
-  const reservationId = route.params?.reservationId || '';
+  const timelineItemId = route.params?.timelineItemId || '';
 
-  const { reservation, isLoading, error, refetch } = useReservationByTimelineId(reservationId);
+  const { reservation, isLoading, error, refetch } = useReservationByTimelineId(timelineItemId);
   const [menuVisible, setMenuVisible] = useState(false);
 
   useFocusEffect(
@@ -51,13 +65,13 @@ export default function ReservationDetailScreen() {
 
   const handleEditReservation = useCallback(() => {
     setMenuVisible(false);
-    navigation.navigate('EditReservation', { reservationId });
-  }, [navigation, reservationId]);
+    navigation.navigate('EditReservation', { timelineItemId });
+  }, [navigation, timelineItemId]);
 
   const handleAddAttachments = useCallback(() => {
     setMenuVisible(false);
-    navigation.navigate('ReservationAttachments', { reservationId });
-  }, [navigation, reservationId]);
+    navigation.navigate('ReservationAttachments', { timelineItemId });
+  }, [navigation, timelineItemId]);
 
   const handleDeleteReservation = useCallback(() => {
     setMenuVisible(false);
@@ -72,8 +86,7 @@ export default function ReservationDetailScreen() {
           style: 'destructive',
           onPress: async () => {
             try {
-              await reservationService.deleteReservation(reservation.id);
-              await tripService.deleteTimelineItem(reservationId);
+              await deleteReservationWithTimeline(reservation.id, timelineItemId);
               navigation.goBack();
             } catch (e) {
               const message = e instanceof Error ? e.message : 'Failed to delete reservation.';
@@ -83,7 +96,7 @@ export default function ReservationDetailScreen() {
         },
       ]
     );
-  }, [reservation, reservationId, navigation]);
+  }, [reservation, timelineItemId, navigation]);
 
   const handleMenuSelect = useCallback(
     (index: number) => {
@@ -94,22 +107,15 @@ export default function ReservationDetailScreen() {
     [handleEditReservation, handleAddAttachments, handleDeleteReservation]
   );
 
-  const getDirectionsAddress = useCallback(() => {
-    if (!reservation) return null;
-    // Use explicit address if available, otherwise fall back to route for hotels
-    if (reservation.address) return reservation.address;
-    if (reservation.type === 'hotel' && reservation.route) return reservation.route;
-    return null;
-  }, [reservation]);
+  const directionsAddress = reservation ? getReservationDisplayAddress(reservation) : null;
 
   const handleOpenDirections = useCallback(() => {
-    const address = getDirectionsAddress();
-    if (!address) {
+    if (!directionsAddress) {
       Alert.alert('No Address', 'No address available for directions.');
       return;
     }
 
-    const encodedAddress = encodeURIComponent(address);
+    const encodedAddress = encodeURIComponent(directionsAddress);
     
     // Use Apple Maps on iOS, Google Maps on Android
     const url = Platform.select({
@@ -126,7 +132,7 @@ export default function ReservationDetailScreen() {
         Linking.openURL(`https://maps.apple.com/?daddr=${encodedAddress}`);
       }
     });
-  }, [getDirectionsAddress]);
+  }, [directionsAddress]);
 
   const topOffset = insets.top + 8;
   const showContent = Boolean(!isLoading && !error && reservation);
@@ -134,20 +140,14 @@ export default function ReservationDetailScreen() {
   const statusConfig = reservation ? getReservationStatusConfig(reservation.status) : null;
 
   const displayAddress = useMemo(() => {
-    const addr = reservation?.address || (reservation?.type === 'hotel' ? reservation?.route : null);
+    if (!reservation) return '';
+    const addr = getReservationDisplayAddress(reservation);
     return addr ? shortenCountryInAddress(addr) : '';
-  }, [reservation?.address, reservation?.route, reservation?.type]);
+  }, [reservation]);
 
   const dateDisplayText = useMemo(() => {
     if (!reservation) return '';
-    const d = reservation.duration?.trim() || '';
-    const hasDuration = d && d !== '—' && d !== '-';
-    if (reservation.type === 'hotel') {
-      if (d.includes(' - ')) return d;
-      if (d === reservation.date) return reservation.date;
-      return hasDuration ? `${reservation.date} • ${d}` : reservation.date;
-    }
-    return hasDuration ? `${reservation.date} • ${d}` : reservation.date;
+    return formatReservationDateDisplay(reservation);
   }, [reservation]);
 
   let content: React.ReactNode;
@@ -259,10 +259,10 @@ export default function ReservationDetailScreen() {
                 <DetailRow
                   label={reservation.type === 'flight' ? 'Aircraft' : 'Vehicle'}
                   value={reservation.vehicleInfo}
-                  showBorder={Boolean(getDirectionsAddress())}
+                  showBorder={Boolean(directionsAddress)}
                 />
               )}
-              {getDirectionsAddress() && (
+              {directionsAddress && (
                 <Pressable onPress={handleOpenDirections}>
                   <DetailRow
                     label="Address"
@@ -316,7 +316,7 @@ export default function ReservationDetailScreen() {
             <MaterialIcons name="calendar-today" size={20} color={colors.text.primary.light} />
             <Text style={styles.actionButtonText}>Calendar</Text>
           </Pressable>
-          {getDirectionsAddress() && (
+          {directionsAddress && (
             <Pressable 
               style={({ pressed }) => [styles.actionButton, styles.actionButtonPrimary, pressed && styles.actionButtonPressed]}
               onPress={handleOpenDirections}

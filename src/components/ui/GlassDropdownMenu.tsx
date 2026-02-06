@@ -1,11 +1,45 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, Pressable, Animated, StyleProp, ViewStyle } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { MaterialIcons } from '@expo/vector-icons';
-import { fontFamilies } from '../../theme';
-import { useMenuAnimation } from '../../hooks';
+import { fontFamilies, colors } from '../../theme';
 
-// Custom menu styles — no theme/glassStyles to avoid UI glitches
+function useMenuAnimation(visible: boolean) {
+  const opacity = useRef(new Animated.Value(0)).current;
+  const scale = useRef(new Animated.Value(0.96)).current;
+  const hasAnimatedForCurrentVisibility = useRef(false);
+
+  useEffect(() => {
+    if (visible) {
+      if (!hasAnimatedForCurrentVisibility.current) {
+        hasAnimatedForCurrentVisibility.current = true;
+        requestAnimationFrame(() => {
+          Animated.parallel([
+            Animated.timing(opacity, {
+              toValue: 1,
+              duration: 200,
+              useNativeDriver: true,
+            }),
+            Animated.spring(scale, {
+              toValue: 1,
+              useNativeDriver: true,
+              damping: 14,
+              stiffness: 200,
+            }),
+          ]).start();
+        });
+      }
+    } else {
+      hasAnimatedForCurrentVisibility.current = false;
+      opacity.setValue(0);
+      scale.setValue(0.96);
+    }
+  }, [visible, opacity, scale]);
+
+  return { opacity, scale };
+}
+
+// Menu styling - kept inline for clarity
 const MENU = {
   borderRadius: 16,
   blurIntensity: 48,
@@ -14,9 +48,9 @@ const MENU = {
   borderColor: 'rgba(255, 255, 255, 0.8)',
   itemBorder: 'rgba(148, 163, 184, 0.25)',
   itemPressed: 'rgba(0, 0, 0, 0.04)',
-  text: '#1e293b',
-  primary: '#3b82f6',
-  error: '#ef4444',
+  text: colors.text.primary.light,
+  primary: colors.status.info,
+  error: colors.status.error,
   paddingVertical: 12,
   paddingHorizontal: 16,
   iconGap: 8,

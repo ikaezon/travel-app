@@ -3,8 +3,7 @@ import { Text, StyleSheet, Pressable, View, ActivityIndicator } from 'react-nati
 import { BlurView } from 'expo-blur';
 import { MaterialIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { fontFamilies, glassStyles, glassColors, glassConstants, glassShadows } from '../../theme';
-import { colors } from '../../theme';
+import { colors, fontFamilies, glassStyles, glassColors, glassConstants, glassShadows, borderRadius } from '../../theme';
 
 interface ShimmerButtonProps {
   label: string;
@@ -91,12 +90,12 @@ export function ShimmerButton({
 const styles = StyleSheet.create({
   button: {
     height: 56,
-    borderRadius: 16,
-    backgroundColor: '#13a4ec',
+    borderRadius: borderRadius.lg,
+    backgroundColor: colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
     overflow: 'hidden',
-    shadowColor: '#13a4ec',
+    shadowColor: colors.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.25,
     shadowRadius: 20,
@@ -145,7 +144,7 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 16,
     fontFamily: fontFamilies.semibold,
-    color: 'white',
+    color: colors.white,
     letterSpacing: 0.3,
   },
 });

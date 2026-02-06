@@ -1,37 +1,26 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import {
   View,
-  Text,
   StyleSheet,
   ScrollView,
-  Pressable,
-  Platform,
   Keyboard,
   Alert,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { BlurView } from 'expo-blur';
-import { MaterialIcons } from '@expo/vector-icons';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { FormInput } from '../../components/ui/FormInput';
 import { DatePickerInput } from '../../components/ui/DatePickerInput';
 import { TimePickerInput } from '../../components/ui/TimePickerInput';
 import { DualAirportInput } from '../../components/ui/DualAirportInput';
-import { TripSelector } from '../../components/domain';
+import { TripSelector } from '../../components/domain/TripSelector';
+import { GlassNavHeader } from '../../components/navigation/GlassNavHeader';
 import { ShimmerButton } from '../../components/ui/ShimmerButton';
-import {
-  colors,
-  spacing,
-  fontFamilies,
-  glassStyles,
-  glassColors,
-} from '../../theme';
+import { colors, spacing } from '../../theme';
 import { MainStackParamList } from '../../navigation/types';
-import { reservationService, tripService } from '../../data';
-import { DEFAULT_RESERVATION_HEADER_IMAGE } from '../../constants/reservationDefaults';
-import { useTrips } from '../../hooks';
+import { createFlightReservation } from '../../data';
+import { useTrips, useKeyboardHeight } from '../../hooks';
 
 type NavigationProp = NativeStackNavigationProp<MainStackParamList, 'FlightEntry'>;
 type FlightEntryRouteProp = RouteProp<MainStackParamList, 'FlightEntry'>;
@@ -51,12 +40,10 @@ export default function FlightEntryScreen() {
   const [departureDate, setDepartureDate] = useState('');
   const [departureTime, setDepartureTime] = useState('');
   const [confirmationNumber, setConfirmationNumber] = useState('');
-  const [keyboardHeight, setKeyboardHeight] = useState(0);
+  const keyboardHeight = useKeyboardHeight();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
   const dateFieldYRef = useRef(0);
-
-  const topOffset = insets.top + 8;
 
   const handleCalendarOpen = useCallback(() => {
     scrollViewRef.current?.scrollTo({
@@ -72,21 +59,6 @@ export default function FlightEntryScreen() {
     []
   );
 
-  useEffect(() => {
-    const showSub = Keyboard.addListener(
-      Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
-      (e) => setKeyboardHeight(e.endCoordinates.height)
-    );
-    const hideSub = Keyboard.addListener(
-      Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide',
-      () => setKeyboardHeight(0)
-    );
-    return () => {
-      showSub.remove();
-      hideSub.remove();
-    };
-  }, []);
-
   const handleSave = async () => {
     Keyboard.dismiss();
 
@@ -95,50 +67,30 @@ export default function FlightEntryScreen() {
       return;
     }
 
-    const providerName = airline.trim() || 'Flight';
-    const routeText = [departureAirport.trim(), arrivalAirport.trim()].filter(Boolean).join(' → ') || 'TBD';
-    const date = departureDate.trim() || 'TBD';
-    const time = departureTime.trim() || 'TBD';
-    const title = [providerName, flightNumber.trim()].filter(Boolean).join(' ') || 'Flight';
-    const subtitle = routeText;
-
     setIsSubmitting(true);
     try {
-      await reservationService.createReservation({
+      await createFlightReservation({
         tripId: selectedTripId,
-        type: 'flight',
-        providerName,
-        route: routeText,
-        date,
-        duration: '',
-        status: 'confirmed',
-        confirmationCode: confirmationNumber.trim() || '—',
-        statusText: 'On Time',
-        headerImageUrl: DEFAULT_RESERVATION_HEADER_IMAGE,
-        attachments: [],
+        airline,
+        flightNumber,
+        departureAirport,
+        arrivalAirport,
+        departureDate,
+        departureTime,
+        confirmationNumber,
       });
 
-      await tripService.createTimelineItem(selectedTripId, {
-        type: 'flight',
-        date,
-        time,
-        title,
-        subtitle,
-        metadata: confirmationNumber.trim() ? `Conf: #${confirmationNumber.trim()}` : undefined,
-        actionLabel: 'Boarding Pass',
-        actionIcon: 'qr-code-scanner',
-      });
-
-      setIsSubmitting(false);
       navigation.goBack();
     } catch (err) {
-      setIsSubmitting(false);
       const message = err instanceof Error ? err.message : 'Could not save flight. Try again.';
       Alert.alert('Error', message, [{ text: 'OK' }]);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  const handleBackPress = () => navigation.goBack();
+  const handleBackPress = useCallback(() => navigation.goBack(), [navigation]);
+  const topOffset = insets.top + 8;
 
   return (
     <LinearGradient
@@ -232,22 +184,10 @@ export default function FlightEntryScreen() {
           />
         </ScrollView>
 
-        <View style={[styles.headerContainer, { top: topOffset }]}>
-          <BlurView intensity={24} tint="light" style={[styles.headerBlur, glassStyles.blurContentLarge]}>
-            <View style={styles.glassOverlay} pointerEvents="none" />
-            <View style={styles.headerContent}>
-              <Pressable
-                style={({ pressed }) => [styles.backButton, pressed && styles.backButtonPressed]}
-                onPress={handleBackPress}
-                accessibilityLabel="Go back"
-              >
-                <MaterialIcons name="arrow-back" size={22} color={colors.text.primary.light} />
-              </Pressable>
-              <Text style={styles.headerTitle}>Flight Details</Text>
-              <View style={styles.headerSpacer} />
-            </View>
-          </BlurView>
-        </View>
+        <GlassNavHeader
+          title="Flight Details"
+          onBackPress={handleBackPress}
+        />
       </View>
     </LinearGradient>
   );
@@ -259,49 +199,6 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-  },
-  headerContainer: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    alignItems: 'center',
-    zIndex: 60,
-  },
-  headerBlur: {
-    ...glassStyles.navBarWrapper,
-    width: '90%',
-    maxWidth: 340,
-    position: 'relative',
-    height: 56,
-    justifyContent: 'center',
-  },
-  headerContent: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-  },
-  glassOverlay: {
-    ...glassStyles.cardOverlay,
-    backgroundColor: glassColors.overlayStrong,
-  },
-  backButton: {
-    width: 36,
-    height: 36,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  backButtonPressed: {
-    opacity: 0.6,
-  },
-  headerTitle: {
-    fontSize: 16,
-    fontFamily: fontFamilies.semibold,
-    color: colors.text.primary.light,
-    letterSpacing: -0.3,
-  },
-  headerSpacer: {
-    width: 36,
   },
   scrollView: {
     flex: 1,

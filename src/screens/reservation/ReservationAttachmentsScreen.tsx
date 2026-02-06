@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   View,
   Text,
@@ -14,8 +14,7 @@ import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { colors, spacing, borderRadius, fontFamilies } from '../../theme';
 import { MainStackParamList } from '../../navigation/types';
-import { useReservationByTimelineId } from '../../hooks';
-import { reservationService } from '../../data';
+import { useReservationByTimelineId, useCreateAttachment } from '../../hooks';
 
 type NavigationProp = NativeStackNavigationProp<MainStackParamList, 'ReservationAttachments'>;
 type ReservationAttachmentsRouteProp = RouteProp<MainStackParamList, 'ReservationAttachments'>;
@@ -23,9 +22,9 @@ type ReservationAttachmentsRouteProp = RouteProp<MainStackParamList, 'Reservatio
 export default function ReservationAttachmentsScreen() {
   const navigation = useNavigation<NavigationProp>();
   const route = useRoute<ReservationAttachmentsRouteProp>();
-  const reservationId = route.params?.reservationId ?? '';
-  const { reservation, isLoading } = useReservationByTimelineId(reservationId);
-  const [uploading, setUploading] = useState(false);
+  const timelineItemId = route.params?.timelineItemId ?? '';
+  const { reservation, isLoading } = useReservationByTimelineId(timelineItemId);
+  const { createAttachment, isCreating: uploading } = useCreateAttachment();
 
   const openCameraRoll = async () => {
     if (!reservation) return;
@@ -45,15 +44,14 @@ export default function ReservationAttachmentsScreen() {
     });
     if (result.canceled || !result.assets[0]) return;
     const uri = result.assets[0].uri;
-    setUploading(true);
+    const fileName = result.assets[0].fileName ?? `attachment_${Date.now()}.jpg`;
     try {
-      await reservationService.createAttachmentFromFile(reservation.id, uri);
+      // Use hook instead of direct service call
+      await createAttachment(reservation.id, uri, fileName);
       navigation.goBack();
     } catch (e) {
       const message = e instanceof Error ? e.message : 'Failed to upload attachment.';
       Alert.alert('Upload failed', message);
-    } finally {
-      setUploading(false);
     }
   };
 

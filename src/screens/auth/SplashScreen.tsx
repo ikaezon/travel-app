@@ -7,17 +7,25 @@ import {
   Pressable,
   ScrollView,
   Dimensions,
-  Platform,
+  Animated,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { BlurView } from 'expo-blur';
 import { MaterialIcons } from '@expo/vector-icons';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { colors, spacing, borderRadius, fontFamilies } from '../../theme';
+import {
+  colors,
+  spacing,
+  fontFamilies,
+  glassStyles,
+  glassConstants,
+  glassColors,
+  glassShadows,
+} from '../../theme';
 import { mockImages } from '../../data/mocks';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 const HERO_HEIGHT = Math.max(SCREEN_HEIGHT * 0.45, 360);
-const TOP_BLEED = 280;
+const TOP_BLEED = 160;
 
 interface SplashScreenProps {
   onEmailPress?: () => void;
@@ -35,6 +43,7 @@ export default function SplashScreen({
   onPrivacyPress,
 }: SplashScreenProps) {
   const scrollRef = useRef<ScrollView>(null);
+  const fadeAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     const id = requestAnimationFrame(() => {
@@ -43,116 +52,183 @@ export default function SplashScreen({
     return () => cancelAnimationFrame(id);
   }, []);
 
-  return (
-    <SafeAreaView style={styles.container} edges={['bottom']}>
-      <ScrollView
-        ref={scrollRef}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
-        <View style={[styles.heroContainer, { height: TOP_BLEED + HERO_HEIGHT }]}>
-          <ImageBackground
-            source={{
-              uri: mockImages.splashBackground,
-            }}
-            style={styles.heroImage}
-            resizeMode="cover"
-          >
-            <LinearGradient
-              colors={[
-                colors.background.light,
-                'rgba(246,247,248,0)',
-                'transparent',
-                'rgba(0,0,0,0.6)',
-              ]}
-              locations={[0, 0.35, 0.65, 1]}
-              style={styles.gradient}
-            />
-          </ImageBackground>
+  useEffect(() => {
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 400,
+      delay: 200,
+      useNativeDriver: true,
+    }).start();
+  }, [fadeAnim]);
 
-          <View style={styles.logoOuterContainer}>
-            <View style={styles.logoInnerContainer}>
-              <MaterialIcons name="flight" size={48} color={colors.primary} style={styles.logoIcon} />
+  return (
+    <LinearGradient
+      colors={[colors.gradient.start, colors.gradient.middle, colors.gradient.end]}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+      style={styles.gradientContainer}
+    >
+      <View style={styles.container}>
+        <ScrollView
+          ref={scrollRef}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          
+        >
+          <View style={[styles.heroContainer, { height: TOP_BLEED + HERO_HEIGHT }]}>
+            <ImageBackground
+              source={{ uri: mockImages.splashBackground }}
+              style={styles.heroImage}
+              resizeMode="cover"
+            >
+              <LinearGradient
+                colors={[
+                  colors.gradient.start,
+                  'rgba(241, 245, 249, 0)',
+                  'transparent',
+                  'rgba(0, 0, 0, 0.55)',
+                ]}
+                locations={[0, 0.3, 0.6, 1]}
+                style={styles.gradient}
+              />
+            </ImageBackground>
+
+            {/* Logo – liquid glass circle */}
+            <View style={styles.logoOuterContainer}>
+              <BlurView
+                intensity={glassConstants.blur.card}
+                tint="light"
+                style={[StyleSheet.absoluteFill, glassStyles.blurContentPill]}
+              />
+              <View style={styles.glassOverlay} pointerEvents="none" />
+              <View style={styles.logoInnerContainer}>
+                <BlurView
+                  intensity={glassConstants.blur.icon}
+                  tint="light"
+                  style={[StyleSheet.absoluteFill, glassStyles.blurContentPill]}
+                />
+                <View style={styles.glassOverlay} pointerEvents="none" />
+                <MaterialIcons
+                  name="flight"
+                  size={44}
+                  color={colors.primary}
+                  style={styles.logoIcon}
+                />
+              </View>
+            </View>
+
+            <View style={styles.headlineContainer}>
+              <Text style={styles.title}>
+                Your Travel{'\n'}Command Center
+              </Text>
+              <Text style={styles.subtitle}>
+                Organize your entire journey from takeoff to landing in one minimalist space.
+              </Text>
             </View>
           </View>
 
-          <View style={styles.headlineContainer}>
-            <Text style={styles.title}>
-              Your Travel{'\n'}Command Center
-            </Text>
-            <Text style={styles.subtitle}>
-              Organize your entire journey from takeoff to landing in one minimalist space.
-            </Text>
-          </View>
-        </View>
+          {/* Actions – directly on gradient, like dashboard QuickActionCards */}
+          <Animated.View style={[styles.actionsContainer, { opacity: fadeAnim }]}>
+            {/* Primary button – boarding pass glass style */}
+            <Pressable
+              style={({ pressed }) => [
+                styles.primaryButton,
+                pressed && styles.buttonPressed,
+              ]}
+              onPress={onEmailPress}
+            >
+              <BlurView
+                intensity={glassConstants.blur.card}
+                tint="light"
+                style={[StyleSheet.absoluteFill, glassStyles.blurContent]}
+              />
+              <View style={styles.primaryOverlay} pointerEvents="none" />
+              <View style={styles.primaryContent}>
+                <MaterialIcons name="mail" size={20} color={colors.primary} />
+                <Text style={styles.primaryButtonText}>Continue with Email</Text>
+              </View>
+            </Pressable>
 
-        <View style={styles.actionsContainer}>
-          <Pressable
-            style={({ pressed }) => [
-              styles.primaryButton,
-              pressed && styles.buttonPressed,
-            ]}
-            onPress={onEmailPress}
-          >
-            <MaterialIcons name="mail" size={20} color="white" />
-            <Text style={styles.primaryButtonText}>Continue with Email</Text>
-          </Pressable>
+            {/* Separator */}
+            <View style={styles.separator}>
+              <View style={styles.separatorLine} />
+              <Text style={styles.separatorText}>OR</Text>
+              <View style={styles.separatorLine} />
+            </View>
 
-          <View style={styles.separator}>
-            <View style={styles.separatorLine} />
-            <Text style={styles.separatorText}>OR</Text>
-            <View style={styles.separatorLine} />
-          </View>
+            {/* Secondary button – Apple (glass card) */}
+            <Pressable
+              style={({ pressed }) => [
+                styles.secondaryButton,
+                pressed && styles.buttonPressed,
+              ]}
+              onPress={onApplePress}
+            >
+              <BlurView
+                intensity={glassConstants.blur.card}
+                tint="light"
+                style={[StyleSheet.absoluteFill, glassStyles.blurContent]}
+              />
+              <View style={styles.glassOverlay} pointerEvents="none" />
+              <View style={styles.secondaryContent}>
+                <MaterialIcons name="smartphone" size={22} color={colors.text.primary.light} />
+                <Text style={styles.secondaryButtonText}>Continue with Apple</Text>
+              </View>
+            </Pressable>
 
-          <Pressable
-            style={({ pressed }) => [
-              styles.secondaryButton,
-              pressed && styles.buttonPressed,
-            ]}
-            onPress={onApplePress}
-          >
-            <MaterialIcons name="smartphone" size={24} color="#111618" />
-            <Text style={styles.secondaryButtonText}>Continue with Apple</Text>
-          </Pressable>
+            {/* Secondary button – Google (glass card) */}
+            <Pressable
+              style={({ pressed }) => [
+                styles.secondaryButton,
+                pressed && styles.buttonPressed,
+              ]}
+              onPress={onGooglePress}
+            >
+              <BlurView
+                intensity={glassConstants.blur.card}
+                tint="light"
+                style={[StyleSheet.absoluteFill, glassStyles.blurContent]}
+              />
+              <View style={styles.glassOverlay} pointerEvents="none" />
+              <View style={styles.secondaryContent}>
+                <MaterialIcons name="language" size={22} color={colors.text.primary.light} />
+                <Text style={styles.secondaryButtonText}>Continue with Google</Text>
+              </View>
+            </Pressable>
 
-          <Pressable
-            style={({ pressed }) => [
-              styles.secondaryButton,
-              pressed && styles.buttonPressed,
-            ]}
-            onPress={onGooglePress}
-          >
-            <MaterialIcons name="language" size={24} color="#111618" />
-            <Text style={styles.secondaryButtonText}>Continue with Google</Text>
-          </Pressable>
-
-          <View style={styles.footer}>
-            <Text style={styles.footerText}>
-              By signing up, you agree to our{' '}
-              <Text style={styles.footerLink} onPress={onTermsPress}>
-                Terms
+            {/* Footer */}
+            <View style={styles.footer}>
+              <Text style={styles.footerText}>
+                By signing up, you agree to our{' '}
+                <Text style={styles.footerLink} onPress={onTermsPress}>
+                  Terms
+                </Text>
+                {' and '}
+                <Text style={styles.footerLink} onPress={onPrivacyPress}>
+                  Privacy Policy
+                </Text>
               </Text>
-              {' and '}
-              <Text style={styles.footerLink} onPress={onPrivacyPress}>
-                Privacy Policy
-              </Text>
-            </Text>
-          </View>
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+            </View>
+          </Animated.View>
+        </ScrollView>
+      </View>
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
+  gradientContainer: {
+    flex: 1,
+  },
   container: {
     flex: 1,
-    backgroundColor: colors.background.light,
   },
   scrollContent: {
     flexGrow: 1,
     justifyContent: 'space-between',
   },
+
+  // ── Hero ──────────────────────────────────────
   heroContainer: {
     alignItems: 'center',
     width: '100%',
@@ -160,65 +236,47 @@ const styles = StyleSheet.create({
   heroImage: {
     flex: 1,
     width: '100%',
-    borderBottomLeftRadius: borderRadius.sm,
-    borderBottomRightRadius: borderRadius.sm,
-    overflow: 'hidden',
-    ...Platform.select({
-      ios: {
-        shadowColor: colors.black,
-        shadowOffset: { width: 0, height: 8 },
-        shadowOpacity: 0.15,
-        shadowRadius: 20,
-      },
-      android: {
-        elevation: 8,
-      },
-    }),
   },
   gradient: {
     flex: 1,
     width: '100%',
   },
+
+  // ── Shared glass overlay (identical to TripDashboardScreen) ──
+  glassOverlay: {
+    ...glassStyles.cardOverlay,
+  },
+
+  // ── Logo (liquid glass) ───────────────────────
   logoOuterContainer: {
     marginTop: -56,
     zIndex: 10,
-    padding: spacing.sm,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    borderRadius: borderRadius.full,
-    ...Platform.select({
-      ios: {
-        shadowColor: colors.black,
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 12,
-      },
-      android: {
-        elevation: 6,
-      },
-    }),
-  },
-  logoInnerContainer: {
-    height: 96,
-    width: 96,
-    backgroundColor: colors.white,
-    borderRadius: 48,
+    width: 112,
+    height: 112,
+    borderRadius: 56,
+    overflow: 'hidden',
+    borderWidth: glassConstants.borderWidth.card,
+    borderColor: glassColors.border,
+    boxShadow: glassShadows.elevated,
     justifyContent: 'center',
     alignItems: 'center',
-    ...Platform.select({
-      ios: {
-        shadowColor: colors.black,
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.15,
-        shadowRadius: 12,
-      },
-      android: {
-        elevation: 8,
-      },
-    }),
+  },
+  logoInnerContainer: {
+    height: 80,
+    width: 80,
+    borderRadius: 40,
+    overflow: 'hidden',
+    borderWidth: glassConstants.borderWidth.icon,
+    borderColor: glassColors.borderStrong,
+    justifyContent: 'center',
+    alignItems: 'center',
+    boxShadow: glassShadows.icon,
   },
   logoIcon: {
     transform: [{ rotate: '-45deg' }],
   },
+
+  // ── Headline ──────────────────────────────────
   headlineContainer: {
     width: '100%',
     paddingHorizontal: spacing.xxl,
@@ -242,53 +300,50 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 24,
   },
+
+  // ── Actions (no outer card, directly on gradient) ──
   actionsContainer: {
-    width: '100%',
     paddingHorizontal: spacing.xxl,
     paddingBottom: spacing.huge,
     paddingTop: spacing.lg,
-    maxWidth: 448,
-    alignSelf: 'center',
     gap: spacing.md,
   },
+
+  // ── Primary button (matches See All / nav icon style) ──
   primaryButton: {
+    ...glassStyles.cardWrapper,
+    height: 56,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  primaryOverlay: {
+    ...glassStyles.cardOverlay,
+  },
+  primaryContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    height: 56,
-    paddingHorizontal: spacing.xl,
-    backgroundColor: colors.primary,
-    borderRadius: borderRadius.lg,
     gap: spacing.md,
-    ...Platform.select({
-      ios: {
-        shadowColor: colors.primary,
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.2,
-        shadowRadius: 12,
-      },
-      android: {
-        elevation: 4,
-      },
-    }),
+    zIndex: 1,
   },
   primaryButtonText: {
     fontSize: 16,
     fontFamily: fontFamilies.semibold,
-    color: colors.white,
-    letterSpacing: 0.24,
+    color: colors.primary,
+    letterSpacing: 0.3,
   },
+
+  // ── Secondary buttons (identical glass card pattern) ──
   secondaryButton: {
+    ...glassStyles.cardWrapper,
+    height: 56,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  secondaryContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    height: 56,
-    paddingHorizontal: spacing.xl,
-    backgroundColor: colors.white,
-    borderRadius: borderRadius.lg,
-    borderWidth: 1,
-    borderColor: colors.border.light,
     gap: spacing.md,
+    zIndex: 1,
   },
   secondaryButtonText: {
     fontSize: 16,
@@ -296,29 +351,34 @@ const styles = StyleSheet.create({
     color: colors.text.primary.light,
     letterSpacing: 0.24,
   },
+
+  // ── Shared ────────────────────────────────────
   buttonPressed: {
-    transform: [{ scale: 0.98 }],
+    transform: [{ scale: 0.97 }],
   },
+
+  // ── Separator ─────────────────────────────────
   separator: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.md,
     paddingVertical: spacing.sm,
-    opacity: 0.5,
   },
   separatorLine: {
     flex: 1,
-    height: 1,
-    backgroundColor: colors.border.light,
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: glassColors.menuItemBorder,
   },
   separatorText: {
-    fontSize: 12,
+    fontSize: 11,
     fontFamily: fontFamilies.semibold,
     color: colors.text.tertiary.light,
-    letterSpacing: 1.2,
+    letterSpacing: 1.5,
   },
+
+  // ── Footer ────────────────────────────────────
   footer: {
-    marginTop: spacing.lg,
+    marginTop: spacing.sm,
     alignItems: 'center',
   },
   footerText: {

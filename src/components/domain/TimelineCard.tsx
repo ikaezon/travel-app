@@ -5,6 +5,43 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { colors, spacing, borderRadius, fontFamilies, glassStyles, glassColors, glassShadows, glassConstants } from '../../theme';
 import { ReservationType } from '../../types';
 
+const TIMELINE_ICON_CONFIG: Record<ReservationType, { name: keyof typeof MaterialIcons.glyphMap; iconColor: string }> = {
+  flight: {
+    name: 'flight-takeoff',
+    iconColor: colors.reservation.flight.icon,
+  },
+  hotel: {
+    name: 'hotel',
+    iconColor: colors.reservation.hotel.icon,
+  },
+  train: {
+    name: 'train',
+    iconColor: colors.reservation.train.icon,
+  },
+  car: {
+    name: 'directions-car',
+    iconColor: colors.reservation.car.icon,
+  },
+};
+
+const DEFAULT_ICON_CONFIG = {
+  name: 'place' as const,
+  iconColor: colors.text.secondary.light,
+};
+
+function getTimelineIconConfig(type: ReservationType) {
+  return TIMELINE_ICON_CONFIG[type] ?? DEFAULT_ICON_CONFIG;
+}
+
+type TimelineActionType = 'boardingPass' | 'directions' | 'ticket' | 'default';
+
+function getActionType(actionLabel: string): TimelineActionType {
+  if (actionLabel === 'Boarding Pass') return 'boardingPass';
+  if (actionLabel === 'Get Directions') return 'directions';
+  if (actionLabel === 'View Ticket') return 'ticket';
+  return 'default';
+}
+
 interface TimelineCardProps {
   type: ReservationType;
   time: string;
@@ -41,44 +78,11 @@ export const TimelineCard = React.memo(function TimelineCard({
       delay,
       useNativeDriver: true,
     }).start();
-  }, [fadeAnim, delay]);
+    // Note: fadeAnim is a stable ref
+  }, [delay]);
 
-  const getIconConfig = () => {
-    switch (type) {
-      case 'flight':
-        return {
-          name: 'flight-takeoff' as keyof typeof MaterialIcons.glyphMap,
-          bgColor: colors.reservation.flight.bg,
-          iconColor: colors.reservation.flight.icon,
-        };
-      case 'hotel':
-        return {
-          name: 'hotel' as keyof typeof MaterialIcons.glyphMap,
-          bgColor: colors.reservation.hotel.bg,
-          iconColor: colors.reservation.hotel.icon,
-        };
-      case 'train':
-        return {
-          name: 'train' as keyof typeof MaterialIcons.glyphMap,
-          bgColor: colors.reservation.train.bg,
-          iconColor: colors.reservation.train.icon,
-        };
-      case 'car':
-        return {
-          name: 'directions-car' as keyof typeof MaterialIcons.glyphMap,
-          bgColor: colors.reservation.car.bg,
-          iconColor: colors.reservation.car.icon,
-        };
-      default:
-        return {
-          name: 'place' as keyof typeof MaterialIcons.glyphMap,
-          bgColor: colors.background.light,
-          iconColor: colors.text.secondary.light,
-        };
-    }
-  };
-
-  const iconConfig = getIconConfig();
+  const iconConfig = getTimelineIconConfig(type);
+  const actionType = getActionType(actionLabel);
 
   return (
     <Animated.View style={[styles.wrapper, { opacity: fadeAnim }]}>
@@ -135,9 +139,9 @@ export const TimelineCard = React.memo(function TimelineCard({
             <Pressable
               style={({ pressed }) => [
                 styles.actionButton,
-                actionLabel === 'Boarding Pass' && styles.actionButtonBlue,
-                actionLabel === 'Get Directions' && styles.actionButtonOrange,
-                !['Boarding Pass', 'Get Directions'].includes(actionLabel) && { borderColor: iconConfig.iconColor },
+                actionType === 'boardingPass' && styles.actionButtonBlue,
+                actionType === 'directions' && styles.actionButtonOrange,
+                actionType === 'default' && { borderColor: iconConfig.iconColor },
                 pressed && styles.actionButtonPressed,
               ]}
               onPress={onActionPress}
@@ -146,9 +150,9 @@ export const TimelineCard = React.memo(function TimelineCard({
               <View
                 style={[
                   StyleSheet.absoluteFill,
-                  actionLabel === 'Boarding Pass' && { backgroundColor: glassColors.overlayBlue },
-                  actionLabel === 'Get Directions' && { backgroundColor: glassColors.overlayOrange },
-                  !['Boarding Pass', 'Get Directions'].includes(actionLabel) && styles.actionButtonDefaultOverlay,
+                  actionType === 'boardingPass' && { backgroundColor: glassColors.overlayBlue },
+                  actionType === 'directions' && { backgroundColor: glassColors.overlayOrange },
+                  actionType === 'default' && styles.actionButtonDefaultOverlay,
                 ]}
                 pointerEvents="none"
               />
@@ -158,9 +162,9 @@ export const TimelineCard = React.memo(function TimelineCard({
                     styles.actionLabel,
                     {
                       color:
-                        actionLabel === 'Boarding Pass'
+                        actionType === 'boardingPass'
                           ? colors.reservation.flight.icon
-                          : actionLabel === 'Get Directions'
+                          : actionType === 'directions'
                             ? colors.reservation.hotel.icon
                             : iconConfig.iconColor,
                     },
@@ -172,9 +176,9 @@ export const TimelineCard = React.memo(function TimelineCard({
                   name={actionIcon}
                   size={18}
                   color={
-                    actionLabel === 'Boarding Pass'
+                    actionType === 'boardingPass'
                       ? colors.reservation.flight.icon
-                      : actionLabel === 'Get Directions'
+                      : actionType === 'directions'
                         ? colors.reservation.hotel.icon
                         : iconConfig.iconColor
                   }

@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, StyleSheet, Pressable, Animated } from 'react-native';
+import { colors } from '../../theme';
 
 interface ToggleSwitchProps {
   value: boolean;
@@ -59,26 +60,26 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
   },
   trackInactive: {
-    backgroundColor: '#e5e7eb',
+    backgroundColor: colors.border.light,
   },
   trackActive: {
-    backgroundColor: 'rgba(19, 164, 236, 0.3)',
+    backgroundColor: 'rgba(14, 165, 233, 0.3)',
   },
   thumb: {
     width: 20,
     height: 20,
     borderRadius: 10,
-    shadowColor: '#000',
+    shadowColor: colors.black,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 2,
     elevation: 2,
   },
   thumbInactive: {
-    backgroundColor: 'white',
+    backgroundColor: colors.white,
   },
   thumbActive: {
-    backgroundColor: '#13a4ec',
+    backgroundColor: colors.primary,
   },
   disabled: {
     opacity: 0.5,

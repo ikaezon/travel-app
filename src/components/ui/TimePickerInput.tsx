@@ -136,7 +136,8 @@ export function TimePickerInput({
         setPickerReady(true);
       });
     }
-  }, [visible, slideAnim, backdropOpacity]);
+    // Note: slideAnim and backdropOpacity are stable refs, not included in deps
+  }, [visible]);
 
   const closePicker = useCallback(() => {
     Animated.parallel([

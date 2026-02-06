@@ -2,6 +2,7 @@ import React, { useCallback, useEffect } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { NavigationContainer } from '@react-navigation/native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useFonts } from '@expo-google-fonts/outfit/useFonts';
 import {
   Outfit_400Regular,
@@ -10,8 +11,8 @@ import {
   Outfit_700Bold,
 } from '@expo-google-fonts/outfit';
 import * as SplashScreen from 'expo-splash-screen';
-import { AuthProvider } from './src/contexts';
-import { RootNavigator } from './src/navigation';
+import { AuthProvider } from './src/contexts/AuthContext';
+import { RootNavigator } from './src/navigation/RootNavigator';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -38,13 +39,15 @@ export default function App() {
   }
 
   return (
-    <SafeAreaProvider onLayout={onLayoutRootView}>
-      <AuthProvider>
-        <NavigationContainer>
-          <RootNavigator />
-          <StatusBar style="dark" />
-        </NavigationContainer>
-      </AuthProvider>
-    </SafeAreaProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <SafeAreaProvider onLayout={onLayoutRootView}>
+        <AuthProvider>
+          <NavigationContainer>
+            <RootNavigator />
+            <StatusBar style="dark" />
+          </NavigationContainer>
+        </AuthProvider>
+      </SafeAreaProvider>
+    </GestureHandlerRootView>
   );
 }

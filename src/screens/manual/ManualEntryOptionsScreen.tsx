@@ -14,7 +14,27 @@ import {
   glassColors,
 } from '../../theme';
 import { MainStackParamList } from '../../navigation/types';
-import { MANUAL_ENTRY_OPTIONS } from '../../constants';
+
+const MANUAL_ENTRY_OPTIONS = [
+  {
+    id: 'flight',
+    title: 'Flight',
+    subtitle: 'Add flight details',
+    iconName: 'flight' as const,
+    iconColor: colors.reservation.flight.icon,
+    iconBgColor: colors.reservation.flight.bg,
+    route: 'FlightEntry' as const,
+  },
+  {
+    id: 'lodging',
+    title: 'Lodging',
+    subtitle: 'Add hotel or stay details',
+    iconName: 'hotel' as const,
+    iconColor: colors.reservation.hotel.icon,
+    iconBgColor: colors.reservation.hotel.bg,
+    route: 'LodgingEntry' as const,
+  },
+];
 
 type NavigationProp = NativeStackNavigationProp<MainStackParamList>;
 

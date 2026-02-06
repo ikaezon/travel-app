@@ -18,13 +18,19 @@ import { useNavigation, useRoute, useFocusEffect, RouteProp } from '@react-navig
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { SegmentedControl } from '../../components/ui/SegmentedControl';
 import { TimelineCard } from '../../components/domain/TimelineCard';
-import { GlassDropdownMenu } from '../../components/ui';
+import { GlassDropdownMenu } from '../../components/ui/GlassDropdownMenu';
 import { MainStackParamList } from '../../navigation/types';
 import { useTripTimeline, useDeleteTrip } from '../../hooks';
 import { colors, spacing, borderRadius, fontFamilies, glassStyles, glassColors, glassShadows, glassConstants } from '../../theme';
-import { TIMELINE_FILTER_OPTIONS } from '../../constants';
 import { mockImages } from '../../data/mocks';
 import { sortTimelineItemsByDateAndTime } from '../../utils/dateFormat';
+
+const TIMELINE_FILTER_OPTIONS = [
+  { label: 'All', value: 'all' },
+  { label: 'Flights', value: 'flight' },
+  { label: 'Hotels', value: 'hotel' },
+  { label: 'Trains', value: 'train' },
+] as const;
 
 type NavigationProp = NativeStackNavigationProp<MainStackParamList, 'TripOverview'>;
 type TripOverviewRouteProp = RouteProp<MainStackParamList, 'TripOverview'>;
@@ -71,7 +77,7 @@ export default function TripOverviewScreen() {
 
   const handleReservationPress = useCallback(
     (itemId: string) => {
-      navigation.navigate('ReservationDetail', { reservationId: itemId });
+      navigation.navigate('ReservationDetail', { timelineItemId: itemId });
     },
     [navigation]
   );

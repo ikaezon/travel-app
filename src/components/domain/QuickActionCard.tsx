@@ -1,10 +1,22 @@
 import React, { useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, Pressable, Animated } from 'react-native';
 import { BlurView } from 'expo-blur';
-import { QUICK_ACTION_ICON_MAP, ChevronRight, type QuickActionIconKey } from '../../constants/quickActionIcons';
+import {
+  MapPinPlus,
+  ImagePlus,
+  PenSquare,
+  ChevronRight,
+  type LucideIcon,
+} from 'lucide-react-native';
 import { colors, borderRadius, fontFamilies, glassStyles } from '../../theme';
 
-export type { QuickActionIconKey };
+const QUICK_ACTION_ICON_MAP = {
+  'map-pin-plus': MapPinPlus,
+  'image-plus': ImagePlus,
+  'pen-square': PenSquare,
+} as const satisfies Record<string, LucideIcon>;
+
+export type QuickActionIconKey = keyof typeof QUICK_ACTION_ICON_MAP;
 
 interface QuickActionCardProps {
   title: string;

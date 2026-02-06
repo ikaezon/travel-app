@@ -14,13 +14,15 @@ import { Menu, MoreHorizontal } from 'lucide-react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { TripCard } from '../../components/domain/TripCard';
-import { pickImageFromLibrary } from '../../native';
-import { QuickActionCard } from '../../components/domain/QuickActionCard';
-import { LoadingView, ErrorView } from '../../components/ui';
+import { pickImageFromLibrary } from '../../native/imagePicker';
+import { QuickActionCard, type QuickActionIconKey } from '../../components/domain/QuickActionCard';
+import { LoadingView } from '../../components/ui/LoadingView';
+import { ErrorView } from '../../components/ui/ErrorView';
 import { colors, spacing, borderRadius, fontFamilies, glassStyles, glassColors, glassShadows, glassConstants } from '../../theme';
 import { MainStackParamList } from '../../navigation/types';
-import { QUICK_ACTION_ROUTES } from '../../constants';
 import { useCurrentUser, useUpcomingTrips, useQuickActions } from '../../hooks';
+
+const QUICK_ACTION_ROUTES: readonly string[] = ['ManualEntryOptions', 'ScreenshotUpload', 'CreateTrip'];
 
 type NavigationProp = NativeStackNavigationProp<MainStackParamList>;
 
@@ -172,7 +174,7 @@ export default function TripDashboardScreen() {
                   key={action.id}
                   title={action.title}
                   subtitle={action.subtitle}
-                  iconKey={action.iconKey as import('../../constants').QuickActionIconKey}
+                  iconKey={action.iconKey as QuickActionIconKey}
                   iconColor={action.iconColor}
                   iconBgColor={action.iconBgColor}
                   onPress={() => handleQuickActionPress(action.route)}

@@ -1,41 +1,26 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import {
   View,
-  Text,
   StyleSheet,
   ScrollView,
-  Pressable,
-  Platform,
   Keyboard,
   Alert,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { BlurView } from 'expo-blur';
-import { MaterialIcons } from '@expo/vector-icons';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { FormInput } from '../../components/ui/FormInput';
 import { AddressAutocomplete } from '../../components/ui/AddressAutocomplete';
 import { DateRangePickerInput } from '../../components/ui/DateRangePickerInput';
-import { TripSelector } from '../../components/domain';
+import { TripSelector } from '../../components/domain/TripSelector';
+import { GlassNavHeader } from '../../components/navigation/GlassNavHeader';
 import { ShimmerButton } from '../../components/ui/ShimmerButton';
-import {
-  colors,
-  spacing,
-  fontFamilies,
-  glassStyles,
-  glassColors,
-} from '../../theme';
+import { colors, spacing } from '../../theme';
 import { MainStackParamList } from '../../navigation/types';
-import { reservationService, tripService } from '../../data';
-import {
-  DEFAULT_RESERVATION_HEADER_IMAGE,
-  DEFAULT_LODGING_CHECK_IN_TIME,
-  DEFAULT_LODGING_CHECK_OUT_TIME,
-} from '../../constants/reservationDefaults';
+import { createLodgingReservation } from '../../data';
 import { formatCalendarDateToLongDisplay } from '../../utils/dateFormat';
-import { useTrips } from '../../hooks';
+import { useTrips, useKeyboardHeight } from '../../hooks';
 
 type NavigationProp = NativeStackNavigationProp<MainStackParamList, 'LodgingEntry'>;
 type LodgingEntryRouteProp = RouteProp<MainStackParamList, 'LodgingEntry'>;
@@ -54,7 +39,7 @@ export default function LodgingEntryScreen() {
   const [checkOutDate, setCheckOutDate] = useState<string | null>(null);
   const [confirmationNumber, setConfirmationNumber] = useState('');
   const [roomDetails, setRoomDetails] = useState('');
-  const [keyboardHeight, setKeyboardHeight] = useState(0);
+  const keyboardHeight = useKeyboardHeight();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
   const dateFieldYRef = useRef(0);
@@ -80,21 +65,6 @@ export default function LodgingEntryScreen() {
     setCheckOutDate(end);
   };
 
-  useEffect(() => {
-    const showSub = Keyboard.addListener(
-      Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
-      (e) => setKeyboardHeight(e.endCoordinates.height)
-    );
-    const hideSub = Keyboard.addListener(
-      Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide',
-      () => setKeyboardHeight(0)
-    );
-    return () => {
-      showSub.remove();
-      hideSub.remove();
-    };
-  }, []);
-
   const handleSave = async () => {
     Keyboard.dismiss();
 
@@ -103,58 +73,35 @@ export default function LodgingEntryScreen() {
       return;
     }
 
-    const dateDisplay = checkInDate ? formatCalendarDateToLongDisplay(checkInDate) : 'TBD';
-    const dateRangeDisplay =
-      checkInDate && checkOutDate
-        ? checkInDate === checkOutDate
-          ? formatCalendarDateToLongDisplay(checkInDate)
-          : `${formatCalendarDateToLongDisplay(checkInDate)} - ${formatCalendarDateToLongDisplay(checkOutDate)}`
-        : 'TBD';
-    const title = propertyName.trim() || 'Hotel';
-    const subtitle = roomDetails.trim()
-      ? `Check-in ${DEFAULT_LODGING_CHECK_IN_TIME} • ${roomDetails}`
-      : `Check-in ${DEFAULT_LODGING_CHECK_IN_TIME}`;
-    const metadata = `Check-out ${DEFAULT_LODGING_CHECK_OUT_TIME}`;
+    if (!checkInDate || !checkOutDate) {
+      Alert.alert('Select dates', 'Please select check-in and check-out dates.');
+      return;
+    }
+
+    const checkInDisplay = formatCalendarDateToLongDisplay(checkInDate);
+    const checkOutDisplay = formatCalendarDateToLongDisplay(checkOutDate);
 
     setIsSubmitting(true);
     try {
-      const reservation = await reservationService.createReservation({
+      await createLodgingReservation({
         tripId: selectedTripId,
-        type: 'hotel',
-        providerName: title,
-        route: address.trim() || 'TBD',
-        date: dateRangeDisplay,
-        duration: roomDetails.trim() || '—',
-        status: 'confirmed',
-        confirmationCode: confirmationNumber.trim() || '—',
-        statusText: 'Confirmed',
-        headerImageUrl: DEFAULT_RESERVATION_HEADER_IMAGE,
-        address: address.trim() || undefined,
-        attachments: [],
+        propertyName,
+        address,
+        checkInDate: checkInDisplay,
+        checkOutDate: checkOutDisplay,
+        confirmationNumber,
       });
 
-      await tripService.createTimelineItem(selectedTripId, {
-        type: 'hotel',
-        date: dateDisplay,
-        time: DEFAULT_LODGING_CHECK_IN_TIME,
-        title,
-        subtitle,
-        metadata,
-        actionLabel: 'Get Directions',
-        actionIcon: 'directions',
-        reservationId: reservation.id,
-      });
-
-      setIsSubmitting(false);
       navigation.goBack();
     } catch (err) {
-      setIsSubmitting(false);
       const message = err instanceof Error ? err.message : 'Could not save lodging. Try again.';
       Alert.alert('Error', message, [{ text: 'OK' }]);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  const handleBackPress = () => navigation.goBack();
+  const handleBackPress = useCallback(() => navigation.goBack(), [navigation]);
 
   return (
     <LinearGradient
@@ -238,22 +185,10 @@ export default function LodgingEntryScreen() {
           />
         </ScrollView>
 
-        <View style={[styles.headerContainer, { top: topOffset }]}>
-          <BlurView intensity={24} tint="light" style={[styles.headerBlur, glassStyles.blurContentLarge]}>
-            <View style={styles.glassOverlay} pointerEvents="none" />
-            <View style={styles.headerContent}>
-              <Pressable
-                style={({ pressed }) => [styles.backButton, pressed && styles.backButtonPressed]}
-                onPress={handleBackPress}
-                accessibilityLabel="Go back"
-              >
-                <MaterialIcons name="arrow-back" size={22} color={colors.text.primary.light} />
-              </Pressable>
-              <Text style={styles.headerTitle}>Lodging Details</Text>
-              <View style={styles.headerSpacer} />
-            </View>
-          </BlurView>
-        </View>
+        <GlassNavHeader
+          title="Lodging Details"
+          onBackPress={handleBackPress}
+        />
       </View>
     </LinearGradient>
   );
@@ -265,49 +200,6 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-  },
-  headerContainer: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    alignItems: 'center',
-    zIndex: 60,
-  },
-  headerBlur: {
-    ...glassStyles.navBarWrapper,
-    width: '90%',
-    maxWidth: 340,
-    position: 'relative',
-    height: 56,
-    justifyContent: 'center',
-  },
-  headerContent: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-  },
-  glassOverlay: {
-    ...glassStyles.cardOverlay,
-    backgroundColor: glassColors.overlayStrong,
-  },
-  backButton: {
-    width: 36,
-    height: 36,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  backButtonPressed: {
-    opacity: 0.6,
-  },
-  headerTitle: {
-    fontSize: 16,
-    fontFamily: fontFamilies.semibold,
-    color: colors.text.primary.light,
-    letterSpacing: -0.3,
-  },
-  headerSpacer: {
-    width: 36,
   },
   scrollView: {
     flex: 1,

@@ -1,34 +1,24 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
-  Text,
   StyleSheet,
   ScrollView,
-  Pressable,
-  Platform,
   Keyboard,
   Alert,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { BlurView } from 'expo-blur';
-import { MaterialIcons } from '@expo/vector-icons';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { FormInput } from '../../components/ui/FormInput';
 import { DatePickerInput } from '../../components/ui/DatePickerInput';
 import { TimePickerInput } from '../../components/ui/TimePickerInput';
 import { ShimmerButton } from '../../components/ui/ShimmerButton';
-import {
-  colors,
-  spacing,
-  fontFamilies,
-  glassStyles,
-  glassColors,
-} from '../../theme';
+import { GlassNavHeader } from '../../components/navigation/GlassNavHeader';
+import { colors, spacing } from '../../theme';
 import { MainStackParamList } from '../../navigation/types';
-import { reservationService, tripService } from '../../data';
-import { DEFAULT_RESERVATION_HEADER_IMAGE } from '../../constants/reservationDefaults';
+import { createTrainReservation } from '../../data';
+import { useKeyboardHeight } from '../../hooks';
 
 type NavigationProp = NativeStackNavigationProp<MainStackParamList, 'TrainEntry'>;
 type TrainEntryRouteProp = RouteProp<MainStackParamList, 'TrainEntry'>;
@@ -46,75 +36,43 @@ export default function TrainEntryScreen() {
   const [time, setTime] = useState('');
   const [seat, setSeat] = useState('');
   const [confirmationNumber, setConfirmationNumber] = useState('');
-  const [keyboardHeight, setKeyboardHeight] = useState(0);
+  const keyboardHeight = useKeyboardHeight();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const topOffset = insets.top + 8;
 
-  useEffect(() => {
-    const showSub = Keyboard.addListener(
-      Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
-      (e) => setKeyboardHeight(e.endCoordinates.height)
-    );
-    const hideSub = Keyboard.addListener(
-      Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide',
-      () => setKeyboardHeight(0)
-    );
-    return () => {
-      showSub.remove();
-      hideSub.remove();
-    };
-  }, []);
-
   const handleSave = async () => {
     Keyboard.dismiss();
 
-    const providerName = operator.trim() || 'Train';
-    const title = [providerName, trainNumber.trim()].filter(Boolean).join(' ') || 'Train';
-    const subtitle = routeText.trim() || 'TBD';
-    const dateVal = date.trim() || 'TBD';
-    const timeVal = time.trim() || 'TBD';
+    // Parse route into departure/arrival stations
+    const routeParts = routeText.split(/\s*[→\-–—]\s*|\s+to\s+/i).map((s) => s.trim());
+    const departureStation = routeParts[0] || '';
+    const arrivalStation = routeParts[1] || '';
 
     setIsSubmitting(true);
     try {
-      const reservation = await reservationService.createReservation({
+      await createTrainReservation({
         tripId,
-        type: 'train',
-        providerName,
-        route: subtitle,
-        date: dateVal,
-        duration: '',
-        status: 'confirmed',
-        confirmationCode: confirmationNumber.trim() || '—',
-        statusText: 'On Time',
-        headerImageUrl: DEFAULT_RESERVATION_HEADER_IMAGE,
-        seat: seat.trim() || undefined,
-        attachments: [],
+        operator,
+        trainNumber,
+        departureStation,
+        arrivalStation,
+        departureDate: date,
+        departureTime: time,
+        confirmationNumber,
       });
 
-      await tripService.createTimelineItem(tripId, {
-        type: 'train',
-        date: dateVal,
-        time: timeVal,
-        title,
-        subtitle,
-        metadata: seat.trim() ? `Seat: ${seat.trim()}` : undefined,
-        actionLabel: 'View Ticket',
-        actionIcon: 'confirmation-number',
-        reservationId: reservation.id,
-      });
-
-      setIsSubmitting(false);
       navigation.goBack();
     } catch (err) {
-      setIsSubmitting(false);
       const message =
         err instanceof Error ? err.message : 'Could not save train. Try again.';
       Alert.alert('Error', message, [{ text: 'OK' }]);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  const handleBackPress = () => navigation.goBack();
+  const handleBackPress = useCallback(() => navigation.goBack(), [navigation]);
 
   return (
     <LinearGradient
@@ -203,22 +161,10 @@ export default function TrainEntryScreen() {
           />
         </ScrollView>
 
-        <View style={[styles.headerContainer, { top: topOffset }]}>
-          <BlurView intensity={24} tint="light" style={[styles.headerBlur, glassStyles.blurContentLarge]}>
-            <View style={styles.glassOverlay} pointerEvents="none" />
-            <View style={styles.headerContent}>
-              <Pressable
-                style={({ pressed }) => [styles.backButton, pressed && styles.backButtonPressed]}
-                onPress={handleBackPress}
-                accessibilityLabel="Go back"
-              >
-                <MaterialIcons name="arrow-back" size={22} color={colors.text.primary.light} />
-              </Pressable>
-              <Text style={styles.headerTitle}>Train Details</Text>
-              <View style={styles.headerSpacer} />
-            </View>
-          </BlurView>
-        </View>
+        <GlassNavHeader
+          title="Train Details"
+          onBackPress={handleBackPress}
+        />
       </View>
     </LinearGradient>
   );
@@ -230,49 +176,6 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-  },
-  headerContainer: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    alignItems: 'center',
-    zIndex: 60,
-  },
-  headerBlur: {
-    ...glassStyles.navBarWrapper,
-    width: '90%',
-    maxWidth: 340,
-    position: 'relative',
-    height: 56,
-    justifyContent: 'center',
-  },
-  headerContent: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-  },
-  glassOverlay: {
-    ...glassStyles.cardOverlay,
-    backgroundColor: glassColors.overlayStrong,
-  },
-  backButton: {
-    width: 36,
-    height: 36,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  backButtonPressed: {
-    opacity: 0.6,
-  },
-  headerTitle: {
-    fontSize: 16,
-    fontFamily: fontFamilies.semibold,
-    color: colors.text.primary.light,
-    letterSpacing: -0.3,
-  },
-  headerSpacer: {
-    width: 36,
   },
   scrollView: {
     flex: 1,

@@ -41,19 +41,22 @@ export function AddressAutocomplete({
   const [suggestions, setSuggestions] = useState<AddressSuggestion[]>([]);
   const [loading, setLoading] = useState(false);
   const [dropdownVisible, setDropdownVisible] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
   const inputRef = useRef<TextInput>(null);
   const hasApi = useMemo(() => isPlaceAutocompleteAvailable(), []);
   const lastQueryRef = useRef<string>('');
   const justSelectedRef = useRef<string | null>(null);
+  // Track if user has typed since focus - prevents dropdown on programmatic value changes
+  const userHasTypedRef = useRef(false);
   const autocompleteApi = useRef(createAddressAutocompleteService()).current;
 
   useEffect(() => {
-    if (!hasApi || value.trim().length < 2) {
+    // Only fetch suggestions if user is focused and has typed
+    if (!hasApi || !isFocused || !userHasTypedRef.current || value.trim().length < 2) {
       setSuggestions([]);
       setDropdownVisible(false);
       setLoading(false);
       lastQueryRef.current = '';
-      justSelectedRef.current = null;
       return;
     }
     if (justSelectedRef.current === value.trim()) {
@@ -73,10 +76,12 @@ export function AddressAutocomplete({
       setDropdownVisible(result.length > 0);
     });
     return () => autocompleteApi.cancel();
-  }, [value, hasApi, autocompleteApi]);
+  }, [value, hasApi, isFocused, autocompleteApi]);
 
   const handleChangeText = useCallback(
     (text: string) => {
+      // Mark that user has typed (not just programmatic value change)
+      userHasTypedRef.current = true;
       onChangeText(text);
       if (!hasApi) return;
       if (text.trim().length < 2) {
@@ -87,22 +92,31 @@ export function AddressAutocomplete({
     [onChangeText, hasApi]
   );
 
+  const handleFocus = useCallback(() => {
+    setIsFocused(true);
+    // Don't show dropdown on focus if user hasn't typed yet
+    // This prevents showing stale suggestions when returning to the field
+  }, []);
+
+  const handleBlur = useCallback(() => {
+    setIsFocused(false);
+    userHasTypedRef.current = false;
+    setTimeout(() => setDropdownVisible(false), 200);
+  }, []);
+
   const handleSelect = useCallback(
     (item: AddressSuggestion) => {
       const displayText = item.formatted;
       justSelectedRef.current = displayText;
       onChangeText(displayText);
       onSelectSuggestion?.(item);
-      setSuggestions([]);
-      setDropdownVisible(false);
-      Keyboard.dismiss();
-    },
-    [onChangeText, onSelectSuggestion]
-  );
-
-  const handleBlur = useCallback(() => {
-    setTimeout(() => setDropdownVisible(false), 200);
-  }, []);
+    setSuggestions([]);
+    setDropdownVisible(false);
+    userHasTypedRef.current = false;
+    Keyboard.dismiss();
+  },
+  [onChangeText, onSelectSuggestion]
+);
 
   const renderSuggestion = useCallback(
     (item: AddressSuggestion) => (
@@ -141,7 +155,7 @@ export function AddressAutocomplete({
           onChangeText={handleChangeText}
           placeholder={placeholder}
           placeholderTextColor={colors.text.tertiary.light}
-          onFocus={() => value.trim().length >= 2 && suggestions.length > 0 && setDropdownVisible(true)}
+          onFocus={handleFocus}
           onBlur={handleBlur}
         />
         {hasApi && loading && (
