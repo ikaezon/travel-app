@@ -28,12 +28,13 @@ export const glassConstants = {
     icon: 16,        // Icon containers (1rem)
     pill: 9999,      // Full pill shape
   },
-  // Inner radius (radius minus border) - BlurView needs this to clip properly with thin borders
+  // Inner radius - matches outer radius so light/dark mode have identical corner radii.
+  // The wrapper's overflow:'hidden' handles clipping inside borders automatically.
   radiusInner: {
-    card: 26,        // 28 - 2
-    cardLarge: 30,   // 32 - 2
-    cardXLarge: 38,  // 40 - 2
-    icon: 14,        // 16 - 2
+    card: 28,        // matches radius.card
+    cardLarge: 32,   // matches radius.cardLarge
+    cardXLarge: 40,  // matches radius.cardXLarge
+    icon: 16,        // matches radius.icon
   },
 
   // Border widths

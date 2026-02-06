@@ -1,9 +1,9 @@
 import React, { useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, Pressable, Animated, StyleProp, ViewStyle } from 'react-native';
-import { BlurView } from 'expo-blur';
 import { MaterialIcons } from '@expo/vector-icons';
-import { fontFamilies } from '../../theme';
+import { fontFamilies, glassConstants } from '../../theme';
 import { useTheme } from '../../contexts/ThemeContext';
+import { AdaptiveGlassView } from './AdaptiveGlassView';
 
 function useMenuAnimation(visible: boolean) {
   const opacity = useRef(new Animated.Value(0)).current;
@@ -42,7 +42,7 @@ function useMenuAnimation(visible: boolean) {
 
 // Menu styling constants
 const MENU = {
-  borderRadius: 16,
+  borderRadius: glassConstants.radius.card,
   blurIntensity: 48,
   borderWidth: 1,
   paddingVertical: 12,
@@ -102,12 +102,12 @@ export function GlassDropdownMenu({
         },
       ]}
     >
-      <BlurView intensity={MENU.blurIntensity} tint={theme.blurTint} style={[StyleSheet.absoluteFill, {
+      <AdaptiveGlassView intensity={MENU.blurIntensity} darkIntensity={20} glassEffectStyle="clear" absoluteFill style={{
         borderRadius: MENU.borderRadius,
         overflow: 'hidden',
-      }]} />
+      }} />
       <View style={[StyleSheet.absoluteFillObject, {
-        backgroundColor: theme.glassColors.overlay,
+        backgroundColor: theme.isDark ? 'rgba(40, 40, 45, 0.60)' : theme.glassColors.overlay,
       }]} pointerEvents="none" />
       <View style={{ position: 'relative' }}>
         {actions.map((action, index) => {

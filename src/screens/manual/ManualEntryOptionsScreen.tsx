@@ -1,8 +1,7 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { View, Text, StyleSheet, Pressable, Animated } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { BlurView } from 'expo-blur';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -10,10 +9,13 @@ import {
   spacing,
   fontFamilies,
   glassStyles,
+  glassConstants,
 } from '../../theme';
 import { MainStackParamList } from '../../navigation/types';
 import { usePressAnimation } from '../../hooks';
 import { useTheme } from '../../contexts/ThemeContext';
+import { GlassNavHeader } from '../../components/navigation/GlassNavHeader';
+import { AdaptiveGlassView } from '../../components/ui/AdaptiveGlassView';
 
 type NavigationProp = NativeStackNavigationProp<MainStackParamList>;
 
@@ -36,13 +38,13 @@ function OptionCard({ option, onPress, theme }: OptionCardProps) {
   return (
     <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
       <Pressable
-        style={styles.optionCardWrapper}
+        style={[styles.optionCardWrapper, !theme.isDark && { borderColor: theme.glassColors.border }, theme.isDark && { borderWidth: 0 }]}
         onPress={onPress}
         onPressIn={onPressIn}
         onPressOut={onPressOut}
       >
-        <BlurView intensity={24} tint={theme.blurTint} style={[styles.optionCardBlur, glassStyles.blurContent]}>
-          <View style={[styles.glassOverlay, { backgroundColor: theme.glassColors.overlayStrong }]} pointerEvents="none" />
+        <AdaptiveGlassView intensity={24} darkIntensity={10} glassEffectStyle="clear" style={[styles.optionCardBlur, glassStyles.blurContent]}>
+          <View style={[styles.glassOverlay, { backgroundColor: theme.isDark ? 'rgba(40, 40, 45, 0.35)' : theme.glassColors.overlayStrong }]} pointerEvents="none" />
           <View style={styles.optionCardContent}>
             <View style={[styles.optionIconContainer, { backgroundColor: option.iconBgColor }]}>
               <MaterialIcons name={option.iconName} size={28} color={option.iconColor} />
@@ -53,7 +55,7 @@ function OptionCard({ option, onPress, theme }: OptionCardProps) {
             </View>
             <MaterialIcons name="chevron-right" size={24} color={theme.colors.text.secondary} />
           </View>
-        </BlurView>
+        </AdaptiveGlassView>
       </Pressable>
     </Animated.View>
   );
@@ -64,7 +66,7 @@ export default function ManualEntryOptionsScreen() {
   const navigation = useNavigation<NavigationProp>();
   const insets = useSafeAreaInsets();
   const topOffset = insets.top + 8;
-  const backAnim = usePressAnimation();
+  const handleBackPress = useCallback(() => navigation.goBack(), [navigation]);
 
   const MANUAL_ENTRY_OPTIONS = [
     {
@@ -109,26 +111,10 @@ export default function ManualEntryOptionsScreen() {
           </View>
         </View>
 
-        <View style={[styles.headerContainer, { top: topOffset }]}>
-          <BlurView intensity={24} tint={theme.blurTint} style={[styles.headerBlur, glassStyles.blurContentLarge]}>
-            <View style={[styles.glassOverlay, { backgroundColor: theme.glassColors.overlayStrong }]} pointerEvents="none" />
-            <View style={styles.headerContent}>
-              <Animated.View style={{ transform: [{ scale: backAnim.scaleAnim }] }}>
-              <Pressable
-                style={styles.backButton}
-                onPress={() => navigation.goBack()}
-                onPressIn={backAnim.onPressIn}
-                onPressOut={backAnim.onPressOut}
-                accessibilityLabel="Go back"
-              >
-                <MaterialIcons name="arrow-back" size={22} color={theme.colors.text.primary} />
-              </Pressable>
-              </Animated.View>
-              <Text style={[styles.headerTitle, { color: theme.colors.text.primary }]}>Manual Entry</Text>
-              <View style={styles.headerSpacer} />
-            </View>
-          </BlurView>
-        </View>
+        <GlassNavHeader
+          title="Manual Entry"
+          onBackPress={handleBackPress}
+        />
       </View>
     </LinearGradient>
   );
@@ -141,43 +127,8 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  headerContainer: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    alignItems: 'center',
-    zIndex: 60,
-  },
-  headerBlur: {
-    ...glassStyles.navBarWrapper,
-    width: '90%',
-    maxWidth: 340,
-    position: 'relative',
-    height: 56,
-    justifyContent: 'center',
-  },
-  headerContent: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-  },
   glassOverlay: {
     ...glassStyles.cardOverlay,
-  },
-  backButton: {
-    width: 36,
-    height: 36,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  headerTitle: {
-    fontSize: 16,
-    fontFamily: fontFamilies.semibold,
-    letterSpacing: -0.3,
-  },
-  headerSpacer: {
-    width: 36,
   },
   content: {
     flex: 1,
@@ -208,7 +159,7 @@ const styles = StyleSheet.create({
   optionIconContainer: {
     width: 48,
     height: 48,
-    borderRadius: 24,
+    borderRadius: glassConstants.radius.icon,
     justifyContent: 'center',
     alignItems: 'center',
   },

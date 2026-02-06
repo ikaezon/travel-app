@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { BlurView } from 'expo-blur';
+import { AdaptiveGlassView } from '../../components/ui/AdaptiveGlassView';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useNavigation, useRoute, useFocusEffect, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -179,6 +179,16 @@ export default function TripOverviewScreen() {
       end={{ x: 1, y: 1 }}
       style={styles.gradientContainer}
     >
+      <GlassNavHeader
+        title={tripName}
+        label="Trip"
+        onBackPress={handleBackPress}
+        rightAction={{
+          icon: 'more-horiz',
+          onPress: () => setMenuVisible(true),
+          accessibilityLabel: 'Trip options',
+        }}
+      />
       <View style={styles.container}>
         <ScrollView
           style={styles.scrollView}
@@ -190,23 +200,23 @@ export default function TripOverviewScreen() {
           </View>
 
           <View style={styles.filterSection}>
-            <BlurView intensity={24} tint={theme.blurTint} style={[styles.filterContainer, glassStyles.blurContent, { boxShadow: theme.glassShadows.card }]}>
-              <View style={[styles.glassOverlay, { backgroundColor: theme.glassColors.overlayStrong }]} pointerEvents="none" />
+            <AdaptiveGlassView intensity={24} darkIntensity={10} glassEffectStyle="clear" style={[styles.filterContainer, glassStyles.blurContent, !theme.isDark && { boxShadow: theme.glassShadows.card }, !theme.isDark && { borderColor: theme.glassColors.border }, theme.isDark && { borderWidth: 0 }]}>
+              <View style={[styles.glassOverlay, { backgroundColor: theme.isDark ? 'rgba(40, 40, 45, 0.35)' : theme.glassColors.overlayStrong }]} pointerEvents="none" />
               <SegmentedControl
                 options={TIMELINE_FILTER_OPTIONS}
                 selectedValue={selectedFilter}
                 onValueChange={setSelectedFilter}
               />
-            </BlurView>
+            </AdaptiveGlassView>
           </View>
 
           <View style={styles.timeline}>
             {Object.entries(groupedByDate).map(([date, items], dateIndex) => (
               <View key={date} style={styles.dateGroup}>
                 <View style={styles.dateHeader}>
-                  <View style={styles.dateLine} />
+                  <View style={[styles.dateLine, { backgroundColor: theme.isDark ? 'rgba(255, 255, 255, 0.12)' : 'rgba(148, 163, 184, 0.4)' }]} />
                   <Text style={[styles.dateText, { color: theme.colors.text.secondary }]}>{date}</Text>
-                  <View style={styles.dateLine} />
+                  <View style={[styles.dateLine, { backgroundColor: theme.isDark ? 'rgba(255, 255, 255, 0.12)' : 'rgba(148, 163, 184, 0.4)' }]} />
                 </View>
 
                 {items.map((item, itemIndex) => {
@@ -240,17 +250,6 @@ export default function TripOverviewScreen() {
             )}
           </View>
         </ScrollView>
-
-        <GlassNavHeader
-          title={tripName}
-          label="Trip"
-          onBackPress={handleBackPress}
-          rightAction={{
-            icon: 'more-horiz',
-            onPress: () => setMenuVisible(true),
-            accessibilityLabel: 'Trip options',
-          }}
-        />
 
         {menuVisible && (
           <>
@@ -297,12 +296,12 @@ export default function TripOverviewScreen() {
             onPressOut={fabAnim.onPressOut}
             accessibilityLabel={addMenuVisible ? 'Close add menu' : 'Add reservation'}
           >
-            <BlurView intensity={24} tint={theme.blurTint} style={styles.fabBlur}>
-              <View style={[styles.fabGlassOverlay, { backgroundColor: theme.glassColors.overlayStrong }]} pointerEvents="none" />
+            <AdaptiveGlassView intensity={24} darkIntensity={10} glassEffectStyle="clear" style={styles.fabBlur}>
+              <View style={[styles.fabGlassOverlay, { backgroundColor: theme.isDark ? 'rgba(40, 40, 45, 0.35)' : theme.glassColors.overlayStrong }]} pointerEvents="none" />
               <View style={styles.fabContent}>
                 <MaterialIcons name="add" size={28} color={theme.colors.primary} />
               </View>
-            </BlurView>
+            </AdaptiveGlassView>
           </Pressable>
           </Animated.View>
         </View>
@@ -436,13 +435,13 @@ const styles = StyleSheet.create({
   fabWrapper: {
     width: 56,
     height: 56,
-    borderRadius: 28,
+    borderRadius: glassConstants.radius.card,
     overflow: 'hidden',
     borderWidth: glassConstants.borderWidth.card,
   },
   fabBlur: {
     ...StyleSheet.absoluteFillObject,
-    borderRadius: 26,
+    borderRadius: glassConstants.radius.card,
     overflow: 'hidden',
   },
   fabGlassOverlay: {

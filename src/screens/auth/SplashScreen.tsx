@@ -10,8 +10,8 @@ import {
   Animated,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { BlurView } from 'expo-blur';
 import { MaterialIcons } from '@expo/vector-icons';
+import { AdaptiveGlassView } from '../../components/ui/AdaptiveGlassView';
 import {
   spacing,
   fontFamilies,
@@ -97,20 +97,24 @@ export default function SplashScreen({
             </ImageBackground>
 
             {/* Logo – liquid glass circle */}
-            <View style={[styles.logoOuterContainer, { borderColor: theme.glassColors.border }]}>
-              <BlurView
+            <View style={[styles.logoOuterContainer, !theme.isDark && { borderColor: theme.glassColors.border }, theme.isDark && { borderWidth: 0 }]}>
+              <AdaptiveGlassView
                 intensity={glassConstants.blur.card}
-                tint={theme.blurTint}
-                style={[StyleSheet.absoluteFill, glassStyles.blurContentPill]}
+                darkIntensity={10}
+                glassEffectStyle="clear"
+                absoluteFill
+                style={glassStyles.blurContentPill}
               />
-              <View style={[styles.glassOverlay, { backgroundColor: theme.glassColors.overlayStrong }]} pointerEvents="none" />
-              <View style={[styles.logoInnerContainer, { borderColor: theme.glassColors.borderStrong }]}>
-                <BlurView
+              <View style={[styles.glassOverlay, { backgroundColor: theme.isDark ? 'rgba(40, 40, 45, 0.35)' : theme.glassColors.overlayStrong }]} pointerEvents="none" />
+              <View style={[styles.logoInnerContainer, !theme.isDark && { borderColor: theme.glassColors.borderStrong }, theme.isDark && { borderWidth: 1, borderColor: theme.glassColors.borderStrong }]}>
+                <AdaptiveGlassView
                   intensity={glassConstants.blur.icon}
-                  tint={theme.blurTint}
-                  style={[StyleSheet.absoluteFill, glassStyles.blurContentPill]}
+                  darkIntensity={10}
+                  glassEffectStyle="clear"
+                  absoluteFill
+                  style={glassStyles.blurContentPill}
                 />
-                <View style={[styles.glassOverlay, { backgroundColor: theme.glassColors.overlayStrong }]} pointerEvents="none" />
+                {!theme.isDark && <View style={[styles.glassOverlay, { backgroundColor: theme.glassColors.overlayStrong }]} pointerEvents="none" />}
                 <MaterialIcons
                   name="flight"
                   size={44}
@@ -135,17 +139,19 @@ export default function SplashScreen({
             {/* Primary button – boarding pass glass style */}
             <Animated.View style={{ transform: [{ scale: emailAnim.scaleAnim }] }}>
             <Pressable
-              style={styles.primaryButton}
+              style={[styles.primaryButton, !theme.isDark && { borderColor: theme.glassColors.border }, theme.isDark && { borderWidth: 0 }]}
               onPress={onEmailPress}
               onPressIn={emailAnim.onPressIn}
               onPressOut={emailAnim.onPressOut}
             >
-              <BlurView
+              <AdaptiveGlassView
                 intensity={glassConstants.blur.card}
-                tint={theme.blurTint}
-                style={[StyleSheet.absoluteFill, glassStyles.blurContent]}
+                darkIntensity={10}
+                glassEffectStyle="clear"
+                absoluteFill
+                style={glassStyles.blurContent}
               />
-              <View style={[styles.primaryOverlay, { backgroundColor: theme.glassColors.overlayStrong }]} pointerEvents="none" />
+              <View style={[styles.primaryOverlay, { backgroundColor: theme.isDark ? 'rgba(40, 40, 45, 0.35)' : theme.glassColors.overlayStrong }]} pointerEvents="none" />
               <View style={styles.primaryContent}>
                 <MaterialIcons name="mail" size={20} color={theme.colors.primary} />
                 <Text style={[styles.primaryButtonText, { color: theme.colors.primary }]}>Continue with Email</Text>
@@ -163,17 +169,19 @@ export default function SplashScreen({
             {/* Secondary button – Apple (glass card) */}
             <Animated.View style={{ transform: [{ scale: appleAnim.scaleAnim }] }}>
             <Pressable
-              style={styles.secondaryButton}
+              style={[styles.secondaryButton, !theme.isDark && { borderColor: theme.glassColors.border }, theme.isDark && { borderWidth: 0 }]}
               onPress={onApplePress}
               onPressIn={appleAnim.onPressIn}
               onPressOut={appleAnim.onPressOut}
             >
-              <BlurView
+              <AdaptiveGlassView
                 intensity={glassConstants.blur.card}
-                tint={theme.blurTint}
-                style={[StyleSheet.absoluteFill, glassStyles.blurContent]}
+                darkIntensity={10}
+                glassEffectStyle="clear"
+                absoluteFill
+                style={glassStyles.blurContent}
               />
-              <View style={[styles.glassOverlay, { backgroundColor: theme.glassColors.overlayStrong }]} pointerEvents="none" />
+              <View style={[styles.glassOverlay, { backgroundColor: theme.isDark ? 'rgba(40, 40, 45, 0.35)' : theme.glassColors.overlayStrong }]} pointerEvents="none" />
               <View style={styles.secondaryContent}>
                 <MaterialIcons name="smartphone" size={22} color={theme.colors.text.primary} />
                 <Text style={[styles.secondaryButtonText, { color: theme.colors.text.primary }]}>Continue with Apple</Text>
@@ -184,17 +192,19 @@ export default function SplashScreen({
             {/* Secondary button – Google (glass card) */}
             <Animated.View style={{ transform: [{ scale: googleAnim.scaleAnim }] }}>
             <Pressable
-              style={styles.secondaryButton}
+              style={[styles.secondaryButton, !theme.isDark && { borderColor: theme.glassColors.border }, theme.isDark && { borderWidth: 0 }]}
               onPress={onGooglePress}
               onPressIn={googleAnim.onPressIn}
               onPressOut={googleAnim.onPressOut}
             >
-              <BlurView
+              <AdaptiveGlassView
                 intensity={glassConstants.blur.card}
-                tint={theme.blurTint}
-                style={[StyleSheet.absoluteFill, glassStyles.blurContent]}
+                darkIntensity={10}
+                glassEffectStyle="clear"
+                absoluteFill
+                style={glassStyles.blurContent}
               />
-              <View style={[styles.glassOverlay, { backgroundColor: theme.glassColors.overlayStrong }]} pointerEvents="none" />
+              <View style={[styles.glassOverlay, { backgroundColor: theme.isDark ? 'rgba(40, 40, 45, 0.35)' : theme.glassColors.overlayStrong }]} pointerEvents="none" />
               <View style={styles.secondaryContent}>
                 <MaterialIcons name="language" size={22} color={theme.colors.text.primary} />
                 <Text style={[styles.secondaryButtonText, { color: theme.colors.text.primary }]}>Continue with Google</Text>
@@ -259,7 +269,7 @@ const styles = StyleSheet.create({
     zIndex: 10,
     width: 112,
     height: 112,
-    borderRadius: 56,
+    borderRadius: glassConstants.radius.pill,
     overflow: 'hidden',
     borderWidth: glassConstants.borderWidth.card,
     justifyContent: 'center',
@@ -268,7 +278,7 @@ const styles = StyleSheet.create({
   logoInnerContainer: {
     height: 80,
     width: 80,
-    borderRadius: 40,
+    borderRadius: glassConstants.radius.pill,
     overflow: 'hidden',
     borderWidth: glassConstants.borderWidth.icon,
     justifyContent: 'center',

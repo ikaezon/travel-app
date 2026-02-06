@@ -1,6 +1,5 @@
 import React, { useEffect, useRef, useCallback } from 'react';
 import { View, Text, StyleSheet, Pressable, Animated } from 'react-native';
-import { BlurView } from 'expo-blur';
 import {
   MapPinPlus,
   ImagePlus,

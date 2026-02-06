@@ -9,10 +9,10 @@ import {
   ActivityIndicator,
   Keyboard,
 } from 'react-native';
-import { BlurView } from 'expo-blur';
 import { MaterialIcons } from '@expo/vector-icons';
 import { borderRadius, spacing, fontFamilies, glassStyles, glassConstants } from '../../theme';
 import { useTheme } from '../../contexts/ThemeContext';
+import { AdaptiveGlassView } from './AdaptiveGlassView';
 import {
   isPlaceAutocompleteAvailable,
   createPlaceAutocompleteService,
@@ -143,7 +143,7 @@ export function DestinationAutocomplete({
           style={[
             styles.input,
             styles.inputWithLeftIcon,
-            variant === 'glass' && { backgroundColor: 'rgba(255, 255, 255, 0.5)', borderColor: theme.glassColors.border },
+            variant === 'glass' && { backgroundColor: theme.isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(255, 255, 255, 0.5)', borderColor: theme.glassColors.border },
             !variant && { borderColor: theme.colors.border, backgroundColor: theme.colors.surface },
             { color: theme.colors.text.primary },
           ]}
@@ -165,7 +165,7 @@ export function DestinationAutocomplete({
       {hasApi && dropdownVisible && suggestions.length > 0 && (
         <View style={[
           styles.dropdown,
-          variant === 'glass' && { backgroundColor: 'rgba(255, 255, 255, 0.9)', borderColor: theme.glassColors.border },
+          variant === 'glass' && { backgroundColor: theme.isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(255, 255, 255, 0.9)', borderColor: theme.glassColors.border },
           !variant && { borderColor: theme.colors.border, backgroundColor: theme.colors.surface },
         ]}>
           <ScrollView
@@ -184,11 +184,11 @@ export function DestinationAutocomplete({
   if (variant === 'glass') {
     return (
       <View style={[styles.container, style]}>
-        <View style={styles.glassWrapper}>
-          <BlurView intensity={24} tint={theme.blurTint} style={[styles.glassBlur, glassStyles.blurContent]}>
-            <View style={[styles.glassOverlay, { backgroundColor: theme.glassColors.overlayStrong }]} pointerEvents="none" />
+        <View style={[styles.glassWrapper, !theme.isDark && { borderColor: theme.glassColors.border }, theme.isDark && { borderWidth: 0 }]}>
+          <AdaptiveGlassView intensity={24} darkIntensity={10} glassEffectStyle="clear" style={[styles.glassBlur, glassStyles.blurContent]}>
+            <View style={[styles.glassOverlay, { backgroundColor: theme.isDark ? 'rgba(40, 40, 45, 0.35)' : theme.glassColors.overlayStrong }]} pointerEvents="none" />
             <View style={styles.glassContent}>{inputContent}</View>
-          </BlurView>
+          </AdaptiveGlassView>
         </View>
       </View>
     );
@@ -253,7 +253,7 @@ const styles = StyleSheet.create({
   },
   dropdown: {
     marginTop: 4,
-    borderRadius: borderRadius.md,
+    borderRadius: glassConstants.radius.card,
     borderWidth: 1,
     maxHeight: 240,
     overflow: 'hidden',

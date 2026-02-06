@@ -1,11 +1,11 @@
 import React from 'react';
 import { Text, StyleSheet, Pressable, View, ActivityIndicator, Animated } from 'react-native';
-import { BlurView } from 'expo-blur';
 import { MaterialIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { fontFamilies, glassStyles, glassConstants, borderRadius } from '../../theme';
 import { usePressAnimation } from '../../hooks';
 import { useTheme } from '../../contexts/ThemeContext';
+import { AdaptiveGlassView } from './AdaptiveGlassView';
 
 interface ShimmerButtonProps {
   label: string;
@@ -46,7 +46,7 @@ export function ShimmerButton({
         onPressOut={onPressOut}
         disabled={isDisabled}
       >
-        <BlurView intensity={24} tint={theme.blurTint} style={[StyleSheet.absoluteFill, glassStyles.blurContent]} />
+        <AdaptiveGlassView intensity={24} darkIntensity={10} glassEffectStyle="clear" absoluteFill style={glassStyles.blurContent} />
         <View style={[styles.boardingPassOverlay, { backgroundColor: theme.glassColors.overlayBlue }]} pointerEvents="none" />
         <View style={styles.content}>
           {loading ? (
@@ -108,7 +108,7 @@ export function ShimmerButton({
 const styles = StyleSheet.create({
   button: {
     height: 56,
-    borderRadius: borderRadius.lg,
+    borderRadius: glassConstants.radius.card,
     justifyContent: 'center',
     alignItems: 'center',
     overflow: 'hidden',

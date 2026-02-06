@@ -12,7 +12,6 @@ import {
 import { usePressAnimation } from '../../hooks';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { BlurView } from 'expo-blur';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -21,6 +20,8 @@ import { MainStackParamList } from '../../navigation/types';
 import { useTrips } from '../../hooks';
 import { Trip } from '../../types';
 import { useTheme } from '../../contexts/ThemeContext';
+import { AdaptiveGlassView } from '../../components/ui/AdaptiveGlassView';
+import { GlassNavHeader } from '../../components/navigation/GlassNavHeader';
 
 type NavigationProp = NativeStackNavigationProp<MainStackParamList>;
 
@@ -65,13 +66,17 @@ const TripItem = React.memo(function TripItem({ trip, index, onPress }: TripItem
   return (
     <Animated.View style={{ opacity: fadeAnim, transform: [{ scale: scaleAnim }] }}>
       <Pressable
-        style={styles.tripCard}
+        style={[
+          styles.tripCard,
+          !theme.isDark && { borderColor: theme.glassColors.border },
+          theme.isDark && { borderWidth: 0 },
+        ]}
         onPress={() => onPress(trip.id, tripName)}
         onPressIn={onPressIn}
         onPressOut={onPressOut}
       >
-        <BlurView intensity={glassConstants.blur.card} tint={theme.blurTint} style={[StyleSheet.absoluteFill, glassStyles.blurContentXLarge]} />
-        <View style={[styles.cardOverlay, { backgroundColor: theme.glassColors.overlayStrong }]} pointerEvents="none" />
+        <AdaptiveGlassView intensity={24} darkIntensity={10} glassEffectStyle="clear" absoluteFill style={glassStyles.blurContentXLarge} />
+        <View style={[styles.cardOverlay, { backgroundColor: theme.isDark ? 'rgba(40, 40, 45, 0.35)' : theme.glassColors.overlayStrong }]} pointerEvents="none" />
 
         <View style={styles.innerContainer}>
           <View style={styles.imageFrame}>
@@ -81,15 +86,15 @@ const TripItem = React.memo(function TripItem({ trip, index, onPress }: TripItem
               resizeMode="cover"
             >
               <View style={styles.tripBadgeContainer}>
-                <BlurView intensity={40} tint={theme.blurTint} style={[styles.statusBadge, glassStyles.blurContentPill, { borderColor: theme.glassColors.borderStrong, backgroundColor: theme.glassColors.overlay }]}>
+                <AdaptiveGlassView intensity={40} darkIntensity={10} glassEffectStyle="clear" style={[styles.statusBadge, glassStyles.blurContentPill, { borderColor: theme.glassColors.borderStrong, backgroundColor: theme.glassColors.overlay }]}>
                   <View style={[styles.statusDot, statusDotStyle]} />
                   <Text style={[styles.statusText, { color: theme.colors.text.primary }]}>{statusLabel}</Text>
-                </BlurView>
+                </AdaptiveGlassView>
                 
-                <BlurView intensity={40} tint={theme.blurTint} style={[styles.durationBadge, glassStyles.blurContentPill, { borderColor: theme.glassColors.borderStrong, backgroundColor: theme.glassColors.overlay }]}>
+                <AdaptiveGlassView intensity={40} darkIntensity={10} glassEffectStyle="clear" style={[styles.durationBadge, glassStyles.blurContentPill, { borderColor: theme.glassColors.borderStrong, backgroundColor: theme.glassColors.overlay }]}>
                   <MaterialIcons name="schedule" size={14} color={theme.colors.text.primary} />
                   <Text style={[styles.durationText, { color: theme.colors.text.primary }]}>{trip.durationLabel}</Text>
-                </BlurView>
+                </AdaptiveGlassView>
               </View>
             </ImageBackground>
           </View>
@@ -102,9 +107,9 @@ const TripItem = React.memo(function TripItem({ trip, index, onPress }: TripItem
                 </Text>
                 <Text style={[styles.tripDateRange, { color: theme.colors.text.secondary }]}>{trip.dateRange}</Text>
               </View>
-              <BlurView intensity={40} tint={theme.blurTint} style={[styles.iconBadge, glassStyles.blurContentIcon, { borderColor: theme.glassColors.borderStrong, backgroundColor: theme.glassColors.overlay }]}>
+              <AdaptiveGlassView intensity={40} darkIntensity={10} glassEffectStyle="clear" style={[styles.iconBadge, glassStyles.blurContentIcon, { borderColor: theme.glassColors.borderStrong, backgroundColor: theme.glassColors.overlay }]}>
                 <MaterialIcons name="chevron-right" size={24} color={theme.colors.text.tertiary} />
-              </BlurView>
+              </AdaptiveGlassView>
             </View>
           </View>
         </View>
@@ -145,17 +150,15 @@ export default function TripListScreen() {
     () => navigation.navigate('ScreenshotUpload'),
     [navigation]
   );
-  const backAnim = usePressAnimation();
-  const addAnim = usePressAnimation();
 
   const renderSectionHeader = useCallback(
     ({ section }: { section: TripSection }) => (
       <View style={styles.sectionHeader}>
         <Text style={[styles.sectionTitle, { color: theme.colors.text.primary }]}>{section.title}</Text>
-        <BlurView intensity={24} tint={theme.blurTint} style={[styles.countBadge, glassStyles.blurContentPill, { borderColor: theme.glassColors.border }]}>
+        <AdaptiveGlassView intensity={24} darkIntensity={10} glassEffectStyle="clear" style={[styles.countBadge, glassStyles.blurContentPill, { borderColor: theme.glassColors.border }]}>
           <View style={[styles.glassOverlay, { backgroundColor: theme.glassColors.overlayStrong }]} pointerEvents="none" />
           <Text style={[styles.countText, { color: theme.colors.primary }]}>{section.count}</Text>
-        </BlurView>
+        </AdaptiveGlassView>
       </View>
     ),
     [theme]
@@ -170,8 +173,6 @@ export default function TripListScreen() {
     [handleTripPress]
   );
 
-  const topOffset = insets.top + 8;
-
   if (isLoading) {
     return (
       <LinearGradient
@@ -181,20 +182,7 @@ export default function TripListScreen() {
         style={styles.gradientContainer}
       >
         <View style={styles.container}>
-          <View style={[styles.headerContainer, { top: topOffset }]}>
-            <BlurView intensity={24} tint={theme.blurTint} style={[styles.headerBlur, glassStyles.blurContentLarge]}>
-              <View style={[styles.glassOverlay, { backgroundColor: theme.glassColors.overlayStrong }]} pointerEvents="none" />
-              <View style={styles.headerContent}>
-                <Animated.View style={{ transform: [{ scale: backAnim.scaleAnim }] }}>
-                <Pressable style={styles.backButton} onPress={handleBackPress} onPressIn={backAnim.onPressIn} onPressOut={backAnim.onPressOut}>
-                  <MaterialIcons name="arrow-back" size={22} color={theme.colors.text.primary} />
-                </Pressable>
-                </Animated.View>
-                <Text style={[styles.headerTitle, { color: theme.colors.text.primary }]}>My Trips</Text>
-                <View style={styles.addButton} />
-              </View>
-            </BlurView>
-          </View>
+          <GlassNavHeader title="My Trips" onBackPress={handleBackPress} />
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color={theme.colors.primary} />
           </View>
@@ -202,6 +190,8 @@ export default function TripListScreen() {
       </LinearGradient>
     );
   }
+
+  const topOffset = insets.top + 8;
 
   return (
     <LinearGradient
@@ -221,24 +211,11 @@ export default function TripListScreen() {
           stickySectionHeadersEnabled={false}
         />
 
-        <View style={[styles.headerContainer, { top: topOffset }]}>
-          <BlurView intensity={24} tint={theme.blurTint} style={[styles.headerBlur, glassStyles.blurContentLarge]}>
-            <View style={[styles.glassOverlay, { backgroundColor: theme.glassColors.overlayStrong }]} pointerEvents="none" />
-            <View style={styles.headerContent}>
-              <Animated.View style={{ transform: [{ scale: backAnim.scaleAnim }] }}>
-              <Pressable style={styles.backButton} onPress={handleBackPress} onPressIn={backAnim.onPressIn} onPressOut={backAnim.onPressOut}>
-                <MaterialIcons name="arrow-back" size={22} color={theme.colors.text.primary} />
-              </Pressable>
-              </Animated.View>
-              <Text style={[styles.headerTitle, { color: theme.colors.text.primary }]}>My Trips</Text>
-              <Animated.View style={{ transform: [{ scale: addAnim.scaleAnim }] }}>
-              <Pressable style={styles.addButton} onPress={handleAddTripPress} onPressIn={addAnim.onPressIn} onPressOut={addAnim.onPressOut}>
-                <MaterialIcons name="add" size={22} color={theme.colors.primary} />
-              </Pressable>
-              </Animated.View>
-            </View>
-          </BlurView>
-        </View>
+        <GlassNavHeader
+          title="My Trips"
+          onBackPress={handleBackPress}
+          rightAction={{ icon: 'add', onPress: handleAddTripPress, accessibilityLabel: 'Add trip' }}
+        />
       </View>
     </LinearGradient>
   );
@@ -256,50 +233,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  headerContainer: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    alignItems: 'center',
-    zIndex: 60,
-  },
-  headerBlur: {
-    ...glassStyles.navBarWrapper,
-    width: '90%',
-    maxWidth: 340,
-    position: 'relative',
-    height: 56,
-    justifyContent: 'center',
-  },
-  headerContent: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-  },
   glassOverlay: {
     ...glassStyles.cardOverlay,
-  },
-  backButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  headerTitle: {
-    flex: 1,
-    textAlign: 'center',
-    fontSize: 16,
-    fontFamily: fontFamilies.semibold,
-    letterSpacing: -0.3,
-  },
-  addButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   listContent: {
     paddingBottom: 100,
@@ -345,7 +280,7 @@ const styles = StyleSheet.create({
   imageFrame: {
     height: 140,
     width: '100%',
-    borderRadius: 28,
+    borderRadius: glassConstants.radius.card,
     overflow: 'hidden',
   },
   tripImage: {

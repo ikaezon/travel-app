@@ -9,16 +9,17 @@ import {
   Keyboard,
   LayoutChangeEvent,
 } from 'react-native';
-import { BlurView } from 'expo-blur';
 import { MaterialIcons } from '@expo/vector-icons';
 import airports from '@nwpr/airport-codes';
 import {
   spacing,
   fontFamilies,
   glassStyles,
+  glassConstants,
   borderRadius,
 } from '../../theme';
 import { useTheme } from '../../contexts/ThemeContext';
+import { AdaptiveGlassView } from './AdaptiveGlassView';
 
 interface Airport {
   iata: string;
@@ -158,16 +159,17 @@ export function DualAirportInput({
         ]}
         onPress={() => onSelect(airport)}
       >
-        <BlurView 
+        <AdaptiveGlassView 
           intensity={40} 
-          tint={theme.blurTint} 
+          darkIntensity={10}
+          glassEffectStyle="clear"
           style={[
             styles.iataTag,
             { borderColor: theme.glassColors.borderBlue, backgroundColor: theme.glassColors.overlayBlue }
           ]}
         >
           <Text style={[styles.iataText, { color: theme.colors.text.primary }]}>{airport.iata}</Text>
-        </BlurView>
+        </AdaptiveGlassView>
         <View style={styles.suggestionInfo}>
           <Text style={[styles.cityText, { color: theme.colors.text.primary }]} numberOfLines={1}>
             {airport.city}
@@ -192,13 +194,14 @@ export function DualAirportInput({
   return (
     <View style={styles.container}>
       {/* Main card */}
-      <View style={styles.glassWrapper} onLayout={handleCardLayout}>
-        <BlurView
+      <View style={[styles.glassWrapper, !theme.isDark && { borderColor: theme.glassColors.border }, theme.isDark && { borderWidth: 0 }]} onLayout={handleCardLayout}>
+        <AdaptiveGlassView
           intensity={24}
-          tint={theme.blurTint}
+          darkIntensity={10}
+          glassEffectStyle="clear"
           style={[styles.glassBlur, glassStyles.blurContent]}
         >
-          <View style={[styles.glassOverlay, { backgroundColor: theme.glassColors.overlayStrong }]} pointerEvents="none" />
+          <View style={[styles.glassOverlay, { backgroundColor: theme.isDark ? 'rgba(40, 40, 45, 0.35)' : theme.glassColors.overlayStrong }]} pointerEvents="none" />
           <View style={styles.glassContent}>
             {/* Labels row */}
             <View style={styles.labelsRow}>
@@ -218,7 +221,7 @@ export function DualAirportInput({
                   style={styles.inputIcon}
                 />
                 <TextInput
-                  style={[styles.input, { borderColor: theme.glassColors.border, color: theme.colors.text.primary }]}
+                  style={[styles.input, { borderColor: theme.glassColors.border, backgroundColor: theme.isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(255, 255, 255, 0.5)', color: theme.colors.text.primary }]}
                   value={departureValue}
                   onChangeText={handleDepartureChange}
                   placeholder={departurePlaceholder}
@@ -248,7 +251,7 @@ export function DualAirportInput({
                   style={styles.inputIcon}
                 />
                 <TextInput
-                  style={[styles.input, { borderColor: theme.glassColors.border, color: theme.colors.text.primary }]}
+                  style={[styles.input, { borderColor: theme.glassColors.border, backgroundColor: theme.isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(255, 255, 255, 0.5)', color: theme.colors.text.primary }]}
                   value={arrivalValue}
                   onChangeText={handleArrivalChange}
                   placeholder={arrivalPlaceholder}
@@ -261,7 +264,7 @@ export function DualAirportInput({
               </View>
             </View>
           </View>
-        </BlurView>
+        </AdaptiveGlassView>
       </View>
 
       {/* Dropdown - positioned outside the card */}
@@ -273,12 +276,13 @@ export function DualAirportInput({
             showArrivalSuggestions && styles.dropdownRight,
           ]}
         >
-          <BlurView
+          <AdaptiveGlassView
             intensity={48}
-            tint={theme.blurTint}
+            darkIntensity={10}
+            glassEffectStyle="clear"
             style={styles.dropdownBlur}
           >
-            <View style={styles.dropdownOverlay} pointerEvents="none" />
+            <View style={[styles.dropdownOverlay, { backgroundColor: theme.isDark ? 'rgba(40, 40, 45, 0.35)' : 'rgba(255, 255, 255, 0.15)' }]} pointerEvents="none" />
             <ScrollView
               style={styles.dropdownList}
               keyboardShouldPersistTaps="handled"
@@ -294,7 +298,7 @@ export function DualAirportInput({
                   renderSuggestion(a, handleArrivalSelect, i === arrivalSuggestions.length - 1)
                 )}
             </ScrollView>
-          </BlurView>
+          </AdaptiveGlassView>
         </View>
       )}
     </View>
@@ -345,7 +349,6 @@ const styles = StyleSheet.create({
     height: 48,
     borderRadius: borderRadius.md,
     borderWidth: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.5)',
     paddingLeft: 40,
     paddingRight: spacing.md,
     fontSize: 15,
@@ -367,7 +370,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 0,
     right: 0,
-    borderRadius: 20,
+    borderRadius: glassConstants.radius.card,
     overflow: 'hidden',
     borderWidth: 1.5,
     zIndex: 200,
@@ -376,7 +379,7 @@ const styles = StyleSheet.create({
     // Alignment hint for arrival (visual only, dropdown is full width)
   },
   dropdownBlur: {
-    borderRadius: 18,
+    borderRadius: glassConstants.radius.card,
     overflow: 'hidden',
   },
   dropdownOverlay: {

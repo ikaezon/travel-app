@@ -12,14 +12,14 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { BlurView } from 'expo-blur';
+import { AdaptiveGlassView } from '../../components/ui/AdaptiveGlassView';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import * as ImagePicker from 'expo-image-picker';
 import { ShimmerButton } from '../../components/ui/ShimmerButton';
 import { MainStackParamList } from '../../navigation/types';
-import { fontFamilies, glassStyles } from '../../theme';
+import { fontFamilies, glassStyles, glassConstants } from '../../theme';
 import { usePressAnimation } from '../../hooks';
 import { useTheme } from '../../contexts/ThemeContext';
 
@@ -190,9 +190,9 @@ export default function ScreenshotUploadScreen() {
       end={{ x: 1, y: 1 }}
       style={styles.gradientContainer}
     >
-      <View style={styles.container}>
+        <View style={styles.container}>
         <View style={[styles.instructions, { paddingTop: topOffset + 72 }]}>
-          <Text style={styles.instructionsText}>
+          <Text style={[styles.instructionsText, { color: theme.colors.text.secondary }]}>
             Select a screenshot of your reservation confirmation from your library.
           </Text>
         </View>
@@ -205,7 +205,7 @@ export default function ScreenshotUploadScreen() {
         contentContainerStyle={styles.photoGrid}
         columnWrapperStyle={styles.photoRow}
         ListHeaderComponent={
-          <Pressable style={[styles.photoContainer, { backgroundColor: theme.colors.border }]} onPress={pickImage}>
+          <Pressable style={[styles.photoContainer, { backgroundColor: theme.isDark ? theme.colors.surface : theme.colors.border }]} onPress={pickImage}>
             <View style={styles.addPhotoPlaceholder}>
               <MaterialIcons name="add-photo-alternate" size={40} color={theme.colors.text.secondary} />
               <Text style={[styles.addPhotoText, { color: theme.colors.text.secondary }]}>Select Photo</Text>
@@ -236,8 +236,8 @@ export default function ScreenshotUploadScreen() {
         </View>
 
         <View style={[styles.headerContainer, { top: topOffset }]}>
-          <BlurView intensity={24} tint={theme.blurTint} style={[styles.headerBlur, glassStyles.blurContentLarge]}>
-            <View style={[styles.glassOverlay, { backgroundColor: theme.glassColors.overlayStrong }]} pointerEvents="none" />
+          <AdaptiveGlassView intensity={24} style={[styles.headerBlur, glassStyles.blurContentLarge, { borderColor: theme.glassColors.border, boxShadow: theme.glassShadows.nav }]}>
+            {!theme.isDark && <View style={[styles.glassOverlay, { backgroundColor: theme.glassColors.overlayStrong }]} pointerEvents="none" />}
             <View style={styles.headerContent}>
               <Animated.View style={{ transform: [{ scale: backAnim.scaleAnim }] }}>
               <Pressable style={styles.backButton} onPress={handleBackPress} onPressIn={backAnim.onPressIn} onPressOut={backAnim.onPressOut}>
@@ -252,14 +252,14 @@ export default function ScreenshotUploadScreen() {
               </Pressable>
               </Animated.View>
             </View>
-          </BlurView>
+          </AdaptiveGlassView>
         </View>
 
         {isParsing && (
           <View style={[styles.parsingOverlay, { bottom: insets.bottom + 120 }]}>
-            <Pressable style={({ pressed }) => [styles.parsingCard, pressed && styles.parsingCardPressed]}>
-              <BlurView intensity={24} tint={theme.blurTint} style={[StyleSheet.absoluteFill, glassStyles.blurContent]} />
-              <View style={[styles.glassOverlay, { backgroundColor: theme.glassColors.overlayStrong }]} pointerEvents="none" />
+            <Pressable style={({ pressed }) => [styles.parsingCard, !theme.isDark && { borderColor: theme.glassColors.border }, theme.isDark && { borderWidth: 0 }, pressed && styles.parsingCardPressed]}>
+              <AdaptiveGlassView intensity={24} darkIntensity={10} glassEffectStyle="clear" absoluteFill style={glassStyles.blurContent} />
+              <View style={[styles.glassOverlay, { backgroundColor: theme.isDark ? 'rgba(40, 40, 45, 0.35)' : theme.glassColors.overlayStrong }]} pointerEvents="none" />
               <View style={styles.parsingContent}>
             <View style={styles.parsingHeader}>
               <View style={[styles.parsingIconContainer, { backgroundColor: theme.colors.primaryLight }]}>
@@ -369,9 +369,9 @@ const styles = StyleSheet.create({
   photoContainer: {
     width: IMAGE_SIZE,
     aspectRatio: 9 / 18,
-    borderRadius: 8,
+    borderRadius: glassConstants.radius.icon,
     overflow: 'hidden',
-    backgroundColor: '#e2e8f0',
+    backgroundColor: undefined,
   },
   photoSelected: {
     borderWidth: 4,
@@ -395,7 +395,7 @@ const styles = StyleSheet.create({
   checkmark: {
     width: 32,
     height: 32,
-    borderRadius: 16,
+    borderRadius: glassConstants.radius.icon,
     // backgroundColor set inline with theme.colors.primary
     justifyContent: 'center',
     alignItems: 'center',
@@ -438,7 +438,7 @@ const styles = StyleSheet.create({
     marginTop: 16,
     paddingHorizontal: 24,
     paddingVertical: 12,
-    borderRadius: 8,
+    borderRadius: glassConstants.radius.icon,
   },
   settingsButtonText: {
     fontSize: 16,
@@ -494,7 +494,7 @@ const styles = StyleSheet.create({
   parsingIconContainer: {
     width: 40,
     height: 40,
-    borderRadius: 20,
+    borderRadius: glassConstants.radius.icon,
     justifyContent: 'center',
     alignItems: 'center',
     position: 'relative',

@@ -10,7 +10,6 @@ import {
   Animated,
   InteractionManager,
 } from 'react-native';
-import { BlurView } from 'expo-blur';
 import { MaterialIcons } from '@expo/vector-icons';
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import {
@@ -18,8 +17,10 @@ import {
   fontFamilies,
   glassStyles,
   glassConstants,
+  borderRadius,
 } from '../../theme';
 import { useTheme } from '../../contexts/ThemeContext';
+import { AdaptiveGlassView } from './AdaptiveGlassView';
 import { formatTimeTo12Hour } from '../../utils/dateFormat';
 
 const PICKER_HEIGHT = 320;
@@ -191,9 +192,9 @@ export function TimePickerInput({
   return (
     <View style={[styles.container, style]}>
       {variant === 'glass' ? (
-        <View style={styles.glassWrapper}>
-          <BlurView intensity={24} tint={theme.blurTint} style={[styles.glassBlur, glassStyles.blurContent]}>
-            <View style={styles.glassOverlay} pointerEvents="none" />
+        <View style={[styles.glassWrapper, !theme.isDark && { borderColor: theme.glassColors.border }, theme.isDark && { borderWidth: 0 }]}>
+          <AdaptiveGlassView intensity={24} darkIntensity={10} glassEffectStyle="clear" style={[styles.glassBlur, glassStyles.blurContent]}>
+            <View style={[styles.glassOverlay, { backgroundColor: theme.isDark ? 'rgba(40, 40, 45, 0.35)' : theme.glassColors.overlayStrong }]} pointerEvents="none" />
             <View style={styles.glassContent}>
               <View style={styles.labelRow}>
                 <Text style={[styles.label, { color: theme.colors.text.secondary }]}>{label}</Text>
@@ -216,7 +217,7 @@ export function TimePickerInput({
                 <MaterialIcons name="chevron-right" size={24} color={theme.colors.text.tertiary} />
               </Pressable>
             </View>
-          </BlurView>
+          </AdaptiveGlassView>
         </View>
       ) : (
         <>
@@ -265,12 +266,13 @@ export function TimePickerInput({
               ]}
               onStartShouldSetResponder={() => true}
             >
-              <BlurView
+              <AdaptiveGlassView
                 intensity={40}
-                tint={theme.blurTint}
+                darkIntensity={10}
+                glassEffectStyle="clear"
                 style={styles.pickerSheetBlur}
               >
-                <View style={[styles.pickerSheetOverlay, { backgroundColor: theme.glassColors.menuOverlay }]} pointerEvents="none" />
+                <View style={[styles.pickerSheetOverlay, { backgroundColor: theme.isDark ? 'rgba(40, 40, 45, 0.35)' : theme.glassColors.menuOverlay }]} pointerEvents="none" />
                 
                 {/* Header */}
                 <View style={styles.pickerHeader}>
@@ -324,7 +326,7 @@ export function TimePickerInput({
                 </View>
 
                 <View style={styles.bottomAccent} />
-              </BlurView>
+              </AdaptiveGlassView>
             </Animated.View>
           </Pressable>
         </Modal>
@@ -372,7 +374,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     height: 56,
-    borderRadius: glassConstants.radius.icon,
+    borderRadius: borderRadius.md,
     borderWidth: 1,
     paddingHorizontal: spacing.lg,
     backgroundColor: 'transparent',

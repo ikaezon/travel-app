@@ -194,10 +194,10 @@ export default function TripDashboardScreen() {
         </ScrollView>
 
         <View style={[styles.topNavContainer, { top: topOffset }]}>
-          <View style={styles.topNavBarWrapper}>
+          <View style={[styles.topNavBarWrapper, { borderColor: theme.glassColors.border, boxShadow: theme.glassShadows.nav }]}>
             <AdaptiveGlassView
               intensity={24}
-              style={[styles.topNavBlur, glassStyles.blurContentLarge, { borderColor: theme.glassColors.border, boxShadow: theme.glassShadows.nav }]}
+              style={styles.topNavBlur}
             >
               {!theme.isDark && <View style={[styles.glassOverlay, { backgroundColor: theme.glassColors.overlayStrong }]} pointerEvents="none" />}
             </AdaptiveGlassView>
@@ -245,15 +245,14 @@ const styles = StyleSheet.create({
     zIndex: 60,
   },
   topNavBarWrapper: {
+    ...glassStyles.navBarWrapper,
     width: '90%',
     maxWidth: 340,
     height: 56,
     position: 'relative',
-    overflow: 'hidden',
   },
   topNavBlur: {
     ...StyleSheet.absoluteFillObject,
-    ...glassStyles.navBarWrapper,
     ...glassStyles.blurContentLarge,
     zIndex: 0,
   },
@@ -268,7 +267,7 @@ const styles = StyleSheet.create({
   navButton: {
     width: 36,
     height: 36,
-    borderRadius: 12,
+    borderRadius: glassConstants.radius.icon,
     justifyContent: 'center',
     alignItems: 'center',
   },

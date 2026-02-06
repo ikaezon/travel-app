@@ -1,10 +1,10 @@
 import React from 'react';
 import { View, Text, StyleSheet, Pressable, Animated } from 'react-native';
-import { BlurView } from 'expo-blur';
 import { MaterialIcons } from '@expo/vector-icons';
-import { spacing, fontFamilies, glassStyles } from '../../theme';
+import { spacing, fontFamilies, glassStyles, glassConstants } from '../../theme';
 import { usePressAnimation } from '../../hooks';
 import { useTheme } from '../../contexts/ThemeContext';
+import { AdaptiveGlassView } from './AdaptiveGlassView';
 
 interface SettingsListItemProps {
   label: string;
@@ -31,9 +31,9 @@ export function SettingsListItem({
     <View style={variant === 'glass' ? styles.glassContainer : styles.container}>
       <View style={styles.leftContent}>
         {variant === 'glass' ? (
-          <BlurView intensity={50} tint={theme.blurTint} style={[styles.glassIconContainer, glassStyles.blurContentIcon]}>
+          <AdaptiveGlassView intensity={50} darkIntensity={10} glassEffectStyle="clear" style={[styles.glassIconContainer, glassStyles.blurContentIcon, theme.isDark && { borderWidth: 1, borderColor: theme.glassColors.borderStrong }, { backgroundColor: theme.isDark ? 'rgba(255, 255, 255, 0.06)' : undefined }]}>
             <MaterialIcons name={iconName} size={20} color={theme.colors.primary} />
-          </BlurView>
+          </AdaptiveGlassView>
         ) : (
           <View style={[styles.iconContainer, { backgroundColor: theme.colors.background }]}>
             <MaterialIcons name={iconName} size={20} color={theme.colors.primary} />
@@ -56,16 +56,16 @@ export function SettingsListItem({
 
   if (variant === 'glass') {
     const wrapper = (
-      <BlurView intensity={24} tint={theme.blurTint} style={[styles.glassBlur, glassStyles.blurContent]}>
-        <View style={styles.glassOverlay} pointerEvents="none" />
+      <AdaptiveGlassView intensity={24} darkIntensity={10} glassEffectStyle="clear" style={[styles.glassBlur, glassStyles.blurContent]}>
+        <View style={[styles.glassOverlay, { backgroundColor: theme.isDark ? 'rgba(40, 40, 45, 0.35)' : undefined }]} pointerEvents="none" />
         {content}
-      </BlurView>
+      </AdaptiveGlassView>
     );
     if (onPress) {
       return (
         <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
         <Pressable
-          style={styles.glassPressable}
+          style={[styles.glassPressable, !theme.isDark && { borderColor: theme.glassColors.border }, theme.isDark && { borderWidth: 0 }]}
           onPress={onPress}
           onPressIn={onPressIn}
           onPressOut={onPressOut}
@@ -75,7 +75,7 @@ export function SettingsListItem({
         </Animated.View>
       );
     }
-    return <View style={styles.glassPressable}>{wrapper}</View>;
+    return <View style={[styles.glassPressable, !theme.isDark && { borderColor: theme.glassColors.border }, theme.isDark && { borderWidth: 0 }]}>{wrapper}</View>;
   }
 
   if (onPress) {
@@ -115,8 +115,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: 12,
-    gap: 12,
+    padding: 14,
+    gap: 14,
     position: 'relative',
   },
   glassOverlay: {
@@ -136,17 +136,17 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   iconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
+    width: 48,
+    height: 48,
+    borderRadius: glassConstants.radius.icon,
     justifyContent: 'center',
     alignItems: 'center',
   },
   glassIconContainer: {
     ...glassStyles.iconContainer,
-    width: 40,
-    height: 40,
-    padding: 10,
+    width: 48,
+    height: 48,
+    padding: 14,
     justifyContent: 'center',
     alignItems: 'center',
   },

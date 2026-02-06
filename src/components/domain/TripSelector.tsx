@@ -1,11 +1,11 @@
 import React, { useCallback, useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, Pressable, ActivityIndicator, Animated } from 'react-native';
-import { BlurView } from 'expo-blur';
 import { MaterialIcons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
-import { spacing, borderRadius, fontFamilies, glassStyles } from '../../theme';
+import { spacing, borderRadius, fontFamilies, glassStyles, glassConstants } from '../../theme';
 import type { Trip } from '../../types';
 import { useTheme } from '../../contexts/ThemeContext';
+import { AdaptiveGlassView } from '../ui/AdaptiveGlassView';
 
 interface TripRowProps {
   trip: Trip;
@@ -93,7 +93,7 @@ function TripRow({ trip, isSelected, onSelect, variant }: TripRowProps) {
   const backgroundColor = borderAnim.interpolate({
     inputRange: [0, 1],
     outputRange: [
-      variant === 'glass' ? 'rgba(255, 255, 255, 0.5)' : theme.colors.surface,
+      variant === 'glass' ? (theme.isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(255, 255, 255, 0.5)') : theme.colors.surface,
       theme.colors.primaryLight,
     ],
   });
@@ -170,7 +170,7 @@ export function TripSelector({
       return (
         <>
           <Text style={[styles.label, variant === 'glass' && styles.labelGlass, { color: theme.colors.text.primary }]}>Add to trip</Text>
-          <View style={[styles.loadingRow, variant === 'glass' && styles.loadingRowGlass, variant === 'glass' && { backgroundColor: 'rgba(255, 255, 255, 0.5)', borderColor: theme.glassColors.border }, !variant && { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}>
+          <View style={[styles.loadingRow, variant === 'glass' && styles.loadingRowGlass, variant === 'glass' && { backgroundColor: theme.isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(255, 255, 255, 0.5)', borderColor: theme.glassColors.border }, !variant && { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}>
             <ActivityIndicator size="small" color={theme.colors.primary} />
             <Text style={[styles.loadingText, { color: theme.colors.text.secondary }]}>Loading trips…</Text>
           </View>
@@ -219,11 +219,11 @@ export function TripSelector({
 
   if (variant === 'glass') {
     return (
-      <View style={styles.glassWrapper}>
-        <BlurView intensity={24} tint={theme.blurTint} style={[styles.glassBlur, glassStyles.blurContent]}>
-          <View style={[styles.glassOverlay, { backgroundColor: theme.glassColors.overlayStrong }]} pointerEvents="none" />
+      <View style={[styles.glassWrapper, !theme.isDark && { borderColor: theme.glassColors.border }, theme.isDark && { borderWidth: 0 }]}>
+        <AdaptiveGlassView intensity={24} darkIntensity={10} glassEffectStyle="clear" style={[styles.glassBlur, glassStyles.blurContent]}>
+          <View style={[styles.glassOverlay, { backgroundColor: theme.isDark ? 'rgba(40, 40, 45, 0.35)' : theme.glassColors.overlayStrong }]} pointerEvents="none" />
           <View style={styles.glassContent}>{content}</View>
-        </BlurView>
+        </AdaptiveGlassView>
       </View>
     );
   }
@@ -270,7 +270,7 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
     paddingVertical: spacing.md,
     paddingHorizontal: spacing.lg,
-    borderRadius: borderRadius.md,
+    borderRadius: glassConstants.radius.card,
     borderWidth: 1,
   },
   loadingText: {
@@ -296,7 +296,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingVertical: spacing.md,
     paddingHorizontal: spacing.lg,
-    borderRadius: borderRadius.md,
+    borderRadius: glassConstants.radius.card,
     borderWidth: 1.5,
   },
   tripRowContent: {

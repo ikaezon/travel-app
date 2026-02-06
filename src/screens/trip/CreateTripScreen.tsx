@@ -1,32 +1,24 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   View,
-  Text,
   StyleSheet,
   ScrollView,
-  Pressable,
   Platform,
   Keyboard,
   Alert,
-  Animated,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { BlurView } from 'expo-blur';
-import { MaterialIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { DestinationAutocomplete } from '../../components/ui/DestinationAutocomplete';
 import { FormInput } from '../../components/ui/FormInput';
 import { DateRangePickerInput } from '../../components/ui/DateRangePickerInput';
 import { ShimmerButton } from '../../components/ui/ShimmerButton';
-import {
-  spacing,
-  fontFamilies,
-  glassStyles,
-} from '../../theme';
+import { GlassNavHeader } from '../../components/navigation/GlassNavHeader';
+import { spacing } from '../../theme';
 import { MainStackParamList } from '../../navigation/types';
-import { useCreateTrip, usePressAnimation } from '../../hooks';
+import { useCreateTrip } from '../../hooks';
 import { formatCalendarDateToDisplay, daysBetween } from '../../utils/dateFormat';
 import { fetchCoverImageForDestination, isCoverImageAvailable } from '../../data/services';
 import type { Trip } from '../../types';
@@ -55,7 +47,6 @@ export default function CreateTripScreen() {
   const [keyboardHeight, setKeyboardHeight] = useState(0);
 
   const topOffset = insets.top + 8;
-  const backAnim = usePressAnimation();
 
   const dateRangeDisplay = useMemo(() => {
     if (!startDate) return '';
@@ -131,9 +122,9 @@ export default function CreateTripScreen() {
     }
   };
 
-  const handleBackPress = () => {
+  const handleBackPress = useCallback(() => {
     if (!isSubmitting) navigation.goBack();
-  };
+  }, [isSubmitting, navigation]);
 
   return (
     <LinearGradient
@@ -191,31 +182,10 @@ export default function CreateTripScreen() {
           />
         </ScrollView>
 
-        <View style={[styles.headerContainer, { top: topOffset }]}>
-          <BlurView intensity={24} tint={theme.blurTint} style={[styles.headerBlur, glassStyles.blurContentLarge]}>
-            <View style={[styles.glassOverlay, { backgroundColor: theme.glassColors.overlayStrong }]} pointerEvents="none" />
-            <View style={styles.headerContent}>
-              <Animated.View style={{ transform: [{ scale: backAnim.scaleAnim }] }}>
-              <Pressable
-                style={styles.backButton}
-                onPress={handleBackPress}
-                onPressIn={backAnim.onPressIn}
-                onPressOut={backAnim.onPressOut}
-                accessibilityLabel="Go back"
-                disabled={isSubmitting}
-              >
-                <MaterialIcons
-                  name="arrow-back"
-                  size={22}
-                  color={theme.colors.text.primary}
-                />
-              </Pressable>
-              </Animated.View>
-              <Text style={[styles.headerTitle, { color: theme.colors.text.primary }]}>New Trip</Text>
-              <View style={styles.headerSpacer} />
-            </View>
-          </BlurView>
-        </View>
+        <GlassNavHeader
+          title="New Trip"
+          onBackPress={handleBackPress}
+        />
       </View>
     </LinearGradient>
   );
@@ -227,44 +197,6 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-  },
-  headerContainer: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    alignItems: 'center',
-    zIndex: 60,
-  },
-  headerBlur: {
-    ...glassStyles.navBarWrapper,
-    width: '90%',
-    maxWidth: 340,
-    position: 'relative',
-    height: 56,
-    justifyContent: 'center',
-  },
-  headerContent: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-  },
-  glassOverlay: {
-    ...glassStyles.cardOverlay,
-  },
-  backButton: {
-    width: 36,
-    height: 36,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  headerTitle: {
-    fontSize: 16,
-    fontFamily: fontFamilies.semibold,
-    letterSpacing: -0.3,
-  },
-  headerSpacer: {
-    width: 36,
   },
   scrollView: {
     flex: 1,

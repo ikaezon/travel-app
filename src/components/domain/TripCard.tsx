@@ -1,8 +1,7 @@
 import React, { useEffect, useRef, useCallback } from 'react';
 import { View, Text, ImageBackground, StyleSheet, Pressable, Animated } from 'react-native';
-import { BlurView } from 'expo-blur';
 import { MaterialIcons } from '@expo/vector-icons';
-import { spacing, borderRadius, fontFamilies, glassStyles } from '../../theme';
+import { spacing, borderRadius, fontFamilies, glassStyles, glassConstants } from '../../theme';
 import { TripIconType } from '../../types';
 import { useTheme } from '../../contexts/ThemeContext';
 import { AdaptiveGlassView } from '../ui/AdaptiveGlassView';
@@ -145,7 +144,7 @@ const styles = StyleSheet.create({
   imageFrame: {
     height: 140,
     width: '100%',
-    borderRadius: 28,
+    borderRadius: glassConstants.radius.card,
     overflow: 'hidden',
   },
   image: {

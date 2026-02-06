@@ -9,11 +9,11 @@ import {
   Dimensions,
   ViewStyle,
 } from 'react-native';
-import { BlurView } from 'expo-blur';
 import { MaterialIcons } from '@expo/vector-icons';
 import { Calendar } from 'react-native-calendars';
 import { spacing, borderRadius, shadows, fontFamilies, glassStyles, glassConstants } from '../../theme';
 import { useTheme } from '../../contexts/ThemeContext';
+import { AdaptiveGlassView } from './AdaptiveGlassView';
 import { parseToCalendarDate, formatCalendarDateToLongDisplay } from '../../utils/dateFormat';
 
 const POPUP_FADE_DURATION = 150;
@@ -148,9 +148,9 @@ export function DatePickerInput({
   return (
     <View ref={containerRef} style={[styles.container, style]} collapsable={false}>
       {variant === 'glass' ? (
-        <View style={styles.glassWrapper}>
-          <BlurView intensity={24} tint={theme.blurTint} style={[styles.glassBlur, glassStyles.blurContent]}>
-            <View style={styles.glassOverlay} pointerEvents="none" />
+        <View style={[styles.glassWrapper, !theme.isDark && { borderColor: theme.glassColors.border }, theme.isDark && { borderWidth: 0 }]}>
+          <AdaptiveGlassView intensity={24} darkIntensity={10} glassEffectStyle="clear" style={[styles.glassBlur, glassStyles.blurContent]}>
+            <View style={[styles.glassOverlay, { backgroundColor: theme.isDark ? 'rgba(40, 40, 45, 0.35)' : theme.glassColors.overlayStrong }]} pointerEvents="none" />
             <View style={styles.glassContent}>
               <View style={styles.labelRow}>
                 <Text style={[styles.label, { color: theme.colors.text.secondary }]}>{label}</Text>
@@ -173,7 +173,7 @@ export function DatePickerInput({
                 <MaterialIcons name="chevron-right" size={24} color={theme.colors.text.tertiary} />
               </Pressable>
             </View>
-          </BlurView>
+          </AdaptiveGlassView>
         </View>
       ) : (
         <>
@@ -297,7 +297,7 @@ const styles = StyleSheet.create({
   },
   popup: {
     position: 'absolute',
-    borderRadius: borderRadius.lg,
+    borderRadius: glassConstants.radius.card,
     overflow: 'hidden',
   },
   calendarContainer: {

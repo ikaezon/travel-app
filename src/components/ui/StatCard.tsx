@@ -1,10 +1,10 @@
 import React from 'react';
 import { View, Text, StyleSheet, Pressable, Animated } from 'react-native';
-import { BlurView } from 'expo-blur';
 import { MaterialIcons } from '@expo/vector-icons';
-import { colors, spacing, fontFamilies, glassStyles, glassColors, glassConstants } from '../../theme';
+import { spacing, fontFamilies, glassStyles, glassConstants } from '../../theme';
 import { usePressAnimation } from '../../hooks';
 import { useTheme } from '../../contexts/ThemeContext';
+import { AdaptiveGlassView } from './AdaptiveGlassView';
 
 interface StatCardProps {
   label: string;
@@ -44,15 +44,15 @@ export function StatCard({ label, value, iconName, onPress }: StatCardProps) {
     return (
       <Animated.View style={{ transform: [{ scale: scaleAnim }], flex: 1, minWidth: 0 }}>
       <Pressable
-        style={styles.cardWrapper}
+        style={[styles.cardWrapper, !theme.isDark && { borderColor: theme.glassColors.border }, theme.isDark && { borderWidth: 0 }]}
         onPress={onPress}
         onPressIn={onPressIn}
         onPressOut={onPressOut}
         accessibilityRole="button"
         accessibilityLabel={`${label}: ${value}`}
       >
-        <BlurView intensity={24} tint={theme.blurTint} style={[StyleSheet.absoluteFill, glassStyles.blurContent]} />
-        <View style={[styles.cardOverlay, { backgroundColor: theme.glassColors.overlayStrong }]} pointerEvents="none" />
+        <AdaptiveGlassView intensity={24} darkIntensity={10} glassEffectStyle="clear" absoluteFill style={glassStyles.blurContent} />
+        <View style={[styles.cardOverlay, { backgroundColor: theme.isDark ? 'rgba(40, 40, 45, 0.35)' : theme.glassColors.overlayStrong }]} pointerEvents="none" />
         {content}
       </Pressable>
       </Animated.View>
@@ -60,9 +60,9 @@ export function StatCard({ label, value, iconName, onPress }: StatCardProps) {
   }
 
   return (
-    <View style={styles.cardWrapper} accessibilityLabel={`${label}: ${value}`}>
-      <BlurView intensity={24} tint={theme.blurTint} style={[StyleSheet.absoluteFill, glassStyles.blurContent]} />
-      <View style={[styles.cardOverlay, { backgroundColor: theme.glassColors.overlayStrong }]} pointerEvents="none" />
+    <View style={[styles.cardWrapper, !theme.isDark && { borderColor: theme.glassColors.border }, theme.isDark && { borderWidth: 0 }]} accessibilityLabel={`${label}: ${value}`}>
+      <AdaptiveGlassView intensity={24} darkIntensity={10} glassEffectStyle="clear" absoluteFill style={glassStyles.blurContent} />
+      <View style={[styles.cardOverlay, { backgroundColor: theme.isDark ? 'rgba(40, 40, 45, 0.35)' : theme.glassColors.overlayStrong }]} pointerEvents="none" />
       {content}
     </View>
   );

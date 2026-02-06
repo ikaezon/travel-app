@@ -12,16 +12,17 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { BlurView } from 'expo-blur';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { AdaptiveGlassView } from '../../components/ui/AdaptiveGlassView';
+import { GlassNavHeader } from '../../components/navigation/GlassNavHeader';
 import { FormInput } from '../../components/ui/FormInput';
 import { DatePickerInput } from '../../components/ui/DatePickerInput';
 import { TimePickerInput } from '../../components/ui/TimePickerInput';
 import { ShimmerButton } from '../../components/ui/ShimmerButton';
 import { MainStackParamList } from '../../navigation/types';
-import { fontFamilies, glassStyles } from '../../theme';
+import { fontFamilies, glassStyles, glassConstants } from '../../theme';
 import { mockImages, mockReviewDetailsDefaults } from '../../data/mocks';
 import { usePressAnimation } from '../../hooks';
 import { useTheme } from '../../contexts/ThemeContext';
@@ -62,8 +63,6 @@ export default function ReviewDetailsScreen({
 
   const topOffset = insets.top + 8;
   const sourceAnim = usePressAnimation();
-  const backAnim = usePressAnimation();
-  const helpAnim = usePressAnimation();
 
   useEffect(() => {
     const showSub = Keyboard.addListener(
@@ -108,10 +107,18 @@ export default function ReviewDetailsScreen({
         >
           <View style={styles.sourceSection}>
             <Animated.View style={{ transform: [{ scale: sourceAnim.scaleAnim }] }}>
-            <Pressable style={styles.sourceCard} onPressIn={sourceAnim.onPressIn} onPressOut={sourceAnim.onPressOut}>
-              <BlurView intensity={24} tint={theme.blurTint} style={[StyleSheet.absoluteFill, glassStyles.blurContent]} />
+            <Pressable 
+              style={[
+                styles.sourceCard,
+                !theme.isDark && { borderColor: theme.glassColors.border },
+                theme.isDark && { borderWidth: 0 }
+              ]} 
+              onPressIn={sourceAnim.onPressIn} 
+              onPressOut={sourceAnim.onPressOut}
+            >
+              <AdaptiveGlassView intensity={24} darkIntensity={10} glassEffectStyle="clear" absoluteFill style={glassStyles.blurContent} />
               <View style={styles.sourceCardInner}>
-                <View style={[styles.glassOverlay, { backgroundColor: theme.glassColors.overlayStrong }]} pointerEvents="none" />
+                <View style={[styles.glassOverlay, { backgroundColor: theme.isDark ? 'rgba(40, 40, 45, 0.35)' : theme.glassColors.overlayStrong }]} pointerEvents="none" />
                 <View style={styles.sourceContent}>
                 <View style={styles.sourceInfo}>
                   <View style={styles.sourceHeader}>
@@ -223,29 +230,11 @@ export default function ReviewDetailsScreen({
           />
         </View>
 
-        <View style={[styles.headerContainer, { top: topOffset }]}>
-          <BlurView intensity={24} tint={theme.blurTint} style={[styles.headerBlur, glassStyles.blurContentLarge]}>
-            <View style={[styles.glassOverlay, { backgroundColor: theme.glassColors.overlayStrong }]} pointerEvents="none" />
-            <View style={styles.headerContent}>
-              <Animated.View style={{ transform: [{ scale: backAnim.scaleAnim }] }}>
-              <Pressable
-                style={styles.headerButton}
-                onPress={handleBackPress}
-                onPressIn={backAnim.onPressIn}
-                onPressOut={backAnim.onPressOut}
-              >
-                <MaterialIcons name="arrow-back" size={22} color={theme.colors.text.primary} />
-              </Pressable>
-              </Animated.View>
-              <Text style={[styles.headerTitle, { color: theme.colors.text.primary }]}>Review Details</Text>
-              <Animated.View style={{ transform: [{ scale: helpAnim.scaleAnim }] }}>
-              <Pressable style={styles.helpButton} onPressIn={helpAnim.onPressIn} onPressOut={helpAnim.onPressOut}>
-                <Text style={[styles.helpText, { color: theme.colors.primary }]}>Help</Text>
-              </Pressable>
-              </Animated.View>
-            </View>
-          </BlurView>
-        </View>
+        <GlassNavHeader 
+          title="Review Details" 
+          onBackPress={handleBackPress} 
+          rightAction={{ icon: 'help-outline', onPress: () => {}, accessibilityLabel: 'Help' }} 
+        />
       </View>
     </LinearGradient>
   );
@@ -258,51 +247,8 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  headerContainer: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    alignItems: 'center',
-    zIndex: 60,
-  },
-  headerBlur: {
-    ...glassStyles.navBarWrapper,
-    width: '90%',
-    maxWidth: 340,
-    position: 'relative',
-    height: 56,
-    justifyContent: 'center',
-  },
-  headerContent: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-  },
   glassOverlay: {
     ...glassStyles.cardOverlay,
-  },
-  headerButton: {
-    width: 36,
-    height: 36,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  headerTitle: {
-    flex: 1,
-    textAlign: 'center',
-    fontSize: 16,
-    fontFamily: fontFamilies.semibold,
-    letterSpacing: -0.3,
-  },
-  helpButton: {
-    paddingHorizontal: 4,
-    minWidth: 36,
-    alignItems: 'flex-end',
-  },
-  helpText: {
-    fontSize: 16,
-    fontFamily: fontFamilies.semibold,
   },
   scrollView: {
     flex: 1,
@@ -367,7 +313,7 @@ const styles = StyleSheet.create({
   thumbnailContainer: {
     width: 80,
     height: 80,
-    borderRadius: 12,
+    borderRadius: glassConstants.radius.icon,
     overflow: 'hidden',
     borderWidth: 2,
   },
@@ -376,7 +322,7 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   thumbnailImage: {
-    borderRadius: 10,
+    borderRadius: glassConstants.radius.icon,
   },
   thumbnailOverlay: {
     ...StyleSheet.absoluteFillObject,

@@ -9,7 +9,6 @@ import {
   Keyboard,
   LayoutChangeEvent,
 } from 'react-native';
-import { BlurView } from 'expo-blur';
 import { MaterialIcons } from '@expo/vector-icons';
 import airports from '@nwpr/airport-codes';
 import {
@@ -20,6 +19,7 @@ import {
   glassConstants,
 } from '../../theme';
 import { useTheme } from '../../contexts/ThemeContext';
+import { AdaptiveGlassView } from './AdaptiveGlassView';
 
 interface Airport {
   iata: string;
@@ -137,9 +137,9 @@ export function AirportAutocomplete({
         ]}
         onPress={() => handleSelect(airport)}
       >
-        <BlurView intensity={40} tint={theme.blurTint} style={[styles.iataTag, { borderColor: theme.glassColors.borderBlue, backgroundColor: theme.glassColors.overlayBlue }]}>
+        <AdaptiveGlassView intensity={40} darkIntensity={10} glassEffectStyle="clear" style={[styles.iataTag, { borderColor: theme.glassColors.borderBlue, backgroundColor: theme.glassColors.overlayBlue }]}>
           <Text style={[styles.iataText, { color: theme.colors.text.primary }]}>{airport.iata}</Text>
-        </BlurView>
+        </AdaptiveGlassView>
         <View style={styles.suggestionInfo}>
           <Text style={[styles.cityText, { color: theme.colors.text.primary }]} numberOfLines={1}>
             {airport.city}
@@ -181,7 +181,7 @@ export function AirportAutocomplete({
           style={[
             styles.input,
             iconName && styles.inputWithLeftIcon,
-            variant === 'glass' && { backgroundColor: 'rgba(255, 255, 255, 0.5)', borderColor: theme.glassColors.border },
+            variant === 'glass' && { backgroundColor: theme.isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(255, 255, 255, 0.5)', borderColor: theme.glassColors.border },
             !variant && { borderColor: theme.colors.border, backgroundColor: theme.colors.surface },
             { color: theme.colors.text.primary },
           ]}
@@ -201,22 +201,23 @@ export function AirportAutocomplete({
   if (variant === 'glass') {
     return (
       <View style={styles.container}>
-        <View style={styles.glassWrapper} onLayout={handleCardLayout}>
-          <BlurView
+        <View style={[styles.glassWrapper, !theme.isDark && { borderColor: theme.glassColors.border }, theme.isDark && { borderWidth: 0 }]} onLayout={handleCardLayout}>
+          <AdaptiveGlassView
             intensity={24}
-            tint={theme.blurTint}
+            darkIntensity={10}
+            glassEffectStyle="clear"
             style={[styles.glassBlur, glassStyles.blurContent]}
           >
-            <View style={[styles.glassOverlay, { backgroundColor: theme.glassColors.overlayStrong }]} pointerEvents="none" />
+            <View style={[styles.glassOverlay, { backgroundColor: theme.isDark ? 'rgba(40, 40, 45, 0.35)' : theme.glassColors.overlayStrong }]} pointerEvents="none" />
             <View style={styles.glassContent}>{inputContent}</View>
-          </BlurView>
+          </AdaptiveGlassView>
         </View>
 
         {/* Glass dropdown */}
         {showDropdown && (
           <View style={[styles.dropdownContainer, { top: cardHeight + 8, borderColor: theme.glassColors.borderStrong, boxShadow: theme.glassShadows.elevated }]}>
-            <BlurView intensity={48} tint={theme.blurTint} style={styles.dropdownBlur}>
-              <View style={[styles.dropdownOverlay, { backgroundColor: 'rgba(255, 255, 255, 0.15)' }]} pointerEvents="none" />
+            <AdaptiveGlassView intensity={48} darkIntensity={10} glassEffectStyle="clear" style={styles.dropdownBlur}>
+              <View style={[styles.dropdownOverlay, { backgroundColor: theme.isDark ? 'rgba(40, 40, 45, 0.35)' : 'rgba(255, 255, 255, 0.15)' }]} pointerEvents="none" />
               <ScrollView
                 style={styles.dropdownList}
                 keyboardShouldPersistTaps="handled"
@@ -227,7 +228,7 @@ export function AirportAutocomplete({
                   renderSuggestion(a, i === suggestions.length - 1)
                 )}
               </ScrollView>
-            </BlurView>
+            </AdaptiveGlassView>
           </View>
         )}
       </View>
@@ -304,13 +305,13 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 0,
     right: 0,
-    borderRadius: 20,
+    borderRadius: glassConstants.radius.card,
     overflow: 'hidden',
     borderWidth: 1.5,
     zIndex: 200,
   },
   dropdownBlur: {
-    borderRadius: 18,
+    borderRadius: glassConstants.radius.card,
     overflow: 'hidden',
   },
   dropdownOverlay: {
@@ -321,7 +322,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 0,
     right: 0,
-    borderRadius: borderRadius.md,
+    borderRadius: glassConstants.radius.card,
     borderWidth: 1,
     maxHeight: 280,
     overflow: 'hidden',

@@ -13,7 +13,6 @@ import {
   Linking,
   Platform,
 } from 'react-native';
-import { BlurView } from 'expo-blur';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -110,6 +109,7 @@ export default function ReservationDetailScreen() {
     [handleEditReservation, handleAddAttachments, handleDeleteReservation]
   );
 
+
   const directionsAddress = reservation ? getReservationDisplayAddress(reservation) : null;
 
   const handleOpenDirections = useCallback(() => {
@@ -140,6 +140,7 @@ export default function ReservationDetailScreen() {
   const topOffset = insets.top + 8;
   const showContent = Boolean(!isLoading && !error && reservation);
   const headerTitle = reservation?.providerName || 'Reservation Details';
+
   const statusConfig = reservation ? getReservationStatusConfig(reservation.status) : null;
 
   const displayAddress = useMemo(() => {
@@ -184,7 +185,7 @@ export default function ReservationDetailScreen() {
         removeClippedSubviews={Platform.OS === 'android'}
       >
         <View style={styles.heroSection}>
-          <View style={[styles.heroCard, { boxShadow: theme.glassShadows.elevated }]}>
+          <View style={[styles.heroCard, { boxShadow: theme.glassShadows.elevated }, !theme.isDark && { borderColor: theme.glassColors.border }, theme.isDark && { borderWidth: 0 }]}>
             <View style={[StyleSheet.absoluteFill, styles.heroCardBg, { backgroundColor: theme.colors.glass.background, borderRadius: glassConstants.radiusInner.cardXLarge }]} pointerEvents="none" />
             <ImageBackground
               source={{ uri: reservation.headerImageUrl }}
@@ -215,7 +216,7 @@ export default function ReservationDetailScreen() {
               <Text style={[styles.dateInfo, { color: theme.colors.text.secondary }]}>{dateDisplayText}</Text>
             </View>
             {statusConfig && (
-              <View style={[styles.statusBadge, styles.statusBadgeSolid, { backgroundColor: statusConfig.bgColor, borderColor: theme.glassColors.border }]}>
+              <View style={[styles.statusBadge, styles.statusBadgeSolid, { backgroundColor: statusConfig.bgColor }, !theme.isDark && { borderColor: theme.glassColors.border }, theme.isDark && { borderWidth: 0 }]}>
                 <Text style={[styles.statusText, { color: statusConfig.textColor }]}>
                   {statusConfig.label}
                 </Text>
@@ -233,7 +234,7 @@ export default function ReservationDetailScreen() {
         )}
 
         <View style={styles.detailsSection}>
-          <View style={styles.detailsCard}>
+          <View style={[styles.detailsCard, !theme.isDark && { borderColor: theme.glassColors.border }, theme.isDark && { borderWidth: 0 }]}>
             <View style={[StyleSheet.absoluteFill, styles.cardSolidBg, { backgroundColor: theme.colors.glass.background, borderRadius: glassConstants.radiusInner.card }]} pointerEvents="none" />
             <View style={styles.detailsList}>
               <DetailRow
@@ -287,6 +288,8 @@ export default function ReservationDetailScreen() {
                 key={attachment.id}
                 style={({ pressed }) => [
                   styles.attachmentCard,
+                  !theme.isDark && { borderColor: theme.glassColors.border },
+                  theme.isDark && { borderWidth: 0 },
                   pressed && styles.attachmentCardPressed,
                 ]}
               >
@@ -314,14 +317,14 @@ export default function ReservationDetailScreen() {
         )}
 
         <View style={styles.bottomActions}>
-          <Pressable style={({ pressed }) => [styles.actionButton, pressed && styles.actionButtonPressed]}>
+          <Pressable style={({ pressed }) => [styles.actionButton, !theme.isDark && { borderColor: theme.glassColors.border }, theme.isDark && { borderWidth: 0 }, pressed && styles.actionButtonPressed]}>
             <View style={[StyleSheet.absoluteFill, styles.actionButtonBg, { backgroundColor: theme.colors.glass.background, borderRadius: glassConstants.radius.pill }]} pointerEvents="none" />
             <MaterialIcons name="calendar-today" size={20} color={theme.colors.text.primary} />
             <Text style={[styles.actionButtonText, { color: theme.colors.text.primary }]}>Calendar</Text>
           </Pressable>
           {directionsAddress && (
             <Pressable 
-              style={({ pressed }) => [styles.actionButton, styles.actionButtonPrimary, pressed && styles.actionButtonPressed, { borderColor: theme.glassColors.borderBlue }]}
+              style={({ pressed }) => [styles.actionButton, styles.actionButtonPrimary, !theme.isDark && { borderColor: theme.glassColors.borderBlue }, theme.isDark && { borderWidth: 0 }, pressed && styles.actionButtonPressed]}
               onPress={handleOpenDirections}
             >
               <View style={[StyleSheet.absoluteFill, styles.actionButtonBg, styles.actionButtonBgPrimary, { backgroundColor: theme.glassColors.overlayBlue, borderRadius: glassConstants.radius.pill }]} pointerEvents="none" />
@@ -341,6 +344,21 @@ export default function ReservationDetailScreen() {
       end={{ x: 1, y: 1 }}
       style={styles.gradientContainer}
     >
+      <GlassNavHeader
+        title={headerTitle}
+        label="Reservation"
+        onBackPress={handleBackPress}
+        rightAction={
+          showContent
+            ? {
+                icon: 'more-horiz',
+                onPress: () => setMenuVisible(true),
+                accessibilityLabel: 'More options',
+              }
+            : undefined
+        }
+        showRightAction={showContent}
+      />
       <View style={styles.container}>
         {showContent && menuVisible && (
           <Pressable
@@ -349,18 +367,6 @@ export default function ReservationDetailScreen() {
             accessibilityLabel="Close menu"
           />
         )}
-
-        <GlassNavHeader
-          title={headerTitle}
-          label="Reservation"
-          onBackPress={handleBackPress}
-          rightAction={{
-            icon: 'more-horiz',
-            onPress: () => setMenuVisible(true),
-            accessibilityLabel: 'More options',
-          }}
-          showRightAction={showContent}
-        />
 
         {showContent && (
           <GlassDropdownMenu
@@ -560,7 +566,7 @@ const styles = StyleSheet.create({
   attachmentThumbnail: {
     width: 64,
     height: 64,
-    borderRadius: 8,
+    borderRadius: glassConstants.radius.icon,
   },
   attachmentInfo: {
     flex: 1,

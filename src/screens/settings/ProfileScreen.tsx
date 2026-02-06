@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { BlurView } from 'expo-blur';
+import { AdaptiveGlassView } from '../../components/ui/AdaptiveGlassView';
 import { MaterialIcons } from '@expo/vector-icons';
 import { SettingsListItem } from '../../components/ui/SettingsListItem';
 import { ToggleSwitch } from '../../components/ui/ToggleSwitch';
@@ -77,8 +77,8 @@ export default function ProfileScreen({
       >
         <View style={styles.container}>
           <View style={[styles.topNavContainer, { top: topOffset }]}>
-            <BlurView intensity={24} tint={theme.blurTint} style={[styles.topNavBlur, glassStyles.blurContentLarge]}>
-              <View style={[styles.glassOverlay, { backgroundColor: theme.glassColors.overlayStrong }]} pointerEvents="none" />
+            <AdaptiveGlassView intensity={24} style={[styles.topNavBlur, glassStyles.blurContentLarge, { borderColor: theme.glassColors.border, boxShadow: theme.glassShadows.nav }]}>
+              {!theme.isDark && <View style={[styles.glassOverlay, { backgroundColor: theme.glassColors.overlayStrong }]} pointerEvents="none" />}
               <View style={styles.topNavContent}>
                 <View style={styles.navButton} />
                 <View style={styles.headerCenter}>
@@ -87,7 +87,7 @@ export default function ProfileScreen({
                 </View>
                 <View style={styles.navButton} />
               </View>
-            </BlurView>
+            </AdaptiveGlassView>
           </View>
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color={theme.colors.primary} />
@@ -113,13 +113,13 @@ export default function ProfileScreen({
           <View style={styles.section}>
             <Animated.View style={{ transform: [{ scale: profileAnim.scaleAnim }] }}>
             <Pressable
-              style={styles.profileCardWrapper}
+              style={[styles.profileCardWrapper, !theme.isDark && { borderColor: theme.glassColors.border }, theme.isDark && { borderWidth: 0 }]}
               onPress={onEditPress}
               onPressIn={profileAnim.onPressIn}
               onPressOut={profileAnim.onPressOut}
             >
-              <BlurView intensity={24} tint={theme.blurTint} style={[styles.profileCardBlur, glassStyles.blurContent]}>
-                <View style={[styles.glassOverlay, { backgroundColor: theme.glassColors.overlayStrong }]} pointerEvents="none" />
+              <AdaptiveGlassView intensity={24} darkIntensity={10} glassEffectStyle="clear" style={[styles.profileCardBlur, glassStyles.blurContent]}>
+                <View style={[styles.glassOverlay, { backgroundColor: theme.isDark ? 'rgba(40, 40, 45, 0.35)' : theme.glassColors.overlayStrong }]} pointerEvents="none" />
                 <View style={styles.profileContent}>
                   <View style={styles.profileImageContainer}>
                     <Image source={{ uri: user?.photoUrl }} style={[styles.profileImage, { borderColor: theme.colors.white, shadowColor: theme.colors.black }]} />
@@ -137,7 +137,7 @@ export default function ProfileScreen({
                     </Text>
                   </View>
                 </View>
-              </BlurView>
+              </AdaptiveGlassView>
             </Pressable>
             </Animated.View>
           </View>
@@ -202,18 +202,18 @@ export default function ProfileScreen({
           <View style={styles.section}>
             <Animated.View style={{ transform: [{ scale: signOutAnim.scaleAnim }] }}>
             <Pressable
-              style={styles.signOutCardWrapper}
+              style={[styles.signOutCardWrapper, { borderColor: theme.isDark ? 'rgba(248, 113, 113, 0.3)' : 'rgba(239, 68, 68, 0.3)' }, theme.isDark && { borderWidth: 0 }]}
               onPress={onLogOutPress}
               onPressIn={signOutAnim.onPressIn}
               onPressOut={signOutAnim.onPressOut}
             >
-              <BlurView intensity={24} tint={theme.blurTint} style={[styles.signOutBlur, glassStyles.blurContent]}>
-                <View style={[styles.glassOverlay, styles.signOutOverlay]} pointerEvents="none" />
+              <AdaptiveGlassView intensity={24} darkIntensity={10} glassEffectStyle="clear" style={[styles.signOutBlur, glassStyles.blurContent]}>
+                <View style={[styles.glassOverlay, styles.signOutOverlay, { backgroundColor: theme.isDark ? 'rgba(248, 113, 113, 0.08)' : 'rgba(254, 226, 226, 0.4)' }]} pointerEvents="none" />
                 <View style={styles.signOutContent}>
                   <MaterialIcons name="logout" size={20} color={theme.colors.status.error} />
                   <Text style={[styles.signOutText, { color: theme.colors.status.error }]}>Log Out</Text>
                 </View>
-              </BlurView>
+              </AdaptiveGlassView>
             </Pressable>
             </Animated.View>
             <Text style={[styles.versionText, { color: theme.colors.text.tertiary }]}>
@@ -223,8 +223,8 @@ export default function ProfileScreen({
         </ScrollView>
 
         <View style={[styles.topNavContainer, { top: topOffset }]}>
-          <BlurView intensity={24} tint={theme.blurTint} style={[styles.topNavBlur, glassStyles.blurContentLarge]}>
-            <View style={[styles.glassOverlay, { backgroundColor: theme.glassColors.overlayStrong }]} pointerEvents="none" />
+          <AdaptiveGlassView intensity={24} style={[styles.topNavBlur, glassStyles.blurContentLarge, { borderColor: theme.glassColors.border, boxShadow: theme.glassShadows.nav }]}>
+            {!theme.isDark && <View style={[styles.glassOverlay, { backgroundColor: theme.glassColors.overlayStrong }]} pointerEvents="none" />}
             <View style={styles.topNavContent}>
               <View style={styles.navButton} />
               <View style={styles.headerCenter}>
@@ -242,7 +242,7 @@ export default function ProfileScreen({
               </Pressable>
               </Animated.View>
             </View>
-          </BlurView>
+          </AdaptiveGlassView>
         </View>
       </View>
     </LinearGradient>
@@ -395,18 +395,18 @@ const styles = StyleSheet.create({
   signOutCardWrapper: {
     ...glassStyles.cardWrapper,
     overflow: 'hidden',
-    borderColor: 'rgba(239, 68, 68, 0.3)',
   },
   signOutBlur: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 12,
+    paddingVertical: 20,
+    paddingHorizontal: 14,
     gap: spacing.sm,
     position: 'relative',
   },
   signOutOverlay: {
-    backgroundColor: 'rgba(254, 226, 226, 0.4)',
+    // backgroundColor is now set inline with theme.isDark conditional
   },
   signOutContent: {
     flexDirection: 'row',

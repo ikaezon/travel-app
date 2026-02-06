@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -10,11 +10,9 @@ import {
   Keyboard,
   ActivityIndicator,
   Alert,
-  Animated,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { BlurView } from 'expo-blur';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -24,15 +22,18 @@ import { DualAirportInput } from '../../components/ui/DualAirportInput';
 import { DatePickerInput } from '../../components/ui/DatePickerInput';
 import { DateRangePickerInput } from '../../components/ui/DateRangePickerInput';
 import { ShimmerButton } from '../../components/ui/ShimmerButton';
+import { GlassNavHeader } from '../../components/navigation/GlassNavHeader';
+import { AdaptiveGlassView } from '../../components/ui/AdaptiveGlassView';
 import {
   spacing,
   borderRadius,
   fontFamilies,
   glassStyles,
+  glassConstants,
 } from '../../theme';
 import { useTheme } from '../../contexts/ThemeContext';
 import { MainStackParamList } from '../../navigation/types';
-import { useReservationByTimelineId, useUpdateReservation, usePressAnimation } from '../../hooks';
+import { useReservationByTimelineId, useUpdateReservation } from '../../hooks';
 import { tripService } from '../../data';
 import { formatCalendarDateToLongDisplay, parseToCalendarDate } from '../../utils/dateFormat';
 
@@ -48,7 +49,6 @@ export default function EditReservationScreen() {
 
   const { reservation, isLoading } = useReservationByTimelineId(timelineItemId);
   const { updateReservation, isUpdating } = useUpdateReservation();
-  const backAnim = usePressAnimation();
   const [providerName, setProviderName] = useState('');
   const [routeText, setRouteText] = useState('');
   const [departureAirport, setDepartureAirport] = useState('');
@@ -186,7 +186,7 @@ export default function EditReservationScreen() {
     setCheckOutDate(end);
   };
 
-  const handleBackPress = () => navigation.goBack();
+  const handleBackPress = useCallback(() => navigation.goBack(), [navigation]);
 
   if (isLoading || !reservation) {
     return (
@@ -197,18 +197,7 @@ export default function EditReservationScreen() {
         style={styles.gradientContainer}
       >
         <View style={styles.container}>
-          <View style={[styles.headerContainer, { top: topOffset }]}>
-            <BlurView intensity={24} tint={theme.blurTint} style={[styles.headerBlur, glassStyles.blurContentLarge]}>
-              <View style={[styles.glassOverlay, { backgroundColor: theme.glassColors.overlayStrong }]} pointerEvents="none" />
-              <View style={styles.headerContent}>
-                <Pressable style={styles.backButton} onPress={handleBackPress}>
-                  <MaterialIcons name="arrow-back" size={22} color={theme.colors.text.primary} />
-                </Pressable>
-                <Text style={[styles.headerTitle, { color: theme.colors.text.primary }]}>Edit reservation</Text>
-                <View style={styles.headerSpacer} />
-              </View>
-            </BlurView>
-          </View>
+          <GlassNavHeader title="Edit reservation" onBackPress={handleBackPress} />
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color={theme.colors.primary} />
           </View>
@@ -296,12 +285,12 @@ export default function EditReservationScreen() {
             />
           )}
           {isFlight ? (
-            <View style={styles.flightDetailsCard}>
-              <BlurView intensity={24} tint={theme.blurTint} style={[styles.flightDetailsBlur, glassStyles.blurContent]}>
-                <View style={[styles.glassOverlay, { backgroundColor: theme.glassColors.overlayStrong }]} pointerEvents="none" />
+            <View style={[styles.flightDetailsCard, !theme.isDark && { borderColor: theme.glassColors.border }, theme.isDark && { borderWidth: 0 }]}>
+              <AdaptiveGlassView intensity={24} darkIntensity={10} glassEffectStyle="clear" style={[styles.flightDetailsBlur, glassStyles.blurContent]}>
+                <View style={[styles.glassOverlay, { backgroundColor: theme.isDark ? 'rgba(40, 40, 45, 0.35)' : theme.glassColors.overlayStrong }]} pointerEvents="none" />
                 <View style={styles.flightDetailsContent}>
                   <Text style={[styles.flightDetailsLabel, { color: theme.colors.text.primary }]}>Flight details</Text>
-                  <View style={[styles.flightDetailsGrid, { backgroundColor: 'rgba(255, 255, 255, 0.5)', borderColor: theme.glassColors.border }]}>
+                  <View style={[styles.flightDetailsGrid, { backgroundColor: theme.isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(255, 255, 255, 0.5)', borderColor: theme.glassColors.border }]}>
                     <View style={styles.flightDetailsInputRow}>
                       <View style={styles.flightDetailsInputCol}>
                         <MaterialIcons name="confirmation-number" size={16} color={theme.colors.text.secondary} style={styles.flightDetailsIcon} />
@@ -351,7 +340,7 @@ export default function EditReservationScreen() {
                     </View>
                   </View>
                 </View>
-              </BlurView>
+              </AdaptiveGlassView>
             </View>
           ) : (
             <FormInput
@@ -374,26 +363,7 @@ export default function EditReservationScreen() {
           />
         </ScrollView>
 
-        <View style={[styles.headerContainer, { top: topOffset }]}>
-          <BlurView intensity={24} tint={theme.blurTint} style={[styles.headerBlur, glassStyles.blurContentLarge]}>
-            <View style={[styles.glassOverlay, { backgroundColor: theme.glassColors.overlayStrong }]} pointerEvents="none" />
-            <View style={styles.headerContent}>
-              <Animated.View style={{ transform: [{ scale: backAnim.scaleAnim }] }}>
-              <Pressable
-                style={styles.backButton}
-                onPress={handleBackPress}
-                onPressIn={backAnim.onPressIn}
-                onPressOut={backAnim.onPressOut}
-                accessibilityLabel="Go back"
-              >
-                <MaterialIcons name="arrow-back" size={22} color={theme.colors.text.primary} />
-              </Pressable>
-              </Animated.View>
-              <Text style={[styles.headerTitle, { color: theme.colors.text.primary }]}>Edit reservation</Text>
-              <View style={styles.headerSpacer} />
-            </View>
-          </BlurView>
-        </View>
+        <GlassNavHeader title="Edit reservation" onBackPress={handleBackPress} />
       </View>
     </LinearGradient>
   );
@@ -406,43 +376,8 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  headerContainer: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    alignItems: 'center',
-    zIndex: 60,
-  },
-  headerBlur: {
-    ...glassStyles.navBarWrapper,
-    width: '90%',
-    maxWidth: 340,
-    position: 'relative',
-    height: 56,
-    justifyContent: 'center',
-  },
-  headerContent: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-  },
   glassOverlay: {
     ...glassStyles.cardOverlay,
-  },
-  backButton: {
-    width: 36,
-    height: 36,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  headerTitle: {
-    fontSize: 16,
-    fontFamily: fontFamilies.semibold,
-    letterSpacing: -0.3,
-  },
-  headerSpacer: {
-    width: 36,
   },
   loadingContainer: {
     flex: 1,
@@ -474,7 +409,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
   },
   flightDetailsGrid: {
-    borderRadius: borderRadius.md,
+    borderRadius: glassConstants.radius.card,
     borderWidth: 1,
     overflow: 'hidden',
   },

@@ -8,7 +8,7 @@ import {
   PanResponder,
   LayoutChangeEvent,
 } from 'react-native';
-import { fontFamilies } from '../../theme';
+import { fontFamilies, glassConstants } from '../../theme';
 import { useTheme } from '../../contexts/ThemeContext';
 
 // Smooth spring config
@@ -193,7 +193,7 @@ export function SegmentedControl({
             left: 3,
             top: 3,
             height: 30,
-            borderRadius: 15,
+            borderRadius: glassConstants.radius.icon,
             backgroundColor: theme.glassColors.borderStrong,
             boxShadow: theme.glassShadows.icon,
             zIndex: 1,
@@ -244,7 +244,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     height: 36,
     backgroundColor: 'transparent',
-    borderRadius: 20,
+    borderRadius: glassConstants.radius.icon,
     padding: 3,
     position: 'relative',
   },

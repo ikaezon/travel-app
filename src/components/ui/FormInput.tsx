@@ -1,9 +1,9 @@
 import React from 'react';
 import { View, Text, TextInput, StyleSheet, ViewStyle } from 'react-native';
-import { BlurView } from 'expo-blur';
 import { MaterialIcons } from '@expo/vector-icons';
 import { borderRadius, spacing, fontFamilies, glassStyles } from '../../theme';
 import { useTheme } from '../../contexts/ThemeContext';
+import { AdaptiveGlassView } from './AdaptiveGlassView';
 
 interface FormInputProps {
   label: string;
@@ -61,7 +61,7 @@ export function FormInput({
               borderRadius: borderRadius.md,
               borderWidth: 1,
               borderColor: variant === 'glass' ? theme.glassColors.border : theme.colors.border,
-              backgroundColor: variant === 'glass' ? 'rgba(255, 255, 255, 0.5)' : theme.colors.surface,
+              backgroundColor: variant === 'glass' ? (theme.isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(255, 255, 255, 0.5)') : theme.colors.surface,
               paddingHorizontal: spacing.lg,
               fontSize: 16,
               fontFamily: fontFamilies.regular,
@@ -90,11 +90,11 @@ export function FormInput({
 
   if (variant === 'glass') {
     return (
-      <View style={[styles.glassWrapper, style]}>
-        <BlurView intensity={24} tint={theme.blurTint} style={[styles.glassBlur, glassStyles.blurContent]}>
-          <View style={[styles.glassOverlay, { backgroundColor: theme.glassColors.overlayStrong }]} pointerEvents="none" />
+      <View style={[styles.glassWrapper, !theme.isDark && { borderColor: theme.glassColors.border }, theme.isDark && { borderWidth: 0 }, style]}>
+        <AdaptiveGlassView intensity={24} darkIntensity={10} glassEffectStyle="clear" style={[styles.glassBlur, glassStyles.blurContent]}>
+          <View style={[styles.glassOverlay, { backgroundColor: theme.isDark ? 'rgba(40, 40, 45, 0.35)' : theme.glassColors.overlayStrong }]} pointerEvents="none" />
           <View style={styles.glassContent}>{content}</View>
-        </BlurView>
+        </AdaptiveGlassView>
       </View>
     );
   }

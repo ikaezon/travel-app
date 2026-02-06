@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import {
   View,
   Text,
@@ -8,15 +8,17 @@ import {
   Alert,
   Animated,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialIcons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { spacing, borderRadius, fontFamilies } from '../../theme';
+import { spacing, borderRadius, fontFamilies, glassConstants } from '../../theme';
 import { useTheme } from '../../contexts/ThemeContext';
 import { MainStackParamList } from '../../navigation/types';
 import { useReservationByTimelineId, useCreateAttachment, usePressAnimation } from '../../hooks';
+import { GlassNavHeader } from '../../components/navigation/GlassNavHeader';
 
 type NavigationProp = NativeStackNavigationProp<MainStackParamList, 'ReservationAttachments'>;
 type ReservationAttachmentsRouteProp = RouteProp<MainStackParamList, 'ReservationAttachments'>;
@@ -25,6 +27,8 @@ export default function ReservationAttachmentsScreen() {
   const theme = useTheme();
   const navigation = useNavigation<NavigationProp>();
   const route = useRoute<ReservationAttachmentsRouteProp>();
+  const insets = useSafeAreaInsets();
+  const topOffset = insets.top + 8;
   const timelineItemId = route.params?.timelineItemId ?? '';
   const { reservation, isLoading } = useReservationByTimelineId(timelineItemId);
   const { createAttachment, isCreating: uploading } = useCreateAttachment();
@@ -59,96 +63,77 @@ export default function ReservationAttachmentsScreen() {
     }
   };
 
-  const handleBackPress = () => navigation.goBack();
+  const handleBackPress = useCallback(() => navigation.goBack(), [navigation]);
 
   if (isLoading || !reservation) {
     return (
-      <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.surface }]} edges={['top']}>
-        <View style={[styles.header, { backgroundColor: theme.colors.surface, borderBottomColor: theme.colors.border }]}>
-          <Pressable style={styles.backButton} onPress={handleBackPress}>
-            <MaterialIcons name="arrow-back" size={24} color={theme.colors.text.primary} />
-          </Pressable>
-          <Text style={[styles.title, { color: theme.colors.text.primary }]}>Add attachments</Text>
-          <View style={styles.headerSpacer} />
+      <LinearGradient
+        colors={theme.gradient}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.gradientContainer}
+      >
+        <View style={styles.container}>
+          <GlassNavHeader title="Add attachments" onBackPress={handleBackPress} />
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={theme.colors.primary} />
+          </View>
         </View>
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={theme.colors.primary} />
-        </View>
-      </SafeAreaView>
+      </LinearGradient>
     );
   }
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.surface }]} edges={['top']}>
-      <View style={[styles.header, { backgroundColor: theme.colors.surface, borderBottomColor: theme.colors.border }]}>
-        <Pressable
-          style={styles.backButton}
-          onPress={handleBackPress}
-          accessibilityLabel="Go back"
-        >
-          <MaterialIcons name="arrow-back" size={24} color={theme.colors.text.primary} />
-        </Pressable>
-        <Text style={[styles.title, { color: theme.colors.text.primary }]}>Add attachments</Text>
-        <View style={styles.headerSpacer} />
-      </View>
-
-      <View style={styles.content}>
-        <View style={[styles.iconWrapper, { backgroundColor: theme.colors.primaryLight }]}>
-          <MaterialIcons name="attach-file" size={64} color={theme.colors.primary} />
+    <LinearGradient
+      colors={theme.gradient}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+      style={styles.gradientContainer}
+    >
+      <View style={styles.container}>
+        <View style={[styles.content, { paddingTop: topOffset + 72 }]}>
+          <View style={[styles.iconWrapper, { backgroundColor: theme.colors.primaryLight }]}>
+            <MaterialIcons name="attach-file" size={64} color={theme.colors.primary} />
+          </View>
+          <Text style={[styles.heading, { color: theme.colors.text.primary }]}>Add a photo or document</Text>
+          <Text style={[styles.subtext, { color: theme.colors.text.secondary }]}>
+            Choose from your camera roll to attach to this reservation.
+          </Text>
+          <Animated.View style={{ transform: [{ scale: primaryAnim.scaleAnim }] }}>
+          <Pressable
+            style={[
+              styles.primaryButton,
+              { backgroundColor: theme.colors.primary },
+              uploading && styles.primaryButtonDisabled,
+            ]}
+            onPress={openCameraRoll}
+            onPressIn={primaryAnim.onPressIn}
+            onPressOut={primaryAnim.onPressOut}
+            disabled={uploading}
+          >
+            {uploading ? (
+              <ActivityIndicator size="small" color={theme.colors.white} />
+            ) : (
+              <>
+                <MaterialIcons name="photo-library" size={24} color={theme.colors.white} />
+                <Text style={[styles.primaryButtonText, { color: theme.colors.white }]}>Open camera roll</Text>
+              </>
+            )}
+          </Pressable>
+          </Animated.View>
         </View>
-        <Text style={[styles.heading, { color: theme.colors.text.primary }]}>Add a photo or document</Text>
-        <Text style={[styles.subtext, { color: theme.colors.text.secondary }]}>
-          Choose from your camera roll to attach to this reservation.
-        </Text>
-        <Animated.View style={{ transform: [{ scale: primaryAnim.scaleAnim }] }}>
-        <Pressable
-          style={[
-            styles.primaryButton,
-            { backgroundColor: theme.colors.primary },
-            uploading && styles.primaryButtonDisabled,
-          ]}
-          onPress={openCameraRoll}
-          onPressIn={primaryAnim.onPressIn}
-          onPressOut={primaryAnim.onPressOut}
-          disabled={uploading}
-        >
-          {uploading ? (
-            <ActivityIndicator size="small" color={theme.colors.white} />
-          ) : (
-            <>
-              <MaterialIcons name="photo-library" size={24} color={theme.colors.white} />
-              <Text style={[styles.primaryButtonText, { color: theme.colors.white }]}>Open camera roll</Text>
-            </>
-          )}
-        </Pressable>
-        </Animated.View>
+        <GlassNavHeader title="Add attachments" onBackPress={handleBackPress} />
       </View>
-    </SafeAreaView>
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  gradientContainer: {
     flex: 1,
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-    borderBottomWidth: 1,
-  },
-  backButton: {
-    padding: spacing.xs,
-    marginLeft: -spacing.xs,
-  },
-  title: {
-    fontSize: 18,
-    fontFamily: fontFamilies.semibold,
-  },
-  headerSpacer: {
-    width: 32,
+  container: {
+    flex: 1,
   },
   loadingContainer: {
     flex: 1,
@@ -158,13 +143,13 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     paddingHorizontal: spacing.xl,
-    paddingTop: spacing.xxl,
+    paddingTop: 0,
     alignItems: 'center',
   },
   iconWrapper: {
     width: 120,
     height: 120,
-    borderRadius: 60,
+    borderRadius: glassConstants.radius.pill,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: spacing.xl,
@@ -189,7 +174,7 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
     paddingVertical: spacing.lg,
     paddingHorizontal: spacing.xl,
-    borderRadius: borderRadius.md,
+    borderRadius: glassConstants.radius.card,
     minWidth: 240,
   },
   primaryButtonDisabled: {

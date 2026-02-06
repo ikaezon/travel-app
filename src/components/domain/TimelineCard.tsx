@@ -1,10 +1,10 @@
 import React, { useEffect, useRef, useCallback } from 'react';
 import { View, Text, ImageBackground, StyleSheet, Pressable, Animated } from 'react-native';
-import { BlurView } from 'expo-blur';
 import { MaterialIcons } from '@expo/vector-icons';
 import { spacing, borderRadius, fontFamilies, glassStyles, glassConstants } from '../../theme';
 import { ReservationType } from '../../types';
 import { useTheme } from '../../contexts/ThemeContext';
+import { AdaptiveGlassView } from '../ui/AdaptiveGlassView';
 
 function getTimelineIconConfig(type: ReservationType, theme: ReturnType<typeof useTheme>) {
   const TIMELINE_ICON_CONFIG: Record<ReservationType, { name: keyof typeof MaterialIcons.glyphMap; iconColor: string }> = {
@@ -104,25 +104,25 @@ export const TimelineCard = React.memo(function TimelineCard({
     <Animated.View style={[styles.wrapper, { opacity: fadeAnim }]}>
       <View style={styles.container}>
         <View style={styles.timelineColumn}>
-          <BlurView intensity={24} tint={theme.blurTint} style={[styles.iconContainer, glassStyles.blurContentIcon, { borderColor: theme.glassColors.border, boxShadow: theme.glassShadows.icon }]}>
-            <View style={[styles.glassOverlay, { backgroundColor: 'rgba(255, 255, 255, 0.4)' }]} pointerEvents="none" />
+          <AdaptiveGlassView intensity={24} darkIntensity={10} glassEffectStyle="clear" style={[styles.iconContainer, glassStyles.blurContentIcon, !theme.isDark && { borderColor: theme.glassColors.border, boxShadow: theme.glassShadows.icon }, theme.isDark && { borderWidth: 1, borderColor: theme.glassColors.borderStrong }, { backgroundColor: theme.isDark ? 'rgba(255, 255, 255, 0.06)' : undefined }]}>
+            {!theme.isDark && <View style={[styles.glassOverlay, { backgroundColor: 'rgba(255, 255, 255, 0.4)' }]} pointerEvents="none" />}
             <MaterialIcons
               name={iconConfig.name}
               size={24}
               color={iconConfig.iconColor}
             />
-          </BlurView>
+          </AdaptiveGlassView>
         </View>
 
         <Animated.View style={[styles.cardAnimWrapper, { transform: [{ scale: scaleAnim }] }]}>
         <Pressable
-          style={styles.card}
+          style={[styles.card, !theme.isDark && { borderColor: theme.glassColors.border }, theme.isDark && { borderWidth: 0 }]}
           onPress={onPress}
           onPressIn={handlePressIn}
           onPressOut={handlePressOut}
         >
-          <BlurView intensity={24} tint={theme.blurTint} style={[StyleSheet.absoluteFill, glassStyles.blurContent]} />
-          <View style={styles.cardOverlay} pointerEvents="none" />
+          <AdaptiveGlassView intensity={24} darkIntensity={10} glassEffectStyle="clear" absoluteFill style={glassStyles.blurContent} />
+          <View style={[styles.cardOverlay, { backgroundColor: theme.isDark ? 'rgba(40, 40, 45, 0.35)' : undefined }]} pointerEvents="none" />
           
           <View style={styles.cardContent}>
             <View style={styles.cardHeaderRow}>
@@ -159,11 +159,11 @@ export const TimelineCard = React.memo(function TimelineCard({
                 actionType === 'directions' && [styles.actionButtonOrange, { borderColor: theme.glassColors.borderShimmerOrange }],
                 actionType === 'default' && { borderColor: iconConfig.iconColor },
                 pressed && styles.actionButtonPressed,
-                { boxShadow: theme.glassShadows.icon },
+                !theme.isDark && { boxShadow: theme.glassShadows.icon },
               ]}
               onPress={onActionPress}
             >
-              <BlurView intensity={24} tint={theme.blurTint} style={[StyleSheet.absoluteFill, glassStyles.blurContentIcon]} />
+              <AdaptiveGlassView intensity={24} darkIntensity={10} glassEffectStyle="clear" absoluteFill style={glassStyles.blurContentIcon} />
               <View
                 style={[
                   StyleSheet.absoluteFill,
@@ -328,15 +328,15 @@ const styles = StyleSheet.create({
   thumbnailContainer: {
     width: 64,
     height: 64,
-    borderRadius: 16,
+    borderRadius: glassConstants.radius.icon,
     overflow: 'hidden',
     borderWidth: 2,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
+    borderColor: 'rgba(255, 255, 255, 0.2)',
   },
   thumbnail: {
     flex: 1,
   },
   thumbnailImage: {
-    borderRadius: 16,
+    borderRadius: glassConstants.radius.icon,
   },
 });

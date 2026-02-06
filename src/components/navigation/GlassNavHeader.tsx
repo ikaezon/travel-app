@@ -1,6 +1,5 @@
 import React, { useRef, useCallback } from 'react';
 import { View, Text, StyleSheet, Pressable, Animated } from 'react-native';
-import { BlurView } from 'expo-blur';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { fontFamilies, glassStyles } from '../../theme';
@@ -92,10 +91,10 @@ export function GlassNavHeader({
 
   return (
     <View style={[styles.container, { top: topOffset }]}>
-      <View style={styles.barWrapper}>
+      <View style={[styles.barWrapper, { borderColor: theme.glassColors.border, boxShadow: theme.glassShadows.nav }]}>
         <AdaptiveGlassView
           intensity={24}
-          style={[styles.blurContainer, glassStyles.blurContentLarge, { borderColor: theme.glassColors.border, boxShadow: theme.glassShadows.nav }]}
+          style={styles.blurContainer}
         >
           {!theme.isDark && <View style={[styles.glassOverlay, { backgroundColor: theme.glassColors.overlayStrong }]} pointerEvents="none" />}
         </AdaptiveGlassView>
@@ -137,15 +136,14 @@ const styles = StyleSheet.create({
     zIndex: 60,
   },
   barWrapper: {
+    ...glassStyles.navBarWrapper,
     width: '90%',
     maxWidth: 360,
     height: 56,
     position: 'relative',
-    overflow: 'hidden',
   },
   blurContainer: {
     ...StyleSheet.absoluteFillObject,
-    ...glassStyles.navBarWrapper,
     ...glassStyles.blurContentLarge,
     zIndex: 0,
   },

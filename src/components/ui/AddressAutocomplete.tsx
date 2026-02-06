@@ -9,10 +9,10 @@ import {
   ActivityIndicator,
   Keyboard,
 } from 'react-native';
-import { BlurView } from 'expo-blur';
 import { MaterialIcons } from '@expo/vector-icons';
 import { borderRadius, spacing, fontFamilies, glassStyles, glassConstants } from '../../theme';
 import { useTheme } from '../../contexts/ThemeContext';
+import { AdaptiveGlassView } from './AdaptiveGlassView';
 import {
   isPlaceAutocompleteAvailable,
   createAddressAutocompleteService,
@@ -194,11 +194,11 @@ export function AddressAutocomplete({
   if (variant === 'glass') {
     return (
       <View style={[styles.container, style]}>
-        <View style={styles.glassWrapper}>
-          <BlurView intensity={24} tint={theme.blurTint} style={[styles.glassBlur, glassStyles.blurContent]}>
-            <View style={[styles.glassOverlay, { backgroundColor: theme.glassColors.overlayStrong }]} pointerEvents="none" />
+        <View style={[styles.glassWrapper, !theme.isDark && { borderColor: theme.glassColors.border }, theme.isDark && { borderWidth: 0 }]}>
+          <AdaptiveGlassView intensity={24} darkIntensity={10} glassEffectStyle="clear" style={[styles.glassBlur, glassStyles.blurContent]}>
+            <View style={[styles.glassOverlay, { backgroundColor: theme.isDark ? 'rgba(40, 40, 45, 0.35)' : theme.glassColors.overlayStrong }]} pointerEvents="none" />
             <View style={styles.glassContent}>{inputContent}</View>
-          </BlurView>
+          </AdaptiveGlassView>
         </View>
       </View>
     );
@@ -264,7 +264,7 @@ const styles = StyleSheet.create({
   },
   dropdown: {
     marginTop: 4,
-    borderRadius: borderRadius.md,
+    borderRadius: glassConstants.radius.card,
     borderWidth: 1,
     maxHeight: 280,
     overflow: 'hidden',
