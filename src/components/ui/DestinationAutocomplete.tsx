@@ -11,7 +11,8 @@ import {
 } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { MaterialIcons } from '@expo/vector-icons';
-import { borderRadius, colors, spacing, fontFamilies, glassStyles, glassColors } from '../../theme';
+import { borderRadius, spacing, fontFamilies, glassStyles, glassConstants } from '../../theme';
+import { useTheme } from '../../contexts/ThemeContext';
 import {
   isPlaceAutocompleteAvailable,
   createPlaceAutocompleteService,
@@ -38,6 +39,7 @@ export function DestinationAutocomplete({
   style,
   variant = 'default',
 }: DestinationAutocompleteProps) {
+  const theme = useTheme();
   const [suggestions, setSuggestions] = useState<PlaceSuggestion[]>([]);
   const [loading, setLoading] = useState(false);
   const [dropdownVisible, setDropdownVisible] = useState(false);
@@ -108,26 +110,32 @@ export function DestinationAutocomplete({
     (item: PlaceSuggestion) => (
       <Pressable
         key={item.formatted}
-        style={({ pressed }) => [styles.suggestionRow, pressed && styles.suggestionRowPressed]}
+        style={({ pressed }) => [
+          styles.suggestionRow,
+          pressed && { backgroundColor: theme.colors.background },
+        ]}
         onPress={() => handleSelect(item)}
       >
-        <MaterialIcons name="location-on" size={18} color={colors.text.secondary.light} />
-        <Text style={styles.suggestionText} numberOfLines={1}>
+        <MaterialIcons name="location-on" size={18} color={theme.colors.text.secondary} />
+        <Text style={[styles.suggestionText, { color: theme.colors.text.primary }]} numberOfLines={1}>
           {item.formatted}
         </Text>
       </Pressable>
     ),
-    [handleSelect]
+    [handleSelect, theme]
   );
 
   const inputContent = (
     <>
-      <Text style={[styles.label, variant === 'glass' && styles.labelGlass]}>{label}</Text>
+      <Text style={[
+        styles.label,
+        { color: variant === 'glass' ? theme.colors.text.primary : theme.colors.text.secondary },
+      ]}>{label}</Text>
       <View style={styles.inputContainer}>
         <MaterialIcons
           name="location-on"
           size={20}
-          color={colors.text.secondary.light}
+          color={theme.colors.text.secondary}
           style={styles.leftIcon}
         />
         <TextInput
@@ -135,25 +143,31 @@ export function DestinationAutocomplete({
           style={[
             styles.input,
             styles.inputWithLeftIcon,
-            variant === 'glass' && styles.inputGlass,
+            variant === 'glass' && { backgroundColor: 'rgba(255, 255, 255, 0.5)', borderColor: theme.glassColors.border },
+            !variant && { borderColor: theme.colors.border, backgroundColor: theme.colors.surface },
+            { color: theme.colors.text.primary },
           ]}
           value={value}
           onChangeText={handleChangeText}
           placeholder={placeholder}
-          placeholderTextColor={colors.text.tertiary.light}
+          placeholderTextColor={theme.colors.text.tertiary}
           onFocus={() => value.trim().length >= 2 && suggestions.length > 0 && setDropdownVisible(true)}
           onBlur={handleBlur}
         />
         {hasApi && loading && (
           <ActivityIndicator
             size="small"
-            color={colors.primary}
+            color={theme.colors.primary}
             style={styles.loader}
           />
         )}
       </View>
       {hasApi && dropdownVisible && suggestions.length > 0 && (
-        <View style={[styles.dropdown, variant === 'glass' && styles.dropdownGlass]}>
+        <View style={[
+          styles.dropdown,
+          variant === 'glass' && { backgroundColor: 'rgba(255, 255, 255, 0.9)', borderColor: theme.glassColors.border },
+          !variant && { borderColor: theme.colors.border, backgroundColor: theme.colors.surface },
+        ]}>
           <ScrollView
             style={styles.dropdownList}
             keyboardShouldPersistTaps="handled"
@@ -171,8 +185,8 @@ export function DestinationAutocomplete({
     return (
       <View style={[styles.container, style]}>
         <View style={styles.glassWrapper}>
-          <BlurView intensity={24} tint="light" style={[styles.glassBlur, glassStyles.blurContent]}>
-            <View style={styles.glassOverlay} pointerEvents="none" />
+          <BlurView intensity={24} tint={theme.blurTint} style={[styles.glassBlur, glassStyles.blurContent]}>
+            <View style={[styles.glassOverlay, { backgroundColor: theme.glassColors.overlayStrong }]} pointerEvents="none" />
             <View style={styles.glassContent}>{inputContent}</View>
           </BlurView>
         </View>
@@ -202,7 +216,6 @@ const styles = StyleSheet.create({
   },
   glassOverlay: {
     ...glassStyles.cardOverlay,
-    backgroundColor: glassColors.overlayStrong,
   },
   glassContent: {
     position: 'relative',
@@ -210,11 +223,7 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 14,
     fontFamily: fontFamilies.medium,
-    color: colors.text.secondary.light,
     marginBottom: spacing.sm,
-  },
-  labelGlass: {
-    color: colors.text.primary.light,
   },
   inputContainer: {
     position: 'relative',
@@ -224,16 +233,9 @@ const styles = StyleSheet.create({
     height: 56,
     borderRadius: borderRadius.md,
     borderWidth: 1,
-    borderColor: colors.border.light,
-    backgroundColor: colors.surface.light,
     paddingHorizontal: spacing.lg,
     fontSize: 16,
     fontFamily: fontFamilies.regular,
-    color: colors.text.primary.light,
-  },
-  inputGlass: {
-    backgroundColor: 'rgba(255, 255, 255, 0.5)',
-    borderColor: glassColors.border,
   },
   inputWithLeftIcon: {
     paddingLeft: 48,
@@ -253,14 +255,8 @@ const styles = StyleSheet.create({
     marginTop: 4,
     borderRadius: borderRadius.md,
     borderWidth: 1,
-    borderColor: colors.border.light,
-    backgroundColor: colors.surface.light,
     maxHeight: 240,
     overflow: 'hidden',
-  },
-  dropdownGlass: {
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    borderColor: glassColors.border,
   },
   dropdownList: {
     maxHeight: 236,
@@ -272,13 +268,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     gap: spacing.sm,
   },
-  suggestionRowPressed: {
-    backgroundColor: colors.background.light,
-  },
   suggestionText: {
     flex: 1,
     fontSize: 15,
     fontFamily: fontFamilies.regular,
-    color: colors.text.primary.light,
   },
 });

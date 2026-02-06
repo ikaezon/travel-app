@@ -17,15 +17,17 @@ import { DualAirportInput } from '../../components/ui/DualAirportInput';
 import { TripSelector } from '../../components/domain/TripSelector';
 import { GlassNavHeader } from '../../components/navigation/GlassNavHeader';
 import { ShimmerButton } from '../../components/ui/ShimmerButton';
-import { colors, spacing } from '../../theme';
+import { spacing } from '../../theme';
 import { MainStackParamList } from '../../navigation/types';
 import { createFlightReservation } from '../../data';
 import { useTrips, useKeyboardHeight } from '../../hooks';
+import { useTheme } from '../../contexts/ThemeContext';
 
 type NavigationProp = NativeStackNavigationProp<MainStackParamList, 'FlightEntry'>;
 type FlightEntryRouteProp = RouteProp<MainStackParamList, 'FlightEntry'>;
 
 export default function FlightEntryScreen() {
+  const theme = useTheme();
   const navigation = useNavigation<NavigationProp>();
   const route = useRoute<FlightEntryRouteProp>();
   const insets = useSafeAreaInsets();
@@ -94,7 +96,7 @@ export default function FlightEntryScreen() {
 
   return (
     <LinearGradient
-      colors={[colors.gradient.start, colors.gradient.middle, colors.gradient.end]}
+      colors={theme.gradient}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
       style={styles.gradientContainer}

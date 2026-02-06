@@ -16,16 +16,18 @@ import { DateRangePickerInput } from '../../components/ui/DateRangePickerInput';
 import { TripSelector } from '../../components/domain/TripSelector';
 import { GlassNavHeader } from '../../components/navigation/GlassNavHeader';
 import { ShimmerButton } from '../../components/ui/ShimmerButton';
-import { colors, spacing } from '../../theme';
+import { spacing } from '../../theme';
 import { MainStackParamList } from '../../navigation/types';
 import { createLodgingReservation } from '../../data';
 import { formatCalendarDateToLongDisplay } from '../../utils/dateFormat';
 import { useTrips, useKeyboardHeight } from '../../hooks';
+import { useTheme } from '../../contexts/ThemeContext';
 
 type NavigationProp = NativeStackNavigationProp<MainStackParamList, 'LodgingEntry'>;
 type LodgingEntryRouteProp = RouteProp<MainStackParamList, 'LodgingEntry'>;
 
 export default function LodgingEntryScreen() {
+  const theme = useTheme();
   const navigation = useNavigation<NavigationProp>();
   const route = useRoute<LodgingEntryRouteProp>();
   const insets = useSafeAreaInsets();
@@ -105,7 +107,7 @@ export default function LodgingEntryScreen() {
 
   return (
     <LinearGradient
-      colors={[colors.gradient.start, colors.gradient.middle, colors.gradient.end]}
+      colors={theme.gradient}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
       style={styles.gradientContainer}

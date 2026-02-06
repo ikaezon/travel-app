@@ -1,8 +1,9 @@
 import React from 'react';
 import { View, Text, Pressable, StyleSheet, Animated } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
-import { colors, spacing, fontFamilies } from '../../theme';
+import { spacing, fontFamilies } from '../../theme';
 import { usePressAnimation } from '../../hooks';
+import { useTheme } from '../../contexts/ThemeContext';
 
 interface ErrorViewProps {
   title?: string;
@@ -20,6 +21,7 @@ export function ErrorView({
   onRetry,
   style,
 }: ErrorViewProps) {
+  const theme = useTheme();
   const { scaleAnim, onPressIn, onPressOut } = usePressAnimation();
 
   return (
@@ -28,9 +30,9 @@ export function ErrorView({
       accessibilityLabel={`${title}. ${subtitle}`}
       accessibilityRole="alert"
     >
-      <MaterialIcons name="error-outline" size={32} color={colors.status.error} />
-      <Text style={styles.title}>{title}</Text>
-      <Text style={styles.subtitle}>{subtitle}</Text>
+      <MaterialIcons name="error-outline" size={32} color={theme.colors.status.error} />
+      <Text style={[styles.title, { color: theme.colors.text.primary }]}>{title}</Text>
+      <Text style={[styles.subtitle, { color: theme.colors.text.secondary }]}>{subtitle}</Text>
       {onRetry && (
         <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
         <Pressable
@@ -41,7 +43,7 @@ export function ErrorView({
           accessibilityRole="button"
           accessibilityLabel="Try again"
         >
-          <Text style={styles.retryButtonText}>Try again</Text>
+          <Text style={[styles.retryButtonText, { color: theme.colors.primary }]}>Try again</Text>
         </Pressable>
         </Animated.View>
       )}
@@ -60,13 +62,11 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 16,
     fontFamily: fontFamilies.semibold,
-    color: colors.text.primary.light,
     textAlign: 'center',
   },
   subtitle: {
     fontSize: 14,
     fontFamily: fontFamilies.medium,
-    color: colors.text.secondary.light,
     textAlign: 'center',
   },
   retryButton: {
@@ -77,6 +77,5 @@ const styles = StyleSheet.create({
   retryButtonText: {
     fontSize: 15,
     fontFamily: fontFamilies.semibold,
-    color: colors.primary,
   },
 });

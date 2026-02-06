@@ -25,13 +25,12 @@ import { DatePickerInput } from '../../components/ui/DatePickerInput';
 import { DateRangePickerInput } from '../../components/ui/DateRangePickerInput';
 import { ShimmerButton } from '../../components/ui/ShimmerButton';
 import {
-  colors,
   spacing,
   borderRadius,
   fontFamilies,
   glassStyles,
-  glassColors,
 } from '../../theme';
+import { useTheme } from '../../contexts/ThemeContext';
 import { MainStackParamList } from '../../navigation/types';
 import { useReservationByTimelineId, useUpdateReservation, usePressAnimation } from '../../hooks';
 import { tripService } from '../../data';
@@ -41,6 +40,7 @@ type NavigationProp = NativeStackNavigationProp<MainStackParamList, 'EditReserva
 type EditReservationRouteProp = RouteProp<MainStackParamList, 'EditReservation'>;
 
 export default function EditReservationScreen() {
+  const theme = useTheme();
   const navigation = useNavigation<NavigationProp>();
   const route = useRoute<EditReservationRouteProp>();
   const insets = useSafeAreaInsets();
@@ -191,26 +191,26 @@ export default function EditReservationScreen() {
   if (isLoading || !reservation) {
     return (
       <LinearGradient
-        colors={[colors.gradient.start, colors.gradient.middle, colors.gradient.end]}
+        colors={theme.gradient}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={styles.gradientContainer}
       >
         <View style={styles.container}>
           <View style={[styles.headerContainer, { top: topOffset }]}>
-            <BlurView intensity={24} tint="light" style={[styles.headerBlur, glassStyles.blurContentLarge]}>
-              <View style={styles.glassOverlay} pointerEvents="none" />
+            <BlurView intensity={24} tint={theme.blurTint} style={[styles.headerBlur, glassStyles.blurContentLarge]}>
+              <View style={[styles.glassOverlay, { backgroundColor: theme.glassColors.overlayStrong }]} pointerEvents="none" />
               <View style={styles.headerContent}>
                 <Pressable style={styles.backButton} onPress={handleBackPress}>
-                  <MaterialIcons name="arrow-back" size={22} color={colors.text.primary.light} />
+                  <MaterialIcons name="arrow-back" size={22} color={theme.colors.text.primary} />
                 </Pressable>
-                <Text style={styles.headerTitle}>Edit reservation</Text>
+                <Text style={[styles.headerTitle, { color: theme.colors.text.primary }]}>Edit reservation</Text>
                 <View style={styles.headerSpacer} />
               </View>
             </BlurView>
           </View>
           <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color={colors.primary} />
+            <ActivityIndicator size="large" color={theme.colors.primary} />
           </View>
         </View>
       </LinearGradient>
@@ -222,7 +222,7 @@ export default function EditReservationScreen() {
 
   return (
     <LinearGradient
-      colors={[colors.gradient.start, colors.gradient.middle, colors.gradient.end]}
+      colors={theme.gradient}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
       style={styles.gradientContainer}
@@ -297,55 +297,55 @@ export default function EditReservationScreen() {
           )}
           {isFlight ? (
             <View style={styles.flightDetailsCard}>
-              <BlurView intensity={24} tint="light" style={[styles.flightDetailsBlur, glassStyles.blurContent]}>
-                <View style={styles.glassOverlay} pointerEvents="none" />
+              <BlurView intensity={24} tint={theme.blurTint} style={[styles.flightDetailsBlur, glassStyles.blurContent]}>
+                <View style={[styles.glassOverlay, { backgroundColor: theme.glassColors.overlayStrong }]} pointerEvents="none" />
                 <View style={styles.flightDetailsContent}>
-                  <Text style={styles.flightDetailsLabel}>Flight details</Text>
-                  <View style={styles.flightDetailsGrid}>
+                  <Text style={[styles.flightDetailsLabel, { color: theme.colors.text.primary }]}>Flight details</Text>
+                  <View style={[styles.flightDetailsGrid, { backgroundColor: 'rgba(255, 255, 255, 0.5)', borderColor: theme.glassColors.border }]}>
                     <View style={styles.flightDetailsInputRow}>
                       <View style={styles.flightDetailsInputCol}>
-                        <MaterialIcons name="confirmation-number" size={16} color={colors.text.secondary.light} style={styles.flightDetailsIcon} />
+                        <MaterialIcons name="confirmation-number" size={16} color={theme.colors.text.secondary} style={styles.flightDetailsIcon} />
                         <TextInput
-                          style={styles.flightDetailsInput}
+                          style={[styles.flightDetailsInput, { color: theme.colors.text.primary }]}
                           value={confirmationCode}
                           onChangeText={setConfirmationCode}
                           placeholder="Conf #"
-                          placeholderTextColor={colors.text.tertiary.light}
+                          placeholderTextColor={theme.colors.text.tertiary}
                         />
                       </View>
-                      <View style={styles.flightDetailsDivider} />
+                      <View style={[styles.flightDetailsDivider, { backgroundColor: theme.glassColors.border }]} />
                       <View style={styles.flightDetailsInputCol}>
-                        <MaterialIcons name="meeting-room" size={16} color={colors.text.secondary.light} style={styles.flightDetailsIcon} />
+                        <MaterialIcons name="meeting-room" size={16} color={theme.colors.text.secondary} style={styles.flightDetailsIcon} />
                         <TextInput
-                          style={styles.flightDetailsInput}
+                          style={[styles.flightDetailsInput, { color: theme.colors.text.primary }]}
                           value={terminal}
                           onChangeText={setTerminal}
                           placeholder="Terminal"
-                          placeholderTextColor={colors.text.tertiary.light}
+                          placeholderTextColor={theme.colors.text.tertiary}
                         />
                       </View>
                     </View>
-                    <View style={styles.flightDetailsRowDivider} />
+                    <View style={[styles.flightDetailsRowDivider, { backgroundColor: theme.glassColors.border }]} />
                     <View style={styles.flightDetailsInputRow}>
                       <View style={styles.flightDetailsInputCol}>
-                        <MaterialIcons name="door-sliding" size={16} color={colors.text.secondary.light} style={styles.flightDetailsIcon} />
+                        <MaterialIcons name="door-sliding" size={16} color={theme.colors.text.secondary} style={styles.flightDetailsIcon} />
                         <TextInput
-                          style={styles.flightDetailsInput}
+                          style={[styles.flightDetailsInput, { color: theme.colors.text.primary }]}
                           value={gate}
                           onChangeText={setGate}
                           placeholder="Gate"
-                          placeholderTextColor={colors.text.tertiary.light}
+                          placeholderTextColor={theme.colors.text.tertiary}
                         />
                       </View>
-                      <View style={styles.flightDetailsDivider} />
+                      <View style={[styles.flightDetailsDivider, { backgroundColor: theme.glassColors.border }]} />
                       <View style={styles.flightDetailsInputCol}>
-                        <MaterialIcons name="airline-seat-recline-extra" size={16} color={colors.text.secondary.light} style={styles.flightDetailsIcon} />
+                        <MaterialIcons name="airline-seat-recline-extra" size={16} color={theme.colors.text.secondary} style={styles.flightDetailsIcon} />
                         <TextInput
-                          style={styles.flightDetailsInput}
+                          style={[styles.flightDetailsInput, { color: theme.colors.text.primary }]}
                           value={seat}
                           onChangeText={setSeat}
                           placeholder="Seat"
-                          placeholderTextColor={colors.text.tertiary.light}
+                          placeholderTextColor={theme.colors.text.tertiary}
                         />
                       </View>
                     </View>
@@ -375,8 +375,8 @@ export default function EditReservationScreen() {
         </ScrollView>
 
         <View style={[styles.headerContainer, { top: topOffset }]}>
-          <BlurView intensity={24} tint="light" style={[styles.headerBlur, glassStyles.blurContentLarge]}>
-            <View style={styles.glassOverlay} pointerEvents="none" />
+          <BlurView intensity={24} tint={theme.blurTint} style={[styles.headerBlur, glassStyles.blurContentLarge]}>
+            <View style={[styles.glassOverlay, { backgroundColor: theme.glassColors.overlayStrong }]} pointerEvents="none" />
             <View style={styles.headerContent}>
               <Animated.View style={{ transform: [{ scale: backAnim.scaleAnim }] }}>
               <Pressable
@@ -386,10 +386,10 @@ export default function EditReservationScreen() {
                 onPressOut={backAnim.onPressOut}
                 accessibilityLabel="Go back"
               >
-                <MaterialIcons name="arrow-back" size={22} color={colors.text.primary.light} />
+                <MaterialIcons name="arrow-back" size={22} color={theme.colors.text.primary} />
               </Pressable>
               </Animated.View>
-              <Text style={styles.headerTitle}>Edit reservation</Text>
+              <Text style={[styles.headerTitle, { color: theme.colors.text.primary }]}>Edit reservation</Text>
               <View style={styles.headerSpacer} />
             </View>
           </BlurView>
@@ -429,7 +429,6 @@ const styles = StyleSheet.create({
   },
   glassOverlay: {
     ...glassStyles.cardOverlay,
-    backgroundColor: glassColors.overlayStrong,
   },
   backButton: {
     width: 36,
@@ -440,7 +439,6 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 16,
     fontFamily: fontFamilies.semibold,
-    color: colors.text.primary.light,
     letterSpacing: -0.3,
   },
   headerSpacer: {
@@ -473,14 +471,11 @@ const styles = StyleSheet.create({
   flightDetailsLabel: {
     fontSize: 14,
     fontFamily: fontFamilies.medium,
-    color: colors.text.primary.light,
     marginBottom: spacing.sm,
   },
   flightDetailsGrid: {
-    backgroundColor: 'rgba(255, 255, 255, 0.5)',
     borderRadius: borderRadius.md,
     borderWidth: 1,
-    borderColor: glassColors.border,
     overflow: 'hidden',
   },
   flightDetailsInputRow: {
@@ -490,7 +485,6 @@ const styles = StyleSheet.create({
   },
   flightDetailsRowDivider: {
     height: 1,
-    backgroundColor: glassColors.border,
   },
   flightDetailsInputCol: {
     flex: 1,
@@ -506,12 +500,10 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 15,
     fontFamily: fontFamilies.regular,
-    color: colors.text.primary.light,
     height: '100%' as unknown as number,
   },
   flightDetailsDivider: {
     width: 1,
     height: 28,
-    backgroundColor: glassColors.border,
   },
 });

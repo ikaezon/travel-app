@@ -13,14 +13,12 @@ import { BlurView } from 'expo-blur';
 import { MaterialIcons } from '@expo/vector-icons';
 import airports from '@nwpr/airport-codes';
 import {
-  colors,
   spacing,
   fontFamilies,
   glassStyles,
-  glassColors,
   borderRadius,
-  glassShadows,
 } from '../../theme';
+import { useTheme } from '../../contexts/ThemeContext';
 
 interface Airport {
   iata: string;
@@ -84,6 +82,7 @@ export function DualAirportInput({
   departurePlaceholder = 'SFO',
   arrivalPlaceholder = 'JFK',
 }: DualAirportInputProps) {
+  const theme = useTheme();
   const [activeField, setActiveField] = useState<'departure' | 'arrival' | null>(null);
   const [cardHeight, setCardHeight] = useState(0);
   const justSelectedDep = useRef<string | null>(null);
@@ -154,30 +153,37 @@ export function DualAirportInput({
         key={airport.iata}
         style={({ pressed }) => [
           styles.suggestionRow,
-          pressed && styles.suggestionRowPressed,
-          !isLast && styles.suggestionBorder,
+          pressed && { backgroundColor: theme.glassColors.menuItemPressed },
+          !isLast && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: theme.glassColors.menuItemBorder },
         ]}
         onPress={() => onSelect(airport)}
       >
-        <BlurView intensity={40} tint="light" style={styles.iataTag}>
-          <Text style={styles.iataText}>{airport.iata}</Text>
+        <BlurView 
+          intensity={40} 
+          tint={theme.blurTint} 
+          style={[
+            styles.iataTag,
+            { borderColor: theme.glassColors.borderBlue, backgroundColor: theme.glassColors.overlayBlue }
+          ]}
+        >
+          <Text style={[styles.iataText, { color: theme.colors.text.primary }]}>{airport.iata}</Text>
         </BlurView>
         <View style={styles.suggestionInfo}>
-          <Text style={styles.cityText} numberOfLines={1}>
+          <Text style={[styles.cityText, { color: theme.colors.text.primary }]} numberOfLines={1}>
             {airport.city}
           </Text>
-          <Text style={styles.airportName} numberOfLines={1}>
+          <Text style={[styles.airportName, { color: theme.colors.text.secondary }]} numberOfLines={1}>
             {airport.name}
           </Text>
         </View>
         <MaterialIcons
           name="arrow-forward"
           size={16}
-          color={colors.text.tertiary.light}
+          color={theme.colors.text.tertiary}
         />
       </Pressable>
     ),
-    []
+    [theme]
   );
 
   const showDepartureSuggestions = activeField === 'departure' && departureSuggestions.length > 0;
@@ -189,16 +195,16 @@ export function DualAirportInput({
       <View style={styles.glassWrapper} onLayout={handleCardLayout}>
         <BlurView
           intensity={24}
-          tint="light"
+          tint={theme.blurTint}
           style={[styles.glassBlur, glassStyles.blurContent]}
         >
-          <View style={styles.glassOverlay} pointerEvents="none" />
+          <View style={[styles.glassOverlay, { backgroundColor: theme.glassColors.overlayStrong }]} pointerEvents="none" />
           <View style={styles.glassContent}>
             {/* Labels row */}
             <View style={styles.labelsRow}>
-              <Text style={styles.label}>From</Text>
+              <Text style={[styles.label, { color: theme.colors.text.primary }]}>From</Text>
               <View style={styles.labelSpacer} />
-              <Text style={styles.label}>To</Text>
+              <Text style={[styles.label, { color: theme.colors.text.primary }]}>To</Text>
             </View>
 
             {/* Inputs row */}
@@ -208,15 +214,15 @@ export function DualAirportInput({
                 <MaterialIcons
                   name="flight-takeoff"
                   size={18}
-                  color={colors.text.secondary.light}
+                  color={theme.colors.text.secondary}
                   style={styles.inputIcon}
                 />
                 <TextInput
-                  style={styles.input}
+                  style={[styles.input, { borderColor: theme.glassColors.border, color: theme.colors.text.primary }]}
                   value={departureValue}
                   onChangeText={handleDepartureChange}
                   placeholder={departurePlaceholder}
-                  placeholderTextColor={colors.text.tertiary.light}
+                  placeholderTextColor={theme.colors.text.tertiary}
                   onFocus={() => setActiveField('departure')}
                   onBlur={handleBlur}
                   autoCapitalize="characters"
@@ -229,7 +235,7 @@ export function DualAirportInput({
                 <MaterialIcons
                   name="arrow-forward"
                   size={20}
-                  color={colors.text.secondary.light}
+                  color={theme.colors.text.secondary}
                 />
               </View>
 
@@ -238,15 +244,15 @@ export function DualAirportInput({
                 <MaterialIcons
                   name="flight-land"
                   size={18}
-                  color={colors.text.secondary.light}
+                  color={theme.colors.text.secondary}
                   style={styles.inputIcon}
                 />
                 <TextInput
-                  style={styles.input}
+                  style={[styles.input, { borderColor: theme.glassColors.border, color: theme.colors.text.primary }]}
                   value={arrivalValue}
                   onChangeText={handleArrivalChange}
                   placeholder={arrivalPlaceholder}
-                  placeholderTextColor={colors.text.tertiary.light}
+                  placeholderTextColor={theme.colors.text.tertiary}
                   onFocus={() => setActiveField('arrival')}
                   onBlur={handleBlur}
                   autoCapitalize="characters"
@@ -263,13 +269,13 @@ export function DualAirportInput({
         <View
           style={[
             styles.dropdownContainer,
-            { top: cardHeight + 8 },
+            { top: cardHeight + 8, borderColor: theme.glassColors.borderStrong },
             showArrivalSuggestions && styles.dropdownRight,
           ]}
         >
           <BlurView
             intensity={48}
-            tint="light"
+            tint={theme.blurTint}
             style={styles.dropdownBlur}
           >
             <View style={styles.dropdownOverlay} pointerEvents="none" />
@@ -310,7 +316,6 @@ const styles = StyleSheet.create({
   },
   glassOverlay: {
     ...glassStyles.cardOverlay,
-    backgroundColor: glassColors.overlayStrong,
   },
   glassContent: {
     position: 'relative',
@@ -323,7 +328,6 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 14,
     fontFamily: fontFamilies.medium,
-    color: colors.text.primary.light,
   },
   labelSpacer: {
     width: 32,
@@ -341,13 +345,11 @@ const styles = StyleSheet.create({
     height: 48,
     borderRadius: borderRadius.md,
     borderWidth: 1,
-    borderColor: glassColors.border,
     backgroundColor: 'rgba(255, 255, 255, 0.5)',
     paddingLeft: 40,
     paddingRight: spacing.md,
     fontSize: 15,
     fontFamily: fontFamilies.semibold,
-    color: colors.text.primary.light,
   },
   inputIcon: {
     position: 'absolute',
@@ -368,8 +370,6 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     overflow: 'hidden',
     borderWidth: 1.5,
-    borderColor: glassColors.borderStrong,
-    boxShadow: glassShadows.elevated,
     zIndex: 200,
   },
   dropdownRight: {
@@ -393,20 +393,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     gap: spacing.md,
   },
-  suggestionRowPressed: {
-    backgroundColor: glassColors.menuItemPressed,
-  },
-  suggestionBorder: {
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: glassColors.menuItemBorder,
-  },
   iataTag: {
     ...glassStyles.pillContainer,
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: borderRadius.full,
-    borderColor: glassColors.borderBlue,
-    backgroundColor: glassColors.overlayBlue,
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden',
@@ -414,7 +405,6 @@ const styles = StyleSheet.create({
   iataText: {
     fontSize: 13,
     fontFamily: fontFamilies.bold,
-    color: colors.text.primary.light,
     letterSpacing: 0.5,
   },
   suggestionInfo: {
@@ -423,12 +413,10 @@ const styles = StyleSheet.create({
   cityText: {
     fontSize: 15,
     fontFamily: fontFamilies.semibold,
-    color: colors.text.primary.light,
   },
   airportName: {
     fontSize: 12,
     fontFamily: fontFamilies.regular,
-    color: colors.text.secondary.light,
     marginTop: 2,
   },
 });

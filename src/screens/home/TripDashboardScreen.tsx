@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { BlurView } from 'expo-blur';
+import { AdaptiveGlassView } from '../../components/ui/AdaptiveGlassView';
 import { Menu, MoreHorizontal } from 'lucide-react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -19,9 +19,10 @@ import { pickImageFromLibrary } from '../../native/imagePicker';
 import { QuickActionCard, type QuickActionIconKey } from '../../components/domain/QuickActionCard';
 import { LoadingView } from '../../components/ui/LoadingView';
 import { ErrorView } from '../../components/ui/ErrorView';
-import { colors, spacing, borderRadius, fontFamilies, glassStyles, glassColors, glassShadows, glassConstants } from '../../theme';
+import { spacing, fontFamilies, glassStyles, glassConstants } from '../../theme';
 import { MainStackParamList } from '../../navigation/types';
 import { useCurrentUser, useUpcomingTrips, useQuickActions, usePressAnimation } from '../../hooks';
+import { useTheme } from '../../contexts/ThemeContext';
 
 const QUICK_ACTION_ROUTES: readonly string[] = ['ManualEntryOptions', 'ScreenshotUpload', 'CreateTrip'];
 
@@ -30,6 +31,7 @@ type NavigationProp = NativeStackNavigationProp<MainStackParamList>;
 export default function TripDashboardScreen() {
   const navigation = useNavigation<NavigationProp>();
   const insets = useSafeAreaInsets();
+  const theme = useTheme();
   const { user, isLoading: userLoading, error: userError, refetch: refetchUser } = useCurrentUser();
   const { trips, isLoading: tripsLoading, error: tripsError, refetch: refetchTrips } = useUpcomingTrips();
   const { quickActions, isLoading: actionsLoading, error: actionsError, refetch: refetchActions } = useQuickActions();
@@ -91,7 +93,7 @@ export default function TripDashboardScreen() {
   if (isLoading) {
     return (
       <LinearGradient
-        colors={[colors.gradient.start, colors.gradient.middle, colors.gradient.end]}
+        colors={theme.gradient}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={styles.gradientContainer}
@@ -106,7 +108,7 @@ export default function TripDashboardScreen() {
   if (hasError) {
     return (
       <LinearGradient
-        colors={[colors.gradient.start, colors.gradient.middle, colors.gradient.end]}
+        colors={theme.gradient}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={styles.gradientContainer}
@@ -126,7 +128,7 @@ export default function TripDashboardScreen() {
 
   return (
     <LinearGradient
-      colors={[colors.gradient.start, colors.gradient.middle, colors.gradient.end]}
+      colors={theme.gradient}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
       style={styles.gradientContainer}
@@ -139,13 +141,13 @@ export default function TripDashboardScreen() {
         >
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Upcoming Trips</Text>
+              <Text style={[styles.sectionTitle, { color: theme.colors.text.primary }]}>Upcoming Trips</Text>
               <Animated.View style={{ transform: [{ scale: seeAllAnim.scaleAnim }] }}>
               <Pressable onPress={handleSeeAllPress} onPressIn={seeAllAnim.onPressIn} onPressOut={seeAllAnim.onPressOut}>
-                <BlurView intensity={24} tint="light" style={[styles.seeAllButtonContainer, glassStyles.blurContentPill]}>
-                  <View style={styles.glassOverlay} pointerEvents="none" />
-                  <Text style={styles.seeAllButton}>See All</Text>
-                </BlurView>
+                <AdaptiveGlassView intensity={24} darkIntensity={10} glassEffectStyle="clear" style={[styles.seeAllButtonContainer, glassStyles.blurContentPill, !theme.isDark && { borderWidth: 1, borderColor: theme.glassColors.border }]}>
+                  <View style={[styles.glassOverlay, { backgroundColor: theme.isDark ? 'rgba(0, 0, 0, 0.55)' : theme.glassColors.overlayStrong }]} pointerEvents="none" />
+                  <Text style={[styles.seeAllButton, { color: theme.colors.primary }]}>See All</Text>
+                </AdaptiveGlassView>
               </Pressable>
               </Animated.View>
             </View>
@@ -173,7 +175,7 @@ export default function TripDashboardScreen() {
           </View>
 
           <View style={[styles.section, styles.quickActionsSection]}>
-            <Text style={styles.sectionTitle}>Quick Actions</Text>
+            <Text style={[styles.sectionTitle, { color: theme.colors.text.primary }]}>Quick Actions</Text>
             <View style={styles.actionsContainer}>
               {quickActions.map((action, index) => (
                 <QuickActionCard
@@ -192,31 +194,36 @@ export default function TripDashboardScreen() {
         </ScrollView>
 
         <View style={[styles.topNavContainer, { top: topOffset }]}>
-          <BlurView intensity={24} tint="light" style={[styles.topNavBlur, glassStyles.blurContentLarge]}>
-            <View style={styles.glassOverlay} pointerEvents="none" />
+          <View style={styles.topNavBarWrapper}>
+            <AdaptiveGlassView
+              intensity={24}
+              style={[styles.topNavBlur, glassStyles.blurContentLarge, { borderColor: theme.glassColors.border, boxShadow: theme.glassShadows.nav }]}
+            >
+              {!theme.isDark && <View style={[styles.glassOverlay, { backgroundColor: theme.glassColors.overlayStrong }]} pointerEvents="none" />}
+            </AdaptiveGlassView>
             <View style={styles.topNavContent}>
               <Animated.View style={{ transform: [{ scale: menuAnim.scaleAnim }] }}>
               <Pressable onPressIn={menuAnim.onPressIn} onPressOut={menuAnim.onPressOut}>
                 <View style={styles.navButton}>
-                  <Menu size={22} color={colors.text.primary.light} strokeWidth={2} />
+                  <Menu size={22} color={theme.colors.text.primary} strokeWidth={2} />
                 </View>
               </Pressable>
               </Animated.View>
 
               <View style={styles.headerCenter}>
-                <Text style={styles.headerLabel}>Dashboard</Text>
-                <Text style={styles.headerTitle}>My Trips</Text>
+                <Text style={[styles.headerLabel, { color: theme.colors.primary }]}>Dashboard</Text>
+                <Text style={[styles.headerTitle, { color: theme.colors.text.primary }]}>My Trips</Text>
               </View>
 
               <Animated.View style={{ transform: [{ scale: moreAnim.scaleAnim }] }}>
               <Pressable onPressIn={moreAnim.onPressIn} onPressOut={moreAnim.onPressOut}>
                 <View style={styles.navButton}>
-                  <MoreHorizontal size={22} color={colors.text.primary.light} strokeWidth={2} />
+                  <MoreHorizontal size={22} color={theme.colors.text.primary} strokeWidth={2} />
                 </View>
               </Pressable>
               </Animated.View>
             </View>
-          </BlurView>
+          </View>
         </View>
       </View>
     </LinearGradient>
@@ -237,19 +244,26 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     zIndex: 60,
   },
-  topNavBlur: {
-    ...glassStyles.navBarWrapper,
+  topNavBarWrapper: {
     width: '90%',
     maxWidth: 340,
-    position: 'relative',
     height: 56,
-    justifyContent: 'center',
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  topNavBlur: {
+    ...StyleSheet.absoluteFillObject,
+    ...glassStyles.navBarWrapper,
+    ...glassStyles.blurContentLarge,
+    zIndex: 0,
   },
   topNavContent: {
+    ...StyleSheet.absoluteFillObject,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 16,
+    zIndex: 2,
   },
   navButton: {
     width: 36,
@@ -264,7 +278,6 @@ const styles = StyleSheet.create({
   headerLabel: {
     fontSize: 9,
     fontFamily: fontFamilies.semibold,
-    color: colors.primary,
     textTransform: 'uppercase',
     letterSpacing: 2,
     marginBottom: 1,
@@ -273,12 +286,10 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 16,
     fontFamily: fontFamilies.semibold,
-    color: colors.text.primary.light,
     letterSpacing: -0.3,
   },
   glassOverlay: {
-    ...glassStyles.cardOverlay,
-    backgroundColor: glassColors.overlayStrong,
+    ...StyleSheet.absoluteFillObject,
   },
   scrollView: {
     flex: 1,
@@ -299,20 +310,17 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 20,
     fontFamily: fontFamilies.semibold,
-    color: colors.text.primary.light,
     letterSpacing: -0.3,
   },
   seeAllButtonContainer: {
-    ...glassStyles.pillContainer,
+    borderRadius: glassConstants.radius.pill,
+    overflow: 'hidden',
     paddingHorizontal: 12,
     paddingVertical: 6,
-    borderWidth: 1.5,
-    borderColor: glassColors.border,
   },
   seeAllButton: {
     fontSize: 14,
     fontFamily: fontFamilies.semibold,
-    color: colors.primary,
   },
   tripsCarousel: {
     paddingHorizontal: 24,

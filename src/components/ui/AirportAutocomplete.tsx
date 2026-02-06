@@ -13,14 +13,13 @@ import { BlurView } from 'expo-blur';
 import { MaterialIcons } from '@expo/vector-icons';
 import airports from '@nwpr/airport-codes';
 import {
-  colors,
   spacing,
   fontFamilies,
   glassStyles,
-  glassColors,
   borderRadius,
-  glassShadows,
+  glassConstants,
 } from '../../theme';
+import { useTheme } from '../../contexts/ThemeContext';
 
 interface Airport {
   iata: string;
@@ -58,6 +57,7 @@ export function AirportAutocomplete({
   iconName = 'flight',
   variant = 'default',
 }: AirportAutocompleteProps) {
+  const theme = useTheme();
   const [dropdownVisible, setDropdownVisible] = useState(false);
   const [cardHeight, setCardHeight] = useState(0);
   const justSelectedRef = useRef<string | null>(null);
@@ -132,37 +132,40 @@ export function AirportAutocomplete({
         key={airport.iata}
         style={({ pressed }) => [
           styles.suggestionRow,
-          pressed && styles.suggestionRowPressed,
-          !isLast && styles.suggestionBorder,
+          pressed && { backgroundColor: theme.glassColors.menuItemPressed },
+          !isLast && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: theme.glassColors.menuItemBorder },
         ]}
         onPress={() => handleSelect(airport)}
       >
-        <BlurView intensity={40} tint="light" style={styles.iataTag}>
-          <Text style={styles.iataText}>{airport.iata}</Text>
+        <BlurView intensity={40} tint={theme.blurTint} style={[styles.iataTag, { borderColor: theme.glassColors.borderBlue, backgroundColor: theme.glassColors.overlayBlue }]}>
+          <Text style={[styles.iataText, { color: theme.colors.text.primary }]}>{airport.iata}</Text>
         </BlurView>
         <View style={styles.suggestionInfo}>
-          <Text style={styles.cityText} numberOfLines={1}>
+          <Text style={[styles.cityText, { color: theme.colors.text.primary }]} numberOfLines={1}>
             {airport.city}
           </Text>
-          <Text style={styles.airportName} numberOfLines={1}>
+          <Text style={[styles.airportName, { color: theme.colors.text.secondary }]} numberOfLines={1}>
             {airport.name}
           </Text>
         </View>
         <MaterialIcons
           name="arrow-forward"
           size={16}
-          color={colors.text.tertiary.light}
+          color={theme.colors.text.tertiary}
         />
       </Pressable>
     ),
-    [handleSelect]
+    [handleSelect, theme]
   );
 
   const showDropdown = dropdownVisible && suggestions.length > 0;
 
   const inputContent = (
     <>
-      <Text style={[styles.label, variant === 'glass' && styles.labelGlass]}>
+      <Text style={[
+        styles.label,
+        { color: variant === 'glass' ? theme.colors.text.primary : theme.colors.text.secondary },
+      ]}>
         {label}
       </Text>
       <View style={styles.inputContainer}>
@@ -170,7 +173,7 @@ export function AirportAutocomplete({
           <MaterialIcons
             name={iconName}
             size={20}
-            color={colors.text.secondary.light}
+            color={theme.colors.text.secondary}
             style={styles.leftIcon}
           />
         )}
@@ -178,12 +181,14 @@ export function AirportAutocomplete({
           style={[
             styles.input,
             iconName && styles.inputWithLeftIcon,
-            variant === 'glass' && styles.inputGlass,
+            variant === 'glass' && { backgroundColor: 'rgba(255, 255, 255, 0.5)', borderColor: theme.glassColors.border },
+            !variant && { borderColor: theme.colors.border, backgroundColor: theme.colors.surface },
+            { color: theme.colors.text.primary },
           ]}
           value={value}
           onChangeText={handleChangeText}
           placeholder={placeholder}
-          placeholderTextColor={colors.text.tertiary.light}
+          placeholderTextColor={theme.colors.text.tertiary}
           onFocus={handleFocus}
           onBlur={handleBlur}
           autoCapitalize="characters"
@@ -199,19 +204,19 @@ export function AirportAutocomplete({
         <View style={styles.glassWrapper} onLayout={handleCardLayout}>
           <BlurView
             intensity={24}
-            tint="light"
+            tint={theme.blurTint}
             style={[styles.glassBlur, glassStyles.blurContent]}
           >
-            <View style={styles.glassOverlay} pointerEvents="none" />
+            <View style={[styles.glassOverlay, { backgroundColor: theme.glassColors.overlayStrong }]} pointerEvents="none" />
             <View style={styles.glassContent}>{inputContent}</View>
           </BlurView>
         </View>
 
         {/* Glass dropdown */}
         {showDropdown && (
-          <View style={[styles.dropdownContainer, { top: cardHeight + 8 }]}>
-            <BlurView intensity={48} tint="light" style={styles.dropdownBlur}>
-              <View style={styles.dropdownOverlay} pointerEvents="none" />
+          <View style={[styles.dropdownContainer, { top: cardHeight + 8, borderColor: theme.glassColors.borderStrong, boxShadow: theme.glassShadows.elevated }]}>
+            <BlurView intensity={48} tint={theme.blurTint} style={styles.dropdownBlur}>
+              <View style={[styles.dropdownOverlay, { backgroundColor: 'rgba(255, 255, 255, 0.15)' }]} pointerEvents="none" />
               <ScrollView
                 style={styles.dropdownList}
                 keyboardShouldPersistTaps="handled"
@@ -233,7 +238,7 @@ export function AirportAutocomplete({
     <View style={styles.container} onLayout={handleCardLayout}>
       {inputContent}
       {showDropdown && (
-        <View style={[styles.dropdownContainerDefault, { top: cardHeight + 4 }]}>
+        <View style={[styles.dropdownContainerDefault, { top: cardHeight + 4, borderColor: theme.colors.border, backgroundColor: theme.colors.surface }]}>
           <ScrollView
             style={styles.dropdownList}
             keyboardShouldPersistTaps="handled"
@@ -264,7 +269,6 @@ const styles = StyleSheet.create({
   },
   glassOverlay: {
     ...glassStyles.cardOverlay,
-    backgroundColor: glassColors.overlayStrong,
   },
   glassContent: {
     position: 'relative',
@@ -272,11 +276,7 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 14,
     fontFamily: fontFamilies.medium,
-    color: colors.text.secondary.light,
     marginBottom: spacing.sm,
-  },
-  labelGlass: {
-    color: colors.text.primary.light,
   },
   inputContainer: {
     position: 'relative',
@@ -286,16 +286,9 @@ const styles = StyleSheet.create({
     height: 56,
     borderRadius: borderRadius.md,
     borderWidth: 1,
-    borderColor: colors.border.light,
-    backgroundColor: colors.surface.light,
     paddingHorizontal: spacing.lg,
     fontSize: 16,
     fontFamily: fontFamilies.regular,
-    color: colors.text.primary.light,
-  },
-  inputGlass: {
-    backgroundColor: 'rgba(255, 255, 255, 0.5)',
-    borderColor: glassColors.border,
   },
   inputWithLeftIcon: {
     paddingLeft: 48,
@@ -314,8 +307,6 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     overflow: 'hidden',
     borderWidth: 1.5,
-    borderColor: glassColors.borderStrong,
-    boxShadow: glassShadows.elevated,
     zIndex: 200,
   },
   dropdownBlur: {
@@ -324,7 +315,6 @@ const styles = StyleSheet.create({
   },
   dropdownOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
   },
   // Default dropdown
   dropdownContainerDefault: {
@@ -333,8 +323,6 @@ const styles = StyleSheet.create({
     right: 0,
     borderRadius: borderRadius.md,
     borderWidth: 1,
-    borderColor: colors.border.light,
-    backgroundColor: colors.surface.light,
     maxHeight: 280,
     overflow: 'hidden',
     zIndex: 200,
@@ -349,20 +337,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     gap: spacing.md,
   },
-  suggestionRowPressed: {
-    backgroundColor: glassColors.menuItemPressed,
-  },
-  suggestionBorder: {
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: glassColors.menuItemBorder,
-  },
   iataTag: {
     ...glassStyles.pillContainer,
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: borderRadius.full,
-    borderColor: glassColors.borderBlue,
-    backgroundColor: glassColors.overlayBlue,
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden',
@@ -370,7 +349,6 @@ const styles = StyleSheet.create({
   iataText: {
     fontSize: 13,
     fontFamily: fontFamilies.bold,
-    color: colors.text.primary.light,
     letterSpacing: 0.5,
   },
   suggestionInfo: {
@@ -379,12 +357,10 @@ const styles = StyleSheet.create({
   cityText: {
     fontSize: 15,
     fontFamily: fontFamilies.semibold,
-    color: colors.text.primary.light,
   },
   airportName: {
     fontSize: 12,
     fontFamily: fontFamilies.regular,
-    color: colors.text.secondary.light,
     marginTop: 2,
   },
 });

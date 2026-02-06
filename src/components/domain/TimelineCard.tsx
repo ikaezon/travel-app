@@ -2,34 +2,35 @@ import React, { useEffect, useRef, useCallback } from 'react';
 import { View, Text, ImageBackground, StyleSheet, Pressable, Animated } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { MaterialIcons } from '@expo/vector-icons';
-import { colors, spacing, borderRadius, fontFamilies, glassStyles, glassColors, glassShadows, glassConstants } from '../../theme';
+import { spacing, borderRadius, fontFamilies, glassStyles, glassConstants } from '../../theme';
 import { ReservationType } from '../../types';
+import { useTheme } from '../../contexts/ThemeContext';
 
-const TIMELINE_ICON_CONFIG: Record<ReservationType, { name: keyof typeof MaterialIcons.glyphMap; iconColor: string }> = {
-  flight: {
-    name: 'flight-takeoff',
-    iconColor: colors.reservation.flight.icon,
-  },
-  hotel: {
-    name: 'hotel',
-    iconColor: colors.reservation.hotel.icon,
-  },
-  train: {
-    name: 'train',
-    iconColor: colors.reservation.train.icon,
-  },
-  car: {
-    name: 'directions-car',
-    iconColor: colors.reservation.car.icon,
-  },
-};
+function getTimelineIconConfig(type: ReservationType, theme: ReturnType<typeof useTheme>) {
+  const TIMELINE_ICON_CONFIG: Record<ReservationType, { name: keyof typeof MaterialIcons.glyphMap; iconColor: string }> = {
+    flight: {
+      name: 'flight-takeoff',
+      iconColor: theme.colors.reservation.flight.icon,
+    },
+    hotel: {
+      name: 'hotel',
+      iconColor: theme.colors.reservation.hotel.icon,
+    },
+    train: {
+      name: 'train',
+      iconColor: theme.colors.reservation.train.icon,
+    },
+    car: {
+      name: 'directions-car',
+      iconColor: theme.colors.reservation.car.icon,
+    },
+  };
 
-const DEFAULT_ICON_CONFIG = {
-  name: 'place' as const,
-  iconColor: colors.text.secondary.light,
-};
+  const DEFAULT_ICON_CONFIG = {
+    name: 'place' as const,
+    iconColor: theme.colors.text.secondary,
+  };
 
-function getTimelineIconConfig(type: ReservationType) {
   return TIMELINE_ICON_CONFIG[type] ?? DEFAULT_ICON_CONFIG;
 }
 
@@ -74,6 +75,7 @@ export const TimelineCard = React.memo(function TimelineCard({
   onActionPress,
   delay = 0,
 }: TimelineCardProps) {
+  const theme = useTheme();
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(1)).current;
 
@@ -95,15 +97,15 @@ export const TimelineCard = React.memo(function TimelineCard({
     Animated.spring(scaleAnim, { ...RELEASE_SPRING, toValue: 1 }).start();
   }, [scaleAnim]);
 
-  const iconConfig = getTimelineIconConfig(type);
+  const iconConfig = getTimelineIconConfig(type, theme);
   const actionType = getActionType(actionLabel);
 
   return (
     <Animated.View style={[styles.wrapper, { opacity: fadeAnim }]}>
       <View style={styles.container}>
         <View style={styles.timelineColumn}>
-          <BlurView intensity={24} tint="light" style={[styles.iconContainer, glassStyles.blurContentIcon]}>
-            <View style={styles.glassOverlay} pointerEvents="none" />
+          <BlurView intensity={24} tint={theme.blurTint} style={[styles.iconContainer, glassStyles.blurContentIcon, { borderColor: theme.glassColors.border, boxShadow: theme.glassShadows.icon }]}>
+            <View style={[styles.glassOverlay, { backgroundColor: 'rgba(255, 255, 255, 0.4)' }]} pointerEvents="none" />
             <MaterialIcons
               name={iconConfig.name}
               size={24}
@@ -119,7 +121,7 @@ export const TimelineCard = React.memo(function TimelineCard({
           onPressIn={handlePressIn}
           onPressOut={handlePressOut}
         >
-          <BlurView intensity={24} tint="light" style={[StyleSheet.absoluteFill, glassStyles.blurContent]} />
+          <BlurView intensity={24} tint={theme.blurTint} style={[StyleSheet.absoluteFill, glassStyles.blurContent]} />
           <View style={styles.cardOverlay} pointerEvents="none" />
           
           <View style={styles.cardContent}>
@@ -128,15 +130,15 @@ export const TimelineCard = React.memo(function TimelineCard({
                  <Text style={[styles.categoryLabel, { color: iconConfig.iconColor }]}>
                    {type.toUpperCase()}
                  </Text>
-                 <Text style={styles.title}>{title}</Text>
+                 <Text style={[styles.title, { color: theme.colors.text.primary }]}>{title}</Text>
                </View>
-               <Text style={styles.timeLabel}>{time}</Text>
+               <Text style={[styles.timeLabel, { color: theme.colors.text.secondary }]}>{time}</Text>
             </View>
 
             <View style={styles.detailsRow}>
               <View style={styles.textContainer}>
-                 <Text style={styles.subtitle}>{subtitle}</Text>
-                 {metadata && <Text style={styles.metadata}>{metadata}</Text>}
+                 <Text style={[styles.subtitle, { color: theme.colors.text.primary }]}>{subtitle}</Text>
+                 {metadata && <Text style={[styles.metadata, { color: theme.colors.text.tertiary }]}>{metadata}</Text>}
               </View>
               
               {thumbnailUrl && (
@@ -153,20 +155,21 @@ export const TimelineCard = React.memo(function TimelineCard({
             <Pressable
               style={({ pressed }) => [
                 styles.actionButton,
-                actionType === 'boardingPass' && styles.actionButtonBlue,
-                actionType === 'directions' && styles.actionButtonOrange,
+                actionType === 'boardingPass' && [styles.actionButtonBlue, { borderColor: theme.glassColors.borderShimmerBlue }],
+                actionType === 'directions' && [styles.actionButtonOrange, { borderColor: theme.glassColors.borderShimmerOrange }],
                 actionType === 'default' && { borderColor: iconConfig.iconColor },
                 pressed && styles.actionButtonPressed,
+                { boxShadow: theme.glassShadows.icon },
               ]}
               onPress={onActionPress}
             >
-              <BlurView intensity={24} tint="light" style={[StyleSheet.absoluteFill, glassStyles.blurContentIcon]} />
+              <BlurView intensity={24} tint={theme.blurTint} style={[StyleSheet.absoluteFill, glassStyles.blurContentIcon]} />
               <View
                 style={[
                   StyleSheet.absoluteFill,
-                  actionType === 'boardingPass' && { backgroundColor: glassColors.overlayBlue },
-                  actionType === 'directions' && { backgroundColor: glassColors.overlayOrange },
-                  actionType === 'default' && styles.actionButtonDefaultOverlay,
+                  actionType === 'boardingPass' && { backgroundColor: theme.glassColors.overlayBlue },
+                  actionType === 'directions' && { backgroundColor: theme.glassColors.overlayOrange },
+                  actionType === 'default' && { backgroundColor: theme.glassColors.overlay },
                 ]}
                 pointerEvents="none"
               />
@@ -177,9 +180,9 @@ export const TimelineCard = React.memo(function TimelineCard({
                     {
                       color:
                         actionType === 'boardingPass'
-                          ? colors.reservation.flight.icon
+                          ? theme.colors.reservation.flight.icon
                           : actionType === 'directions'
-                            ? colors.reservation.hotel.icon
+                            ? theme.colors.reservation.hotel.icon
                             : iconConfig.iconColor,
                     },
                   ]}
@@ -191,9 +194,9 @@ export const TimelineCard = React.memo(function TimelineCard({
                   size={18}
                   color={
                     actionType === 'boardingPass'
-                      ? colors.reservation.flight.icon
+                      ? theme.colors.reservation.flight.icon
                       : actionType === 'directions'
-                        ? colors.reservation.hotel.icon
+                        ? theme.colors.reservation.hotel.icon
                         : iconConfig.iconColor
                   }
                 />
@@ -230,13 +233,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: glassColors.border,
     zIndex: 2,
-    boxShadow: glassShadows.icon,
   },
   glassOverlay: {
     ...glassStyles.cardOverlay,
-    backgroundColor: 'rgba(255, 255, 255, 0.4)',
   },
   cardAnimWrapper: {
     flex: 1,
@@ -266,14 +266,12 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 18,
     fontFamily: fontFamilies.semibold,
-    color: colors.text.primary.light,
     lineHeight: 22,
     letterSpacing: -0.5,
   },
   timeLabel: {
     fontSize: 12,
     fontFamily: fontFamilies.semibold,
-    color: colors.text.secondary.light,
   },
   detailsRow: {
     flexDirection: 'row',
@@ -287,12 +285,10 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 15,
     fontFamily: fontFamilies.semibold,
-    color: colors.text.primary.light,
   },
   metadata: {
     fontSize: 12,
     fontFamily: fontFamilies.semibold,
-    color: colors.text.tertiary.light,
     marginTop: 2,
   },
   actionButton: {
@@ -307,18 +303,12 @@ const styles = StyleSheet.create({
     position: 'relative',
     overflow: 'hidden',
     borderWidth: 2,
-    boxShadow: glassShadows.icon,
   },
   actionButtonBlue: {
     borderWidth: glassConstants.borderWidth.cardThin,
-    borderColor: glassColors.borderShimmerBlue,
   },
   actionButtonOrange: {
     borderWidth: glassConstants.borderWidth.cardThin,
-    borderColor: glassColors.borderShimmerOrange,
-  },
-  actionButtonDefaultOverlay: {
-    backgroundColor: glassColors.overlay,
   },
   actionButtonPressed: {
     opacity: 0.9,

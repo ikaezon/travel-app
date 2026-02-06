@@ -2,8 +2,9 @@ import React from 'react';
 import { View, Text, StyleSheet, Pressable, Animated } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { MaterialIcons } from '@expo/vector-icons';
-import { colors, spacing, fontFamilies, glassStyles, glassColors } from '../../theme';
+import { spacing, fontFamilies, glassStyles } from '../../theme';
 import { usePressAnimation } from '../../hooks';
+import { useTheme } from '../../contexts/ThemeContext';
 
 interface SettingsListItemProps {
   label: string;
@@ -23,25 +24,31 @@ export function SettingsListItem({
   showChevron = true,
   variant = 'default',
 }: SettingsListItemProps) {
+  const theme = useTheme();
   const { scaleAnim, onPressIn, onPressOut } = usePressAnimation();
 
   const content = (
     <View style={variant === 'glass' ? styles.glassContainer : styles.container}>
       <View style={styles.leftContent}>
         {variant === 'glass' ? (
-          <BlurView intensity={50} tint="light" style={[styles.glassIconContainer, glassStyles.blurContentIcon]}>
-            <MaterialIcons name={iconName} size={20} color={colors.primary} />
+          <BlurView intensity={50} tint={theme.blurTint} style={[styles.glassIconContainer, glassStyles.blurContentIcon]}>
+            <MaterialIcons name={iconName} size={20} color={theme.colors.primary} />
           </BlurView>
         ) : (
-          <View style={styles.iconContainer}>
-            <MaterialIcons name={iconName} size={20} color={colors.primary} />
+          <View style={[styles.iconContainer, { backgroundColor: theme.colors.background }]}>
+            <MaterialIcons name={iconName} size={20} color={theme.colors.primary} />
           </View>
         )}
-        <Text style={styles.label}>{label}</Text>
+        <Text style={{
+          fontSize: 16,
+          fontFamily: fontFamilies.medium,
+          color: theme.colors.text.primary,
+          flex: 1,
+        }}>{label}</Text>
       </View>
       {rightElement || (showChevron && (
         <View style={styles.chevronContainer}>
-          <MaterialIcons name="chevron-right" size={20} color={colors.text.tertiary.light} />
+          <MaterialIcons name="chevron-right" size={20} color={theme.colors.text.tertiary} />
         </View>
       ))}
     </View>
@@ -49,7 +56,7 @@ export function SettingsListItem({
 
   if (variant === 'glass') {
     const wrapper = (
-      <BlurView intensity={24} tint="light" style={[styles.glassBlur, glassStyles.blurContent]}>
+      <BlurView intensity={24} tint={theme.blurTint} style={[styles.glassBlur, glassStyles.blurContent]}>
         <View style={styles.glassOverlay} pointerEvents="none" />
         {content}
       </BlurView>
@@ -90,7 +97,7 @@ const styles = StyleSheet.create({
     minHeight: 56,
   },
   pressed: {
-    backgroundColor: colors.background.light,
+    opacity: 0.7,
   },
   container: {
     flexDirection: 'row',
@@ -114,7 +121,6 @@ const styles = StyleSheet.create({
   },
   glassOverlay: {
     ...glassStyles.cardOverlay,
-    backgroundColor: glassColors.overlayStrong,
   },
   glassContainer: {
     flexDirection: 'row',
@@ -133,7 +139,6 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 12,
-    backgroundColor: colors.background.light,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -144,12 +149,6 @@ const styles = StyleSheet.create({
     padding: 10,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  label: {
-    fontSize: 16,
-    fontFamily: fontFamilies.medium,
-    color: colors.text.primary.light,
-    flex: 1,
   },
   chevronContainer: {
     paddingLeft: spacing.sm,

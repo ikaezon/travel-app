@@ -15,13 +15,11 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useTripMapData } from '../../hooks/useTripMapData';
 import { mockImages } from '../../data/mocks';
 import {
-  colors,
   fontFamilies,
   glassStyles,
-  glassColors,
-  glassShadows,
 } from '../../theme';
 import { usePressAnimation } from '../../hooks';
+import { useTheme } from '../../contexts/ThemeContext';
 
 interface TripMapPreviewProps {
   tripId: string;
@@ -33,6 +31,7 @@ interface TripMapPreviewProps {
  * Falls back to a placeholder image when geocoding is unavailable or returns no results.
  */
 export function TripMapPreview({ tripId, onExpandPress }: TripMapPreviewProps) {
+  const theme = useTheme();
   const { region, markers, isLoading, hasData } = useTripMapData(tripId, {
     destinationOnly: true,
   });
@@ -45,17 +44,17 @@ export function TripMapPreview({ tripId, onExpandPress }: TripMapPreviewProps) {
   }, [onExpandPress]);
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { boxShadow: theme.glassShadows.elevated }]}>
       <BlurView
         intensity={24}
-        tint="light"
+        tint={theme.blurTint}
         style={[StyleSheet.absoluteFill, glassStyles.blurContent]}
       />
-      <View style={styles.glassOverlay} pointerEvents="none" />
+      <View style={[styles.glassOverlay, { backgroundColor: theme.glassColors.overlayStrong }]} pointerEvents="none" />
 
       {isLoading && (
         <View style={styles.centeredContent}>
-          <ActivityIndicator size="large" color={colors.primary} />
+          <ActivityIndicator size="large" color={theme.colors.primary} />
         </View>
       )}
 
@@ -82,7 +81,7 @@ export function TripMapPreview({ tripId, onExpandPress }: TripMapPreviewProps) {
                 longitude: marker.longitude,
               }}
               title={marker.title}
-              pinColor={marker.isDestination ? colors.primary : colors.status.error}
+              pinColor={marker.isDestination ? theme.colors.primary : theme.colors.status.error}
             />
           ))}
         </MapView>
@@ -98,9 +97,9 @@ export function TripMapPreview({ tripId, onExpandPress }: TripMapPreviewProps) {
             <MaterialIcons
               name="location-off"
               size={24}
-              color={colors.text.tertiary.light}
+              color={theme.colors.text.tertiary}
             />
-            <Text style={styles.fallbackText}>No location data</Text>
+            <Text style={[styles.fallbackText, { color: theme.colors.text.tertiary }]}>No location data</Text>
           </View>
         </ImageBackground>
       )}
@@ -116,11 +115,11 @@ export function TripMapPreview({ tripId, onExpandPress }: TripMapPreviewProps) {
       >
         <BlurView
           intensity={40}
-          tint="light"
-          style={[styles.expandBadgeBlur, glassStyles.blurContentPill]}
+          tint={theme.blurTint}
+          style={[styles.expandBadgeBlur, glassStyles.blurContentPill, { borderColor: theme.glassColors.borderStrong }]}
         >
-          <MaterialIcons name="map" size={14} color={colors.primary} />
-          <Text style={styles.expandBadgeText}>Expand View</Text>
+          <MaterialIcons name="map" size={14} color={theme.colors.primary} />
+          <Text style={[styles.expandBadgeText, { color: theme.colors.text.primary }]}>Expand View</Text>
         </BlurView>
       </Pressable>
       </Animated.View>
@@ -134,12 +133,10 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 180,
     borderWidth: 1,
-    boxShadow: glassShadows.elevated,
     overflow: 'hidden',
   },
   glassOverlay: {
     ...glassStyles.cardOverlay,
-    backgroundColor: glassColors.overlayStrong,
   },
   centeredContent: {
     ...StyleSheet.absoluteFillObject,
@@ -165,7 +162,6 @@ const styles = StyleSheet.create({
   fallbackText: {
     fontSize: 12,
     fontFamily: fontFamilies.medium,
-    color: colors.text.tertiary.light,
   },
   expandBadge: {
     position: 'absolute',
@@ -181,11 +177,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: 20,
-    borderColor: glassColors.borderStrong,
   },
   expandBadgeText: {
     fontSize: 13,
     fontFamily: fontFamilies.semibold,
-    color: colors.text.primary.light,
   },
 });

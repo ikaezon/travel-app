@@ -21,16 +21,16 @@ import { FormInput } from '../../components/ui/FormInput';
 import { DateRangePickerInput } from '../../components/ui/DateRangePickerInput';
 import { ShimmerButton } from '../../components/ui/ShimmerButton';
 import {
-  colors,
   spacing,
   fontFamilies,
   glassStyles,
-  glassColors,
 } from '../../theme';
 import { MainStackParamList } from '../../navigation/types';
 import { useCreateTrip, usePressAnimation } from '../../hooks';
 import { formatCalendarDateToDisplay, daysBetween } from '../../utils/dateFormat';
+import { fetchCoverImageForDestination, isCoverImageAvailable } from '../../data/services';
 import type { Trip } from '../../types';
+import { useTheme } from '../../contexts/ThemeContext';
 
 const DEFAULT_IMAGE_URL =
   'https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=800';
@@ -44,6 +44,7 @@ function formatDateRangeDisplay(startDate: string, endDate: string): string {
 type NavigationProp = NativeStackNavigationProp<MainStackParamList, 'CreateTrip'>;
 
 export default function CreateTripScreen() {
+  const theme = useTheme();
   const navigation = useNavigation<NavigationProp>();
   const insets = useSafeAreaInsets();
   const { createTrip, isSubmitting } = useCreateTrip();
@@ -98,11 +99,21 @@ export default function CreateTripScreen() {
       const dateRangeValue = dateRangeDisplay?.trim() || 'TBD';
       const durationLabelValue = durationLabel?.trim() || 'TBD';
 
+      // Determine final image URL
+      let finalImageUrl = imageUrl.trim();
+      if (!finalImageUrl && isCoverImageAvailable()) {
+        // Fetch destination-based cover image from Unsplash
+        const coverUrl = await fetchCoverImageForDestination(trimmedDestination);
+        finalImageUrl = coverUrl || DEFAULT_IMAGE_URL;
+      } else if (!finalImageUrl) {
+        finalImageUrl = DEFAULT_IMAGE_URL;
+      }
+
       const tripData: Omit<Trip, 'id'> = {
         destination: trimmedDestination,
         dateRange: dateRangeValue,
         durationLabel: durationLabelValue,
-        imageUrl: imageUrl.trim() || DEFAULT_IMAGE_URL,
+        imageUrl: finalImageUrl,
         status: 'upcoming',
         iconName: 'airplane-ticket',
       };
@@ -126,7 +137,7 @@ export default function CreateTripScreen() {
 
   return (
     <LinearGradient
-      colors={[colors.gradient.start, colors.gradient.middle, colors.gradient.end]}
+      colors={theme.gradient}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
       style={styles.gradientContainer}
@@ -181,8 +192,8 @@ export default function CreateTripScreen() {
         </ScrollView>
 
         <View style={[styles.headerContainer, { top: topOffset }]}>
-          <BlurView intensity={24} tint="light" style={[styles.headerBlur, glassStyles.blurContentLarge]}>
-            <View style={styles.glassOverlay} pointerEvents="none" />
+          <BlurView intensity={24} tint={theme.blurTint} style={[styles.headerBlur, glassStyles.blurContentLarge]}>
+            <View style={[styles.glassOverlay, { backgroundColor: theme.glassColors.overlayStrong }]} pointerEvents="none" />
             <View style={styles.headerContent}>
               <Animated.View style={{ transform: [{ scale: backAnim.scaleAnim }] }}>
               <Pressable
@@ -196,11 +207,11 @@ export default function CreateTripScreen() {
                 <MaterialIcons
                   name="arrow-back"
                   size={22}
-                  color={colors.text.primary.light}
+                  color={theme.colors.text.primary}
                 />
               </Pressable>
               </Animated.View>
-              <Text style={styles.headerTitle}>New Trip</Text>
+              <Text style={[styles.headerTitle, { color: theme.colors.text.primary }]}>New Trip</Text>
               <View style={styles.headerSpacer} />
             </View>
           </BlurView>
@@ -240,7 +251,6 @@ const styles = StyleSheet.create({
   },
   glassOverlay: {
     ...glassStyles.cardOverlay,
-    backgroundColor: glassColors.overlayStrong,
   },
   backButton: {
     width: 36,
@@ -251,7 +261,6 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 16,
     fontFamily: fontFamilies.semibold,
-    color: colors.text.primary.light,
     letterSpacing: -0.3,
   },
   headerSpacer: {

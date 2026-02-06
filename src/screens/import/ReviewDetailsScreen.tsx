@@ -21,9 +21,10 @@ import { DatePickerInput } from '../../components/ui/DatePickerInput';
 import { TimePickerInput } from '../../components/ui/TimePickerInput';
 import { ShimmerButton } from '../../components/ui/ShimmerButton';
 import { MainStackParamList } from '../../navigation/types';
-import { colors, fontFamilies, glassStyles, glassColors } from '../../theme';
+import { fontFamilies, glassStyles } from '../../theme';
 import { mockImages, mockReviewDetailsDefaults } from '../../data/mocks';
 import { usePressAnimation } from '../../hooks';
+import { useTheme } from '../../contexts/ThemeContext';
 
 type NavigationProp = NativeStackNavigationProp<MainStackParamList>;
 type ReviewDetailsRouteProp = RouteProp<MainStackParamList, 'ReviewDetails'>;
@@ -43,6 +44,7 @@ interface ReviewDetailsScreenProps {
 export default function ReviewDetailsScreen({
   initialData = {},
 }: ReviewDetailsScreenProps) {
+  const theme = useTheme();
   const navigation = useNavigation<NavigationProp>();
   const route = useRoute<ReviewDetailsRouteProp>();
   const insets = useSafeAreaInsets();
@@ -86,7 +88,7 @@ export default function ReviewDetailsScreen({
 
   return (
     <LinearGradient
-      colors={[colors.gradient.start, colors.gradient.middle, colors.gradient.end]}
+      colors={theme.gradient}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
       style={styles.gradientContainer}
@@ -107,21 +109,21 @@ export default function ReviewDetailsScreen({
           <View style={styles.sourceSection}>
             <Animated.View style={{ transform: [{ scale: sourceAnim.scaleAnim }] }}>
             <Pressable style={styles.sourceCard} onPressIn={sourceAnim.onPressIn} onPressOut={sourceAnim.onPressOut}>
-              <BlurView intensity={24} tint="light" style={[StyleSheet.absoluteFill, glassStyles.blurContent]} />
+              <BlurView intensity={24} tint={theme.blurTint} style={[StyleSheet.absoluteFill, glassStyles.blurContent]} />
               <View style={styles.sourceCardInner}>
-                <View style={styles.glassOverlay} pointerEvents="none" />
+                <View style={[styles.glassOverlay, { backgroundColor: theme.glassColors.overlayStrong }]} pointerEvents="none" />
                 <View style={styles.sourceContent}>
                 <View style={styles.sourceInfo}>
                   <View style={styles.sourceHeader}>
-                    <MaterialIcons name="document-scanner" size={20} color={colors.primary} />
-                    <Text style={styles.sourceLabel}>SOURCE</Text>
+                    <MaterialIcons name="document-scanner" size={20} color={theme.colors.primary} />
+                    <Text style={[styles.sourceLabel, { color: theme.colors.text.secondary }]}>SOURCE</Text>
                   </View>
-                  <Text style={styles.sourceTitle}>Original Screenshot</Text>
-                  <Text style={styles.sourceSubtitle}>
+                  <Text style={[styles.sourceTitle, { color: theme.colors.text.primary }]}>Original Screenshot</Text>
+                  <Text style={[styles.sourceSubtitle, { color: theme.colors.text.secondary }]}>
                     Tap to expand and verify details
                   </Text>
                 </View>
-                <Pressable style={styles.thumbnailContainer}>
+                <Pressable style={[styles.thumbnailContainer, { borderColor: theme.glassColors.border }]}>
                   <ImageBackground
                     source={{ uri: sourceImageUrl }}
                     style={styles.thumbnail}
@@ -139,8 +141,8 @@ export default function ReviewDetailsScreen({
           </View>
 
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Flight Information</Text>
-            <Text style={styles.sectionSubtitle}>
+            <Text style={[styles.sectionTitle, { color: theme.colors.text.primary }]}>Flight Information</Text>
+            <Text style={[styles.sectionSubtitle, { color: theme.colors.text.secondary }]}>
               AI has auto-filled these details. Please verify.
             </Text>
           </View>
@@ -154,7 +156,7 @@ export default function ReviewDetailsScreen({
               }
               iconName="flight"
               rightIconName="check-circle"
-              rightIconColor={colors.status.success}
+              rightIconColor={theme.colors.status.success}
               variant="glass"
             />
             <FormInput
@@ -165,7 +167,7 @@ export default function ReviewDetailsScreen({
               }
               iconName="confirmation-number"
               rightIconName="check-circle"
-              rightIconColor={colors.status.success}
+              rightIconColor={theme.colors.status.success}
               variant="glass"
             />
             <View style={styles.rowContainer}>
@@ -204,7 +206,7 @@ export default function ReviewDetailsScreen({
               style={styles.topMargin}
               labelRight={
                 <Pressable>
-                  <Text style={styles.labelLink}>Not found?</Text>
+                  <Text style={[styles.labelLink, { color: theme.colors.primary }]}>Not found?</Text>
                 </Pressable>
               }
               variant="glass"
@@ -222,8 +224,8 @@ export default function ReviewDetailsScreen({
         </View>
 
         <View style={[styles.headerContainer, { top: topOffset }]}>
-          <BlurView intensity={24} tint="light" style={[styles.headerBlur, glassStyles.blurContentLarge]}>
-            <View style={styles.glassOverlay} pointerEvents="none" />
+          <BlurView intensity={24} tint={theme.blurTint} style={[styles.headerBlur, glassStyles.blurContentLarge]}>
+            <View style={[styles.glassOverlay, { backgroundColor: theme.glassColors.overlayStrong }]} pointerEvents="none" />
             <View style={styles.headerContent}>
               <Animated.View style={{ transform: [{ scale: backAnim.scaleAnim }] }}>
               <Pressable
@@ -232,13 +234,13 @@ export default function ReviewDetailsScreen({
                 onPressIn={backAnim.onPressIn}
                 onPressOut={backAnim.onPressOut}
               >
-                <MaterialIcons name="arrow-back" size={22} color={colors.text.primary.light} />
+                <MaterialIcons name="arrow-back" size={22} color={theme.colors.text.primary} />
               </Pressable>
               </Animated.View>
-              <Text style={styles.headerTitle}>Review Details</Text>
+              <Text style={[styles.headerTitle, { color: theme.colors.text.primary }]}>Review Details</Text>
               <Animated.View style={{ transform: [{ scale: helpAnim.scaleAnim }] }}>
               <Pressable style={styles.helpButton} onPressIn={helpAnim.onPressIn} onPressOut={helpAnim.onPressOut}>
-                <Text style={styles.helpText}>Help</Text>
+                <Text style={[styles.helpText, { color: theme.colors.primary }]}>Help</Text>
               </Pressable>
               </Animated.View>
             </View>
@@ -279,7 +281,6 @@ const styles = StyleSheet.create({
   },
   glassOverlay: {
     ...glassStyles.cardOverlay,
-    backgroundColor: glassColors.overlayStrong,
   },
   headerButton: {
     width: 36,
@@ -292,7 +293,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontSize: 16,
     fontFamily: fontFamilies.semibold,
-    color: colors.text.primary.light,
     letterSpacing: -0.3,
   },
   helpButton: {
@@ -303,7 +303,6 @@ const styles = StyleSheet.create({
   helpText: {
     fontSize: 16,
     fontFamily: fontFamilies.semibold,
-    color: colors.primary,
   },
   scrollView: {
     flex: 1,
@@ -354,18 +353,15 @@ const styles = StyleSheet.create({
     fontFamily: fontFamilies.semibold,
     textTransform: 'uppercase',
     letterSpacing: 1,
-    color: colors.text.secondary.light,
   },
   sourceTitle: {
     fontSize: 14,
     fontFamily: fontFamilies.semibold,
-    color: colors.text.primary.light,
     lineHeight: 18,
   },
   sourceSubtitle: {
     fontSize: 12,
     fontFamily: fontFamilies.regular,
-    color: colors.text.secondary.light,
     lineHeight: 16,
   },
   thumbnailContainer: {
@@ -374,7 +370,6 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     overflow: 'hidden',
     borderWidth: 2,
-    borderColor: glassColors.border,
   },
   thumbnail: {
     width: '100%',
@@ -396,13 +391,11 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 20,
     fontFamily: fontFamilies.semibold,
-    color: colors.text.primary.light,
     lineHeight: 28,
   },
   sectionSubtitle: {
     fontSize: 14,
     fontFamily: fontFamilies.regular,
-    color: colors.text.secondary.light,
     marginTop: 4,
   },
   formContainer: {
@@ -421,7 +414,6 @@ const styles = StyleSheet.create({
   labelLink: {
     fontSize: 12,
     fontFamily: fontFamilies.semibold,
-    color: colors.primary,
   },
   bottomActions: {
     position: 'absolute',

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import {
   View,
   Text,
@@ -17,14 +17,13 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { SettingsListItem } from '../../components/ui/SettingsListItem';
 import { ToggleSwitch } from '../../components/ui/ToggleSwitch';
 import {
-  colors,
   spacing,
   borderRadius,
   fontFamilies,
   glassStyles,
-  glassColors,
 } from '../../theme';
 import { useProfileUser, useAppSettings, usePressAnimation } from '../../hooks';
+import { useTheme } from '../../contexts/ThemeContext';
 
 interface ProfileScreenProps {
   onEditPress?: () => void;
@@ -45,10 +44,10 @@ export default function ProfileScreen({
   onHelpCenterPress,
   onLogOutPress,
 }: ProfileScreenProps) {
+  const theme = useTheme();
   const insets = useSafeAreaInsets();
   const { user, isLoading: userLoading } = useProfileUser();
-  const { settings, isLoading: settingsLoading, updateSettings } = useAppSettings();
-  const [darkMode, setDarkMode] = useState(false);
+  const { settings, isLoading: settingsLoading } = useAppSettings();
 
   const isLoading = userLoading || settingsLoading;
   const topOffset = insets.top + 8;
@@ -56,19 +55,10 @@ export default function ProfileScreen({
   const signOutAnim = usePressAnimation();
   const editAnim = usePressAnimation();
 
-  useEffect(() => {
-    if (settings?.darkMode !== undefined) {
-      setDarkMode(settings.darkMode);
-    }
-  }, [settings?.darkMode]);
-
   const handleDarkModeToggle = async (value: boolean) => {
-    const previous = darkMode;
-    setDarkMode(value);
     try {
-      await updateSettings({ darkMode: value });
+      await theme.setDarkMode(value);
     } catch {
-      setDarkMode(previous);
       Alert.alert(
         'Settings',
         'Could not save preference. Please try again.',
@@ -80,27 +70,27 @@ export default function ProfileScreen({
   if (isLoading) {
     return (
       <LinearGradient
-        colors={[colors.gradient.start, colors.gradient.middle, colors.gradient.end]}
+        colors={theme.gradient}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={styles.gradientContainer}
       >
         <View style={styles.container}>
           <View style={[styles.topNavContainer, { top: topOffset }]}>
-            <BlurView intensity={24} tint="light" style={[styles.topNavBlur, glassStyles.blurContentLarge]}>
-              <View style={styles.glassOverlay} pointerEvents="none" />
+            <BlurView intensity={24} tint={theme.blurTint} style={[styles.topNavBlur, glassStyles.blurContentLarge]}>
+              <View style={[styles.glassOverlay, { backgroundColor: theme.glassColors.overlayStrong }]} pointerEvents="none" />
               <View style={styles.topNavContent}>
                 <View style={styles.navButton} />
                 <View style={styles.headerCenter}>
-                  <Text style={styles.headerLabel}>Profile</Text>
-                  <Text style={styles.headerTitle}>Settings</Text>
+                  <Text style={[styles.headerLabel, { color: theme.colors.primary }]}>Profile</Text>
+                  <Text style={[styles.headerTitle, { color: theme.colors.text.primary }]}>Settings</Text>
                 </View>
                 <View style={styles.navButton} />
               </View>
             </BlurView>
           </View>
           <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color={colors.primary} />
+            <ActivityIndicator size="large" color={theme.colors.primary} />
           </View>
         </View>
       </LinearGradient>
@@ -109,7 +99,7 @@ export default function ProfileScreen({
 
   return (
     <LinearGradient
-      colors={[colors.gradient.start, colors.gradient.middle, colors.gradient.end]}
+      colors={theme.gradient}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
       style={styles.gradientContainer}
@@ -128,21 +118,21 @@ export default function ProfileScreen({
               onPressIn={profileAnim.onPressIn}
               onPressOut={profileAnim.onPressOut}
             >
-              <BlurView intensity={24} tint="light" style={[styles.profileCardBlur, glassStyles.blurContent]}>
-                <View style={styles.glassOverlay} pointerEvents="none" />
+              <BlurView intensity={24} tint={theme.blurTint} style={[styles.profileCardBlur, glassStyles.blurContent]}>
+                <View style={[styles.glassOverlay, { backgroundColor: theme.glassColors.overlayStrong }]} pointerEvents="none" />
                 <View style={styles.profileContent}>
                   <View style={styles.profileImageContainer}>
-                    <Image source={{ uri: user?.photoUrl }} style={styles.profileImage} />
+                    <Image source={{ uri: user?.photoUrl }} style={[styles.profileImage, { borderColor: theme.colors.white, shadowColor: theme.colors.black }]} />
                     {user?.isPro && (
-                      <View style={styles.proBadge}>
-                        <Text style={styles.proBadgeText}>PRO</Text>
+                      <View style={[styles.proBadge, { backgroundColor: theme.colors.primary, borderColor: theme.colors.white }]}>
+                        <Text style={[styles.proBadgeText, { color: theme.colors.white }]}>PRO</Text>
                       </View>
                     )}
                   </View>
                   <View style={styles.userInfo}>
-                    <Text style={styles.userName}>{user?.name || 'User'}</Text>
-                    <Text style={styles.userTitle}>{user?.title || ''}</Text>
-                    <Text style={styles.memberSince}>
+                    <Text style={[styles.userName, { color: theme.colors.text.primary }]}>{user?.name || 'User'}</Text>
+                    <Text style={[styles.userTitle, { color: theme.colors.text.secondary }]}>{user?.title || ''}</Text>
+                    <Text style={[styles.memberSince, { color: theme.colors.text.secondary }]}>
                       Member since {user?.memberSince || ''}
                     </Text>
                   </View>
@@ -153,7 +143,7 @@ export default function ProfileScreen({
           </View>
 
           <View style={styles.section}>
-            <Text style={styles.sectionHeader}>ACCOUNT SETTINGS</Text>
+            <Text style={[styles.sectionHeader, { color: theme.colors.text.secondary }]}>ACCOUNT SETTINGS</Text>
             <View style={styles.cardsContainer}>
               <SettingsListItem
                 label="Connected Accounts"
@@ -171,7 +161,7 @@ export default function ProfileScreen({
           </View>
 
           <View style={styles.section}>
-            <Text style={styles.sectionHeader}>PREFERENCES</Text>
+            <Text style={[styles.sectionHeader, { color: theme.colors.text.secondary }]}>PREFERENCES</Text>
             <View style={styles.cardsContainer}>
               <SettingsListItem
                 label="Notifications"
@@ -190,7 +180,7 @@ export default function ProfileScreen({
                 iconName="dark-mode"
                 showChevron={false}
                 rightElement={
-                  <ToggleSwitch value={darkMode} onValueChange={handleDarkModeToggle} />
+                  <ToggleSwitch value={theme.isDark} onValueChange={handleDarkModeToggle} />
                 }
                 variant="glass"
               />
@@ -198,7 +188,7 @@ export default function ProfileScreen({
           </View>
 
           <View style={styles.section}>
-            <Text style={styles.sectionHeader}>SUPPORT</Text>
+            <Text style={[styles.sectionHeader, { color: theme.colors.text.secondary }]}>SUPPORT</Text>
             <View style={styles.cardsContainer}>
               <SettingsListItem
                 label="Help Center"
@@ -217,29 +207,29 @@ export default function ProfileScreen({
               onPressIn={signOutAnim.onPressIn}
               onPressOut={signOutAnim.onPressOut}
             >
-              <BlurView intensity={24} tint="light" style={[styles.signOutBlur, glassStyles.blurContent]}>
+              <BlurView intensity={24} tint={theme.blurTint} style={[styles.signOutBlur, glassStyles.blurContent]}>
                 <View style={[styles.glassOverlay, styles.signOutOverlay]} pointerEvents="none" />
                 <View style={styles.signOutContent}>
-                  <MaterialIcons name="logout" size={20} color={colors.status.error} />
-                  <Text style={styles.signOutText}>Log Out</Text>
+                  <MaterialIcons name="logout" size={20} color={theme.colors.status.error} />
+                  <Text style={[styles.signOutText, { color: theme.colors.status.error }]}>Log Out</Text>
                 </View>
               </BlurView>
             </Pressable>
             </Animated.View>
-            <Text style={styles.versionText}>
+            <Text style={[styles.versionText, { color: theme.colors.text.tertiary }]}>
               Version {settings?.appVersion || '1.0.0'}
             </Text>
           </View>
         </ScrollView>
 
         <View style={[styles.topNavContainer, { top: topOffset }]}>
-          <BlurView intensity={24} tint="light" style={[styles.topNavBlur, glassStyles.blurContentLarge]}>
-            <View style={styles.glassOverlay} pointerEvents="none" />
+          <BlurView intensity={24} tint={theme.blurTint} style={[styles.topNavBlur, glassStyles.blurContentLarge]}>
+            <View style={[styles.glassOverlay, { backgroundColor: theme.glassColors.overlayStrong }]} pointerEvents="none" />
             <View style={styles.topNavContent}>
               <View style={styles.navButton} />
               <View style={styles.headerCenter}>
-                <Text style={styles.headerLabel}>Profile</Text>
-                <Text style={styles.headerTitle}>Settings</Text>
+                <Text style={[styles.headerLabel, { color: theme.colors.primary }]}>Profile</Text>
+                <Text style={[styles.headerTitle, { color: theme.colors.text.primary }]}>Settings</Text>
               </View>
               <Animated.View style={{ transform: [{ scale: editAnim.scaleAnim }] }}>
               <Pressable
@@ -248,7 +238,7 @@ export default function ProfileScreen({
                 onPressIn={editAnim.onPressIn}
                 onPressOut={editAnim.onPressOut}
               >
-                <Text style={styles.editText}>Edit</Text>
+                <Text style={[styles.editText, { color: theme.colors.primary }]}>Edit</Text>
               </Pressable>
               </Animated.View>
             </View>
@@ -299,7 +289,6 @@ const styles = StyleSheet.create({
   headerLabel: {
     fontSize: 9,
     fontFamily: fontFamilies.semibold,
-    color: colors.primary,
     textTransform: 'uppercase',
     letterSpacing: 2,
     marginBottom: 1,
@@ -308,17 +297,14 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 16,
     fontFamily: fontFamilies.semibold,
-    color: colors.text.primary.light,
     letterSpacing: -0.3,
   },
   editText: {
     fontSize: 16,
     fontFamily: fontFamilies.semibold,
-    color: colors.primary,
   },
   glassOverlay: {
     ...glassStyles.cardOverlay,
-    backgroundColor: glassColors.overlayStrong,
   },
   loadingContainer: {
     flex: 1,
@@ -341,7 +327,6 @@ const styles = StyleSheet.create({
     fontFamily: fontFamilies.semibold,
     textTransform: 'uppercase',
     letterSpacing: 1,
-    color: colors.text.secondary.light,
     paddingLeft: 4,
   },
   cardsContainer: {
@@ -367,8 +352,6 @@ const styles = StyleSheet.create({
     height: 128,
     borderRadius: 64,
     borderWidth: 4,
-    borderColor: colors.white,
-    shadowColor: colors.black,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.15,
     shadowRadius: 12,
@@ -378,17 +361,14 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 4,
     right: 4,
-    backgroundColor: colors.primary,
     paddingHorizontal: spacing.sm,
     paddingVertical: spacing.xxs,
     borderRadius: borderRadius.full,
     borderWidth: 2,
-    borderColor: colors.white,
   },
   proBadgeText: {
     fontSize: 12,
     fontFamily: fontFamilies.semibold,
-    color: colors.white,
   },
   userInfo: {
     alignItems: 'center',
@@ -397,21 +377,18 @@ const styles = StyleSheet.create({
   userName: {
     fontSize: 22,
     fontFamily: fontFamilies.semibold,
-    color: colors.text.primary.light,
     letterSpacing: -0.3,
     textAlign: 'center',
   },
   userTitle: {
     fontSize: 14,
     fontFamily: fontFamilies.regular,
-    color: colors.text.secondary.light,
     textAlign: 'center',
     marginTop: spacing.xs,
   },
   memberSince: {
     fontSize: 12,
     fontFamily: fontFamilies.regular,
-    color: colors.text.secondary.light,
     opacity: 0.7,
     marginTop: spacing.xs,
   },
@@ -439,12 +416,10 @@ const styles = StyleSheet.create({
   signOutText: {
     fontSize: 16,
     fontFamily: fontFamilies.semibold,
-    color: colors.status.error,
   },
   versionText: {
     fontSize: 12,
     fontFamily: fontFamilies.regular,
-    color: colors.text.tertiary.light,
     textAlign: 'center',
     marginTop: spacing.sm,
   },

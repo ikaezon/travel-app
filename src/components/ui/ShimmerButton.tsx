@@ -3,8 +3,9 @@ import { Text, StyleSheet, Pressable, View, ActivityIndicator, Animated } from '
 import { BlurView } from 'expo-blur';
 import { MaterialIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { colors, fontFamilies, glassStyles, glassColors, glassConstants, glassShadows, borderRadius } from '../../theme';
+import { fontFamilies, glassStyles, glassConstants, borderRadius } from '../../theme';
 import { usePressAnimation } from '../../hooks';
+import { useTheme } from '../../contexts/ThemeContext';
 
 interface ShimmerButtonProps {
   label: string;
@@ -24,6 +25,7 @@ export function ShimmerButton({
   loading = false,
   variant = 'default',
 }: ShimmerButtonProps) {
+  const theme = useTheme();
   const isDisabled = disabled || loading;
   const { scaleAnim, onPressIn, onPressOut } = usePressAnimation();
 
@@ -33,6 +35,10 @@ export function ShimmerButton({
       <Pressable
         style={[
           styles.boardingPassWrapper,
+          {
+            borderColor: theme.glassColors.borderShimmerBlue,
+            boxShadow: theme.glassShadows.icon,
+          },
           isDisabled && styles.buttonDisabled,
         ]}
         onPress={onPress}
@@ -40,17 +46,17 @@ export function ShimmerButton({
         onPressOut={onPressOut}
         disabled={isDisabled}
       >
-        <BlurView intensity={24} tint="light" style={[StyleSheet.absoluteFill, glassStyles.blurContent]} />
-        <View style={styles.boardingPassOverlay} pointerEvents="none" />
+        <BlurView intensity={24} tint={theme.blurTint} style={[StyleSheet.absoluteFill, glassStyles.blurContent]} />
+        <View style={[styles.boardingPassOverlay, { backgroundColor: theme.glassColors.overlayBlue }]} pointerEvents="none" />
         <View style={styles.content}>
           {loading ? (
-            <ActivityIndicator size="small" color={colors.reservation.flight.icon} />
+            <ActivityIndicator size="small" color={theme.colors.reservation.flight.icon} />
           ) : (
             <>
               {iconName && (
-                <MaterialIcons name={iconName} size={24} color={colors.reservation.flight.icon} />
+                <MaterialIcons name={iconName} size={24} color={theme.colors.reservation.flight.icon} />
               )}
-              <Text style={styles.boardingPassLabel}>{label}</Text>
+              <Text style={[styles.boardingPassLabel, { color: theme.colors.reservation.flight.icon }]}>{label}</Text>
             </>
           )}
         </View>
@@ -64,6 +70,10 @@ export function ShimmerButton({
     <Pressable
       style={[
         styles.button,
+        {
+          backgroundColor: theme.colors.primary,
+          shadowColor: theme.colors.primary,
+        },
         isDisabled && styles.buttonDisabled,
       ]}
       onPress={onPress}
@@ -99,11 +109,9 @@ const styles = StyleSheet.create({
   button: {
     height: 56,
     borderRadius: borderRadius.lg,
-    backgroundColor: colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
     overflow: 'hidden',
-    shadowColor: colors.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.25,
     shadowRadius: 20,
@@ -114,20 +122,16 @@ const styles = StyleSheet.create({
     borderRadius: glassConstants.radius.card,
     overflow: 'hidden',
     borderWidth: glassConstants.borderWidth.cardThin,
-    borderColor: glassColors.borderShimmerBlue,
-    boxShadow: glassShadows.icon,
     position: 'relative',
     justifyContent: 'center',
     alignItems: 'center',
   },
   boardingPassOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: glassColors.overlayBlue,
   },
   boardingPassLabel: {
     fontSize: 16,
     fontFamily: fontFamilies.semibold,
-    color: colors.reservation.flight.icon,
     letterSpacing: 0.3,
   },
   buttonDisabled: {
@@ -149,7 +153,7 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 16,
     fontFamily: fontFamilies.semibold,
-    color: colors.white,
+    color: 'white',
     letterSpacing: 0.3,
   },
 });

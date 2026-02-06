@@ -7,39 +7,31 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import {
-  colors,
   spacing,
   fontFamilies,
   glassStyles,
-  glassColors,
 } from '../../theme';
 import { MainStackParamList } from '../../navigation/types';
 import { usePressAnimation } from '../../hooks';
-
-const MANUAL_ENTRY_OPTIONS = [
-  {
-    id: 'flight',
-    title: 'Flight',
-    subtitle: 'Add flight details',
-    iconName: 'flight' as const,
-    iconColor: colors.reservation.flight.icon,
-    iconBgColor: colors.reservation.flight.bg,
-    route: 'FlightEntry' as const,
-  },
-  {
-    id: 'lodging',
-    title: 'Lodging',
-    subtitle: 'Add hotel or stay details',
-    iconName: 'hotel' as const,
-    iconColor: colors.reservation.hotel.icon,
-    iconBgColor: colors.reservation.hotel.bg,
-    route: 'LodgingEntry' as const,
-  },
-];
+import { useTheme } from '../../contexts/ThemeContext';
 
 type NavigationProp = NativeStackNavigationProp<MainStackParamList>;
 
-function OptionCard({ option, onPress }: { option: typeof MANUAL_ENTRY_OPTIONS[number]; onPress: () => void }) {
+interface OptionCardProps {
+  option: {
+    id: string;
+    title: string;
+    subtitle: string;
+    iconName: 'flight' | 'hotel';
+    iconColor: string;
+    iconBgColor: string;
+    route: 'FlightEntry' | 'LodgingEntry';
+  };
+  onPress: () => void;
+  theme: ReturnType<typeof useTheme>;
+}
+
+function OptionCard({ option, onPress, theme }: OptionCardProps) {
   const { scaleAnim, onPressIn, onPressOut } = usePressAnimation();
   return (
     <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
@@ -49,17 +41,17 @@ function OptionCard({ option, onPress }: { option: typeof MANUAL_ENTRY_OPTIONS[n
         onPressIn={onPressIn}
         onPressOut={onPressOut}
       >
-        <BlurView intensity={24} tint="light" style={[styles.optionCardBlur, glassStyles.blurContent]}>
-          <View style={styles.glassOverlay} pointerEvents="none" />
+        <BlurView intensity={24} tint={theme.blurTint} style={[styles.optionCardBlur, glassStyles.blurContent]}>
+          <View style={[styles.glassOverlay, { backgroundColor: theme.glassColors.overlayStrong }]} pointerEvents="none" />
           <View style={styles.optionCardContent}>
             <View style={[styles.optionIconContainer, { backgroundColor: option.iconBgColor }]}>
               <MaterialIcons name={option.iconName} size={28} color={option.iconColor} />
             </View>
             <View style={styles.optionTextContainer}>
-              <Text style={styles.optionTitle}>{option.title}</Text>
-              <Text style={styles.optionSubtitle}>{option.subtitle}</Text>
+              <Text style={[styles.optionTitle, { color: theme.colors.text.primary }]}>{option.title}</Text>
+              <Text style={[styles.optionSubtitle, { color: theme.colors.text.secondary }]}>{option.subtitle}</Text>
             </View>
-            <MaterialIcons name="chevron-right" size={24} color={colors.text.secondary.light} />
+            <MaterialIcons name="chevron-right" size={24} color={theme.colors.text.secondary} />
           </View>
         </BlurView>
       </Pressable>
@@ -68,35 +60,58 @@ function OptionCard({ option, onPress }: { option: typeof MANUAL_ENTRY_OPTIONS[n
 }
 
 export default function ManualEntryOptionsScreen() {
+  const theme = useTheme();
   const navigation = useNavigation<NavigationProp>();
   const insets = useSafeAreaInsets();
   const topOffset = insets.top + 8;
   const backAnim = usePressAnimation();
 
+  const MANUAL_ENTRY_OPTIONS = [
+    {
+      id: 'flight',
+      title: 'Flight',
+      subtitle: 'Add flight details',
+      iconName: 'flight' as const,
+      iconColor: theme.colors.reservation.flight.icon,
+      iconBgColor: theme.colors.reservation.flight.bg,
+      route: 'FlightEntry' as const,
+    },
+    {
+      id: 'lodging',
+      title: 'Lodging',
+      subtitle: 'Add hotel or stay details',
+      iconName: 'hotel' as const,
+      iconColor: theme.colors.reservation.hotel.icon,
+      iconBgColor: theme.colors.reservation.hotel.bg,
+      route: 'LodgingEntry' as const,
+    },
+  ];
+
   return (
     <LinearGradient
-      colors={[colors.gradient.start, colors.gradient.middle, colors.gradient.end]}
+      colors={theme.gradient}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
       style={styles.gradientContainer}
     >
       <View style={styles.container}>
         <View style={[styles.content, { paddingTop: topOffset + 72 }]}>
-          <Text style={styles.subtitle}>What would you like to add?</Text>
+          <Text style={[styles.subtitle, { color: theme.colors.text.secondary }]}>What would you like to add?</Text>
           <View style={styles.optionsList}>
             {MANUAL_ENTRY_OPTIONS.map((option) => (
               <OptionCard
                 key={option.id}
                 option={option}
                 onPress={() => navigation.navigate(option.route)}
+                theme={theme}
               />
             ))}
           </View>
         </View>
 
         <View style={[styles.headerContainer, { top: topOffset }]}>
-          <BlurView intensity={24} tint="light" style={[styles.headerBlur, glassStyles.blurContentLarge]}>
-            <View style={styles.glassOverlay} pointerEvents="none" />
+          <BlurView intensity={24} tint={theme.blurTint} style={[styles.headerBlur, glassStyles.blurContentLarge]}>
+            <View style={[styles.glassOverlay, { backgroundColor: theme.glassColors.overlayStrong }]} pointerEvents="none" />
             <View style={styles.headerContent}>
               <Animated.View style={{ transform: [{ scale: backAnim.scaleAnim }] }}>
               <Pressable
@@ -106,10 +121,10 @@ export default function ManualEntryOptionsScreen() {
                 onPressOut={backAnim.onPressOut}
                 accessibilityLabel="Go back"
               >
-                <MaterialIcons name="arrow-back" size={22} color={colors.text.primary.light} />
+                <MaterialIcons name="arrow-back" size={22} color={theme.colors.text.primary} />
               </Pressable>
               </Animated.View>
-              <Text style={styles.headerTitle}>Manual Entry</Text>
+              <Text style={[styles.headerTitle, { color: theme.colors.text.primary }]}>Manual Entry</Text>
               <View style={styles.headerSpacer} />
             </View>
           </BlurView>
@@ -149,7 +164,6 @@ const styles = StyleSheet.create({
   },
   glassOverlay: {
     ...glassStyles.cardOverlay,
-    backgroundColor: glassColors.overlayStrong,
   },
   backButton: {
     width: 36,
@@ -160,7 +174,6 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 16,
     fontFamily: fontFamilies.semibold,
-    color: colors.text.primary.light,
     letterSpacing: -0.3,
   },
   headerSpacer: {
@@ -173,7 +186,6 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 14,
     fontFamily: fontFamilies.medium,
-    color: colors.text.secondary.light,
     marginBottom: spacing.xl,
   },
   optionsList: {
@@ -207,13 +219,11 @@ const styles = StyleSheet.create({
   optionTitle: {
     fontSize: 16,
     fontFamily: fontFamilies.semibold,
-    color: colors.text.primary.light,
     lineHeight: 20,
   },
   optionSubtitle: {
     fontSize: 14,
     fontFamily: fontFamilies.regular,
-    color: colors.text.secondary.light,
     lineHeight: 20,
   },
 });

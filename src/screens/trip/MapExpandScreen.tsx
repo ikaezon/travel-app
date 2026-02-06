@@ -15,12 +15,14 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { GlassNavHeader } from '../../components/navigation/GlassNavHeader';
 import { MainStackParamList } from '../../navigation/types';
 import { useTripMapData } from '../../hooks/useTripMapData';
-import { colors, fontFamilies } from '../../theme';
+import { fontFamilies } from '../../theme';
+import { useTheme } from '../../contexts/ThemeContext';
 
 type NavigationProp = NativeStackNavigationProp<MainStackParamList, 'MapExpand'>;
 type MapExpandRouteProp = RouteProp<MainStackParamList, 'MapExpand'>;
 
 export default function MapExpandScreen() {
+  const theme = useTheme();
   const navigation = useNavigation<NavigationProp>();
   const route = useRoute<MapExpandRouteProp>();
   const tripId = route.params?.tripId || '';
@@ -74,13 +76,13 @@ export default function MapExpandScreen() {
   if (isLoading) {
     return (
       <LinearGradient
-        colors={[colors.gradient.start, colors.gradient.middle, colors.gradient.end]}
+        colors={theme.gradient}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={styles.gradientContainer}
       >
         <View style={styles.centeredContainer}>
-          <ActivityIndicator size="large" color={colors.primary} />
+          <ActivityIndicator size="large" color={theme.colors.primary} />
         </View>
         <GlassNavHeader
           title={tripName}
@@ -95,7 +97,7 @@ export default function MapExpandScreen() {
   if (!hasData || !region) {
     return (
       <LinearGradient
-        colors={[colors.gradient.start, colors.gradient.middle, colors.gradient.end]}
+        colors={theme.gradient}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={styles.gradientContainer}
@@ -104,10 +106,10 @@ export default function MapExpandScreen() {
           <MaterialIcons
             name="location-off"
             size={48}
-            color={colors.text.tertiary.light}
+            color={theme.colors.text.tertiary}
           />
-          <Text style={styles.noDataTitle}>No location data available</Text>
-          <Text style={styles.noDataSubtitle}>
+          <Text style={[styles.noDataTitle, { color: theme.colors.text.primary }]}>No location data available</Text>
+          <Text style={[styles.noDataSubtitle, { color: theme.colors.text.secondary }]}>
             Add reservations with addresses to see them on the map.
           </Text>
         </View>
@@ -142,12 +144,12 @@ export default function MapExpandScreen() {
               longitude: marker.longitude,
             }}
             pinColor={
-              marker.isDestination ? colors.primary : colors.status.error
+              marker.isDestination ? theme.colors.primary : theme.colors.status.error
             }
           >
             <Callout>
               <View style={styles.callout}>
-                <Text style={styles.calloutTitle}>{marker.title}</Text>
+                <Text style={[styles.calloutTitle, { color: theme.colors.text.primary }]}>{marker.title}</Text>
               </View>
             </Callout>
           </Marker>
@@ -186,13 +188,11 @@ const styles = StyleSheet.create({
   noDataTitle: {
     fontSize: 16,
     fontFamily: fontFamilies.semibold,
-    color: colors.text.primary.light,
     textAlign: 'center',
   },
   noDataSubtitle: {
     fontSize: 14,
     fontFamily: fontFamilies.medium,
-    color: colors.text.secondary.light,
     textAlign: 'center',
   },
   callout: {
@@ -203,6 +203,5 @@ const styles = StyleSheet.create({
   calloutTitle: {
     fontSize: 14,
     fontFamily: fontFamilies.semibold,
-    color: colors.text.primary.light,
   },
 });

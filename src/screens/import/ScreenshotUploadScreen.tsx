@@ -19,8 +19,9 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import * as ImagePicker from 'expo-image-picker';
 import { ShimmerButton } from '../../components/ui/ShimmerButton';
 import { MainStackParamList } from '../../navigation/types';
-import { colors, fontFamilies, glassStyles, glassColors } from '../../theme';
+import { fontFamilies, glassStyles } from '../../theme';
 import { usePressAnimation } from '../../hooks';
+import { useTheme } from '../../contexts/ThemeContext';
 
 type NavigationProp = NativeStackNavigationProp<MainStackParamList>;
 
@@ -33,6 +34,7 @@ interface Photo {
 }
 
 export default function ScreenshotUploadScreen() {
+  const theme = useTheme();
   const navigation = useNavigation<NavigationProp>();
   const insets = useSafeAreaInsets();
   const topOffset = insets.top + 8;
@@ -121,13 +123,19 @@ export default function ScreenshotUploadScreen() {
     const isSelected = selectedPhoto === item.uri;
     return (
       <Pressable
-        style={[styles.photoContainer, isSelected && styles.photoSelected]}
+        style={[
+          styles.photoContainer,
+          isSelected && [
+            styles.photoSelected,
+            { borderColor: theme.colors.primary, shadowColor: theme.colors.primary },
+          ],
+        ]}
         onPress={() => handlePhotoPress(item.uri)}
       >
         <Image source={{ uri: item.uri }} style={styles.photo} />
         {isSelected && (
-          <View style={styles.selectedOverlay}>
-            <View style={styles.checkmark}>
+          <View style={[styles.selectedOverlay, { backgroundColor: theme.colors.primaryLight }]}>
+            <View style={[styles.checkmark, { backgroundColor: theme.colors.primary }]}>
               <MaterialIcons name="check" size={20} color="white" />
             </View>
           </View>
@@ -139,13 +147,13 @@ export default function ScreenshotUploadScreen() {
   if (hasPermission === null) {
     return (
       <LinearGradient
-        colors={[colors.gradient.start, colors.gradient.middle, colors.gradient.end]}
+        colors={theme.gradient}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={styles.gradientContainer}
       >
         <View style={styles.centerContent}>
-          <ActivityIndicator size="large" color={colors.primary} />
+          <ActivityIndicator size="large" color={theme.colors.primary} />
         </View>
       </LinearGradient>
     );
@@ -154,19 +162,19 @@ export default function ScreenshotUploadScreen() {
   if (hasPermission === false) {
     return (
       <LinearGradient
-        colors={[colors.gradient.start, colors.gradient.middle, colors.gradient.end]}
+        colors={theme.gradient}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={styles.gradientContainer}
       >
         <View style={styles.centerContent}>
-          <MaterialIcons name="photo-library" size={64} color={colors.text.tertiary.light} />
-          <Text style={styles.permissionTitle}>Photos Access Required</Text>
-          <Text style={styles.permissionText}>
+          <MaterialIcons name="photo-library" size={64} color={theme.colors.text.tertiary} />
+          <Text style={[styles.permissionTitle, { color: theme.colors.text.primary }]}>Photos Access Required</Text>
+          <Text style={[styles.permissionText, { color: theme.colors.text.secondary }]}>
             Please enable photo library access in Settings to select screenshots.
           </Text>
           <Animated.View style={{ transform: [{ scale: permissionAnim.scaleAnim }] }}>
-          <Pressable style={styles.settingsButton} onPress={requestPermission} onPressIn={permissionAnim.onPressIn} onPressOut={permissionAnim.onPressOut}>
+          <Pressable style={[styles.settingsButton, { backgroundColor: theme.colors.primary }]} onPress={requestPermission} onPressIn={permissionAnim.onPressIn} onPressOut={permissionAnim.onPressOut}>
             <Text style={styles.settingsButtonText}>Request Permission</Text>
           </Pressable>
           </Animated.View>
@@ -177,7 +185,7 @@ export default function ScreenshotUploadScreen() {
 
   return (
     <LinearGradient
-      colors={[colors.gradient.start, colors.gradient.middle, colors.gradient.end]}
+      colors={theme.gradient}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
       style={styles.gradientContainer}
@@ -197,18 +205,18 @@ export default function ScreenshotUploadScreen() {
         contentContainerStyle={styles.photoGrid}
         columnWrapperStyle={styles.photoRow}
         ListHeaderComponent={
-          <Pressable style={styles.photoContainer} onPress={pickImage}>
+          <Pressable style={[styles.photoContainer, { backgroundColor: theme.colors.border }]} onPress={pickImage}>
             <View style={styles.addPhotoPlaceholder}>
-              <MaterialIcons name="add-photo-alternate" size={40} color="#94a3b8" />
-              <Text style={styles.addPhotoText}>Select Photo</Text>
+              <MaterialIcons name="add-photo-alternate" size={40} color={theme.colors.text.secondary} />
+              <Text style={[styles.addPhotoText, { color: theme.colors.text.secondary }]}>Select Photo</Text>
             </View>
           </Pressable>
         }
         ListEmptyComponent={
           isLoading ? (
             <View style={styles.loadingContainer}>
-              <ActivityIndicator size="large" color={colors.primary} />
-              <Text style={styles.loadingText}>Loading photos...</Text>
+              <ActivityIndicator size="large" color={theme.colors.primary} />
+              <Text style={[styles.loadingText, { color: theme.colors.text.secondary }]}>Loading photos...</Text>
             </View>
           ) : null
         }
@@ -228,19 +236,19 @@ export default function ScreenshotUploadScreen() {
         </View>
 
         <View style={[styles.headerContainer, { top: topOffset }]}>
-          <BlurView intensity={24} tint="light" style={[styles.headerBlur, glassStyles.blurContentLarge]}>
-            <View style={styles.glassOverlay} pointerEvents="none" />
+          <BlurView intensity={24} tint={theme.blurTint} style={[styles.headerBlur, glassStyles.blurContentLarge]}>
+            <View style={[styles.glassOverlay, { backgroundColor: theme.glassColors.overlayStrong }]} pointerEvents="none" />
             <View style={styles.headerContent}>
               <Animated.View style={{ transform: [{ scale: backAnim.scaleAnim }] }}>
               <Pressable style={styles.backButton} onPress={handleBackPress} onPressIn={backAnim.onPressIn} onPressOut={backAnim.onPressOut}>
-                <MaterialIcons name="chevron-left" size={24} color={colors.primary} />
-                <Text style={styles.backText}>Back</Text>
+                <MaterialIcons name="chevron-left" size={24} color={theme.colors.primary} />
+                <Text style={[styles.backText, { color: theme.colors.primary }]}>Back</Text>
               </Pressable>
               </Animated.View>
-              <Text style={styles.headerTitle}>Upload Screenshot</Text>
+              <Text style={[styles.headerTitle, { color: theme.colors.text.primary }]}>Upload Screenshot</Text>
               <Animated.View style={{ transform: [{ scale: cancelAnim.scaleAnim }] }}>
               <Pressable style={styles.cancelButton} onPress={handleCancelPress} onPressIn={cancelAnim.onPressIn} onPressOut={cancelAnim.onPressOut}>
-                <Text style={styles.cancelText}>Cancel</Text>
+                <Text style={[styles.cancelText, { color: theme.colors.text.secondary }]}>Cancel</Text>
               </Pressable>
               </Animated.View>
             </View>
@@ -250,29 +258,29 @@ export default function ScreenshotUploadScreen() {
         {isParsing && (
           <View style={[styles.parsingOverlay, { bottom: insets.bottom + 120 }]}>
             <Pressable style={({ pressed }) => [styles.parsingCard, pressed && styles.parsingCardPressed]}>
-              <BlurView intensity={24} tint="light" style={[StyleSheet.absoluteFill, glassStyles.blurContent]} />
-              <View style={styles.glassOverlay} pointerEvents="none" />
+              <BlurView intensity={24} tint={theme.blurTint} style={[StyleSheet.absoluteFill, glassStyles.blurContent]} />
+              <View style={[styles.glassOverlay, { backgroundColor: theme.glassColors.overlayStrong }]} pointerEvents="none" />
               <View style={styles.parsingContent}>
             <View style={styles.parsingHeader}>
-              <View style={styles.parsingIconContainer}>
-                <ActivityIndicator size="small" color={colors.primary} />
+              <View style={[styles.parsingIconContainer, { backgroundColor: theme.colors.primaryLight }]}>
+                <ActivityIndicator size="small" color={theme.colors.primary} />
                 <MaterialIcons
                   name="smart-toy"
                   size={20}
-                  color={colors.primary}
+                  color={theme.colors.primary}
                   style={styles.parsingIcon}
                 />
               </View>
               <View style={styles.parsingTextContainer}>
-                <Text style={styles.parsingTitle}>Parsing your reservation...</Text>
-                <Text style={styles.parsingSubtitle}>
+                <Text style={[styles.parsingTitle, { color: theme.colors.text.primary }]}>Parsing your reservation...</Text>
+                <Text style={[styles.parsingSubtitle, { color: theme.colors.text.secondary }]}>
                   Extracting dates, location, and details
                 </Text>
               </View>
             </View>
             <View style={styles.skeletonContainer}>
-              <View style={[styles.skeletonBar, styles.skeletonBar1]} />
-              <View style={[styles.skeletonBar, styles.skeletonBar2]} />
+              <View style={[styles.skeletonBar, styles.skeletonBar1, { backgroundColor: theme.colors.primaryLight }]} />
+              <View style={[styles.skeletonBar, styles.skeletonBar2, { backgroundColor: theme.colors.primaryLight }]} />
             </View>
               </View>
             </Pressable>
@@ -313,7 +321,6 @@ const styles = StyleSheet.create({
   },
   glassOverlay: {
     ...glassStyles.cardOverlay,
-    backgroundColor: glassColors.overlayStrong,
   },
   backButton: {
     flexDirection: 'row',
@@ -323,13 +330,11 @@ const styles = StyleSheet.create({
   backText: {
     fontSize: 16,
     fontFamily: fontFamilies.medium,
-    color: colors.primary,
     marginLeft: -4,
   },
   headerTitle: {
     fontSize: 16,
     fontFamily: fontFamilies.semibold,
-    color: colors.text.primary.light,
     letterSpacing: -0.3,
     flex: 1,
     textAlign: 'center',
@@ -342,7 +347,6 @@ const styles = StyleSheet.create({
   cancelText: {
     fontSize: 16,
     fontFamily: fontFamilies.medium,
-    color: colors.text.secondary.light,
   },
   instructions: {
     paddingHorizontal: 24,
@@ -351,7 +355,6 @@ const styles = StyleSheet.create({
   instructionsText: {
     fontSize: 15,
     fontFamily: fontFamilies.regular,
-    color: colors.text.secondary.light,
     textAlign: 'center',
     lineHeight: 22,
   },
@@ -372,8 +375,8 @@ const styles = StyleSheet.create({
   },
   photoSelected: {
     borderWidth: 4,
-    borderColor: colors.primary,
-    shadowColor: colors.primary,
+    borderColor: '#0ea5e9', // theme.colors.primary - will be set inline
+    shadowColor: '#0ea5e9', // theme.colors.primary - will be set inline
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -385,7 +388,7 @@ const styles = StyleSheet.create({
   },
   selectedOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: colors.primaryLight,
+    // backgroundColor set inline with theme.colors.primaryLight
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -393,7 +396,7 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: colors.primary,
+    // backgroundColor set inline with theme.colors.primary
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#000',
@@ -423,13 +426,11 @@ const styles = StyleSheet.create({
   permissionTitle: {
     fontSize: 20,
     fontFamily: fontFamilies.semibold,
-    color: colors.text.primary.light,
     textAlign: 'center',
   },
   permissionText: {
     fontSize: 15,
     fontFamily: fontFamilies.regular,
-    color: colors.text.secondary.light,
     textAlign: 'center',
     lineHeight: 22,
   },
@@ -437,7 +438,6 @@ const styles = StyleSheet.create({
     marginTop: 16,
     paddingHorizontal: 24,
     paddingVertical: 12,
-    backgroundColor: colors.primary,
     borderRadius: 8,
   },
   settingsButtonText: {
@@ -453,7 +453,6 @@ const styles = StyleSheet.create({
   loadingText: {
     fontSize: 14,
     fontFamily: fontFamilies.regular,
-    color: colors.text.secondary.light,
   },
   fabContainer: {
     position: 'absolute',
@@ -496,7 +495,6 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: colors.primaryLight,
     justifyContent: 'center',
     alignItems: 'center',
     position: 'relative',
@@ -510,12 +508,10 @@ const styles = StyleSheet.create({
   parsingTitle: {
     fontSize: 14,
     fontFamily: fontFamilies.semibold,
-    color: colors.text.primary.light,
   },
   parsingSubtitle: {
     fontSize: 12,
     fontFamily: fontFamilies.regular,
-    color: colors.text.secondary.light,
     marginTop: 2,
   },
   skeletonContainer: {
@@ -525,7 +521,6 @@ const styles = StyleSheet.create({
   skeletonBar: {
     height: 8,
     borderRadius: 4,
-    backgroundColor: colors.primaryLight,
   },
   skeletonBar1: {
     width: '75%',

@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, StyleSheet, Pressable, Animated } from 'react-native';
-import { colors } from '../../theme';
+import { useTheme } from '../../contexts/ThemeContext';
 
 interface ToggleSwitchProps {
   value: boolean;
@@ -13,6 +13,7 @@ export function ToggleSwitch({
   onValueChange,
   disabled = false,
 }: ToggleSwitchProps) {
+  const theme = useTheme();
   const translateX = React.useRef(new Animated.Value(value ? 20 : 0)).current;
 
   React.useEffect(() => {
@@ -34,7 +35,7 @@ export function ToggleSwitch({
     <Pressable
       style={[
         styles.track,
-        value ? styles.trackActive : styles.trackInactive,
+        value ? { backgroundColor: 'rgba(14, 165, 233, 0.3)' } : { backgroundColor: theme.colors.border },
         disabled && styles.disabled,
       ]}
       onPress={handlePress}
@@ -43,7 +44,7 @@ export function ToggleSwitch({
       <Animated.View
         style={[
           styles.thumb,
-          value ? styles.thumbActive : styles.thumbInactive,
+          { backgroundColor: value ? theme.colors.primary : theme.colors.white, shadowColor: theme.colors.black },
           { transform: [{ translateX }] },
         ]}
       />
@@ -59,27 +60,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: 4,
   },
-  trackInactive: {
-    backgroundColor: colors.border.light,
-  },
-  trackActive: {
-    backgroundColor: 'rgba(14, 165, 233, 0.3)',
-  },
   thumb: {
     width: 20,
     height: 20,
     borderRadius: 10,
-    shadowColor: colors.black,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 2,
     elevation: 2,
-  },
-  thumbInactive: {
-    backgroundColor: colors.white,
-  },
-  thumbActive: {
-    backgroundColor: colors.primary,
   },
   disabled: {
     opacity: 0.5,

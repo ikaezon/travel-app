@@ -24,3 +24,7 @@ export {
   isGeocodingAvailable,
 } from './geocodingService';
 export type { GeocodeResult } from './geocodingService';
+export {
+  fetchCoverImageForDestination,
+  isCoverImageAvailable,
+} from './coverImageService';

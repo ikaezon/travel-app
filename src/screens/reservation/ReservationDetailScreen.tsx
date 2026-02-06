@@ -25,7 +25,8 @@ import { GlassDropdownMenu } from '../../components/ui/GlassDropdownMenu';
 import { GlassNavHeader } from '../../components/navigation/GlassNavHeader';
 import { MainStackParamList } from '../../navigation/types';
 import { useReservationByTimelineId } from '../../hooks';
-import { colors, spacing, fontFamilies, glassStyles, glassColors, glassConstants, glassShadows } from '../../theme';
+import { spacing, fontFamilies, glassStyles, glassConstants } from '../../theme';
+import { useTheme } from '../../contexts/ThemeContext';
 import { deleteReservationWithTimeline } from '../../data';
 import { shortenCountryInAddress } from '../../utils/addressFormat';
 import { formatReservationDateDisplay, getReservationDisplayAddress } from '../../utils/reservationFormat';
@@ -34,24 +35,25 @@ import type { Reservation } from '../../types';
 type NavigationProp = NativeStackNavigationProp<MainStackParamList>;
 type ReservationDetailRouteProp = RouteProp<MainStackParamList, 'ReservationDetail'>;
 
-function getReservationStatusConfig(status: Reservation['status']) {
-  switch (status) {
-    case 'confirmed':
-      return { label: 'Confirmed', bgColor: colors.status.successLight, textColor: colors.status.success };
-    case 'pending':
-      return { label: 'Pending', bgColor: colors.status.warningLight, textColor: colors.status.warning };
-    case 'cancelled':
-      return { label: 'Cancelled', bgColor: colors.status.errorLight, textColor: colors.status.error };
-    default:
-      return { label: 'Unknown', bgColor: colors.border.light, textColor: colors.text.tertiary.light };
-  }
-}
-
 export default function ReservationDetailScreen() {
+  const theme = useTheme();
   const navigation = useNavigation<NavigationProp>();
   const route = useRoute<ReservationDetailRouteProp>();
   const insets = useSafeAreaInsets();
   const timelineItemId = route.params?.timelineItemId || '';
+
+  const getReservationStatusConfig = (status: Reservation['status']) => {
+    switch (status) {
+      case 'confirmed':
+        return { label: 'Confirmed', bgColor: theme.colors.status.successLight, textColor: theme.colors.status.success };
+      case 'pending':
+        return { label: 'Pending', bgColor: theme.colors.status.warningLight, textColor: theme.colors.status.warning };
+      case 'cancelled':
+        return { label: 'Cancelled', bgColor: theme.colors.status.errorLight, textColor: theme.colors.status.error };
+      default:
+        return { label: 'Unknown', bgColor: theme.colors.border, textColor: theme.colors.text.tertiary };
+    }
+  };
 
   const { reservation, isLoading, error, refetch } = useReservationByTimelineId(timelineItemId);
   const [menuVisible, setMenuVisible] = useState(false);
@@ -156,21 +158,21 @@ export default function ReservationDetailScreen() {
   if (isLoading) {
     content = (
       <View style={[styles.loadingContainer, { paddingTop: topOffset + 72 }]}>
-        <ActivityIndicator size="large" color={colors.primary} />
+        <ActivityIndicator size="large" color={theme.colors.primary} />
       </View>
     );
   } else if (error) {
     content = (
       <View style={[styles.errorContainer, { paddingTop: topOffset + 72 }]}>
-        <MaterialIcons name="error-outline" size={32} color={colors.status.error} />
-        <Text style={styles.errorTitle}>Unable to load reservation</Text>
-        <Text style={styles.errorSubtitle}>Please try again in a moment.</Text>
+        <MaterialIcons name="error-outline" size={32} color={theme.colors.status.error} />
+        <Text style={[styles.errorTitle, { color: theme.colors.text.primary }]}>Unable to load reservation</Text>
+        <Text style={[styles.errorSubtitle, { color: theme.colors.text.secondary }]}>Please try again in a moment.</Text>
       </View>
     );
   } else if (!reservation) {
     content = (
       <View style={[styles.errorContainer, { paddingTop: topOffset + 72 }]}>
-        <Text style={styles.errorText}>Reservation not found</Text>
+        <Text style={[styles.errorText, { color: theme.colors.text.secondary }]}>Reservation not found</Text>
       </View>
     );
   } else {
@@ -182,8 +184,8 @@ export default function ReservationDetailScreen() {
         removeClippedSubviews={Platform.OS === 'android'}
       >
         <View style={styles.heroSection}>
-          <View style={styles.heroCard}>
-            <View style={[StyleSheet.absoluteFill, styles.heroCardBg]} pointerEvents="none" />
+          <View style={[styles.heroCard, { boxShadow: theme.glassShadows.elevated }]}>
+            <View style={[StyleSheet.absoluteFill, styles.heroCardBg, { backgroundColor: theme.colors.glass.background, borderRadius: glassConstants.radiusInner.cardXLarge }]} pointerEvents="none" />
             <ImageBackground
               source={{ uri: reservation.headerImageUrl }}
               style={styles.heroImage}
@@ -207,13 +209,13 @@ export default function ReservationDetailScreen() {
         <View style={styles.headlineSection}>
           <View style={styles.headlineContent}>
             <View style={styles.headlineLeft}>
-              <Text style={styles.route}>
+              <Text style={[styles.route, { color: theme.colors.text.primary }]}>
                 {reservation.type === 'hotel' ? reservation.providerName : reservation.route}
               </Text>
-              <Text style={styles.dateInfo}>{dateDisplayText}</Text>
+              <Text style={[styles.dateInfo, { color: theme.colors.text.secondary }]}>{dateDisplayText}</Text>
             </View>
             {statusConfig && (
-              <View style={[styles.statusBadge, styles.statusBadgeSolid, { backgroundColor: statusConfig.bgColor }]}>
+              <View style={[styles.statusBadge, styles.statusBadgeSolid, { backgroundColor: statusConfig.bgColor, borderColor: theme.glassColors.border }]}>
                 <Text style={[styles.statusText, { color: statusConfig.textColor }]}>
                   {statusConfig.label}
                 </Text>
@@ -232,12 +234,12 @@ export default function ReservationDetailScreen() {
 
         <View style={styles.detailsSection}>
           <View style={styles.detailsCard}>
-            <View style={[StyleSheet.absoluteFill, styles.cardSolidBg]} pointerEvents="none" />
+            <View style={[StyleSheet.absoluteFill, styles.cardSolidBg, { backgroundColor: theme.colors.glass.background, borderRadius: glassConstants.radiusInner.card }]} pointerEvents="none" />
             <View style={styles.detailsList}>
               <DetailRow
                 label="Confirmation"
                 value={reservation.confirmationCode}
-                valueColor={colors.primary}
+                valueColor={theme.colors.primary}
                 isMonospace
                 showBorder={reservation.type === 'flight' || Boolean(reservation.vehicleInfo)}
               />
@@ -246,7 +248,7 @@ export default function ReservationDetailScreen() {
                   <DetailRow
                     label="Flight Status"
                     value="On Time"
-                    valueColor={colors.status.success}
+                    valueColor={theme.colors.status.success}
                     showBorder
                   />
                   <DetailRow
@@ -268,7 +270,7 @@ export default function ReservationDetailScreen() {
                   <DetailRow
                     label="Address"
                     value={displayAddress}
-                    valueColor={colors.primary}
+                    valueColor={theme.colors.primary}
                     showBorder={false}
                   />
                 </Pressable>
@@ -279,7 +281,7 @@ export default function ReservationDetailScreen() {
 
         {reservation.attachments && reservation.attachments.length > 0 && (
           <View style={styles.attachmentsSection}>
-            <Text style={styles.attachmentsTitle}>Attachments</Text>
+            <Text style={[styles.attachmentsTitle, { color: theme.colors.text.primary }]}>Attachments</Text>
             {reservation.attachments.map((attachment) => (
               <Pressable
                 key={attachment.id}
@@ -288,23 +290,23 @@ export default function ReservationDetailScreen() {
                   pressed && styles.attachmentCardPressed,
                 ]}
               >
-                <View style={[StyleSheet.absoluteFill, styles.cardSolidBg]} pointerEvents="none" />
+                <View style={[StyleSheet.absoluteFill, styles.cardSolidBg, { backgroundColor: theme.colors.glass.background, borderRadius: glassConstants.radiusInner.card }]} pointerEvents="none" />
                 {attachment.thumbnailUrl && (
                   <Image
                     source={{ uri: attachment.thumbnailUrl }}
-                    style={styles.attachmentThumbnail}
+                    style={[styles.attachmentThumbnail, { backgroundColor: theme.colors.border }]}
                   />
                 )}
                 <View style={styles.attachmentInfo}>
-                  <Text style={styles.attachmentName} numberOfLines={1}>
+                  <Text style={[styles.attachmentName, { color: theme.colors.text.primary }]} numberOfLines={1}>
                     {attachment.name}
                   </Text>
-                  <Text style={styles.attachmentMeta}>
+                  <Text style={[styles.attachmentMeta, { color: theme.colors.text.secondary }]}>
                     Added {attachment.date} • {attachment.size}
                   </Text>
                 </View>
                 <Pressable hitSlop={8}>
-                  <MaterialIcons name="download" size={24} color={colors.primary} />
+                  <MaterialIcons name="download" size={24} color={theme.colors.primary} />
                 </Pressable>
               </Pressable>
             ))}
@@ -313,18 +315,18 @@ export default function ReservationDetailScreen() {
 
         <View style={styles.bottomActions}>
           <Pressable style={({ pressed }) => [styles.actionButton, pressed && styles.actionButtonPressed]}>
-            <View style={[StyleSheet.absoluteFill, styles.actionButtonBg]} pointerEvents="none" />
-            <MaterialIcons name="calendar-today" size={20} color={colors.text.primary.light} />
-            <Text style={styles.actionButtonText}>Calendar</Text>
+            <View style={[StyleSheet.absoluteFill, styles.actionButtonBg, { backgroundColor: theme.colors.glass.background, borderRadius: glassConstants.radius.pill }]} pointerEvents="none" />
+            <MaterialIcons name="calendar-today" size={20} color={theme.colors.text.primary} />
+            <Text style={[styles.actionButtonText, { color: theme.colors.text.primary }]}>Calendar</Text>
           </Pressable>
           {directionsAddress && (
             <Pressable 
-              style={({ pressed }) => [styles.actionButton, styles.actionButtonPrimary, pressed && styles.actionButtonPressed]}
+              style={({ pressed }) => [styles.actionButton, styles.actionButtonPrimary, pressed && styles.actionButtonPressed, { borderColor: theme.glassColors.borderBlue }]}
               onPress={handleOpenDirections}
             >
-              <View style={[StyleSheet.absoluteFill, styles.actionButtonBg, styles.actionButtonBgPrimary]} pointerEvents="none" />
-              <MaterialIcons name="directions" size={20} color={colors.primary} />
-              <Text style={[styles.actionButtonText, styles.actionButtonTextPrimary]}>Directions</Text>
+              <View style={[StyleSheet.absoluteFill, styles.actionButtonBg, styles.actionButtonBgPrimary, { backgroundColor: theme.glassColors.overlayBlue, borderRadius: glassConstants.radius.pill }]} pointerEvents="none" />
+              <MaterialIcons name="directions" size={20} color={theme.colors.primary} />
+              <Text style={[styles.actionButtonText, styles.actionButtonTextPrimary, { color: theme.colors.primary }]}>Directions</Text>
             </Pressable>
           )}
         </View>
@@ -334,7 +336,7 @@ export default function ReservationDetailScreen() {
 
   return (
     <LinearGradient
-      colors={[colors.gradient.start, colors.gradient.middle, colors.gradient.end]}
+      colors={theme.gradient}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
       style={styles.gradientContainer}
@@ -403,19 +405,16 @@ const styles = StyleSheet.create({
   errorTitle: {
     fontSize: 16,
     fontFamily: fontFamilies.semibold,
-    color: colors.text.primary.light,
     textAlign: 'center',
   },
   errorSubtitle: {
     fontSize: 14,
     fontFamily: fontFamilies.medium,
-    color: colors.text.secondary.light,
     textAlign: 'center',
   },
   errorText: {
     fontSize: 16,
     fontFamily: fontFamilies.regular,
-    color: colors.text.secondary.light,
   },
   menuScrim: {
     position: 'absolute',
@@ -442,14 +441,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   heroCardBg: {
-    backgroundColor: colors.glass.background,
-    borderRadius: glassConstants.radiusInner.cardXLarge,
+    // backgroundColor and borderRadius moved to inline styles
   },
   heroCard: {
     ...glassStyles.cardWrapperLarge,
     minHeight: 220,
     borderWidth: 1,
-    boxShadow: glassShadows.elevated,
   },
   heroImage: {
     width: '100%',
@@ -493,21 +490,18 @@ const styles = StyleSheet.create({
   route: {
     fontSize: 28,
     fontFamily: fontFamilies.semibold,
-    color: colors.text.primary.light,
     letterSpacing: -0.5,
     lineHeight: 32,
   },
   dateInfo: {
     fontSize: 14,
     fontFamily: fontFamilies.medium,
-    color: colors.text.secondary.light,
     marginTop: 4,
   },
   statusBadge: {
     ...glassStyles.pillContainer,
     paddingHorizontal: 12,
     paddingVertical: 6,
-    borderColor: glassColors.border,
     justifyContent: 'center',
     alignItems: 'center',
     minWidth: 90,
@@ -532,8 +526,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   cardSolidBg: {
-    backgroundColor: colors.glass.background,
-    borderRadius: glassConstants.radiusInner.card,
+    // backgroundColor and borderRadius moved to inline styles
   },
   detailsCard: {
     ...glassStyles.cardWrapper,
@@ -551,7 +544,6 @@ const styles = StyleSheet.create({
   attachmentsTitle: {
     fontSize: 16,
     fontFamily: fontFamilies.semibold,
-    color: colors.text.primary.light,
   },
   attachmentCard: {
     ...glassStyles.cardWrapper,
@@ -569,7 +561,6 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 8,
-    backgroundColor: colors.border.light,
   },
   attachmentInfo: {
     flex: 1,
@@ -578,12 +569,10 @@ const styles = StyleSheet.create({
   attachmentName: {
     fontSize: 14,
     fontFamily: fontFamilies.semibold,
-    color: colors.text.primary.light,
   },
   attachmentMeta: {
     fontSize: 12,
     fontFamily: fontFamilies.regular,
-    color: colors.text.secondary.light,
   },
   bottomActions: {
     flexDirection: 'row',
@@ -602,14 +591,13 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   actionButtonBg: {
-    backgroundColor: colors.glass.background,
-    borderRadius: glassConstants.radius.pill,
+    // backgroundColor and borderRadius moved to inline styles
   },
   actionButtonBgPrimary: {
-    backgroundColor: glassColors.overlayBlue,
+    // backgroundColor moved to inline styles
   },
   actionButtonPrimary: {
-    borderColor: glassColors.borderBlue,
+    // borderColor moved to inline styles
   },
   actionButtonPressed: {
     opacity: 0.8,
@@ -618,9 +606,8 @@ const styles = StyleSheet.create({
   actionButtonText: {
     fontSize: 16,
     fontFamily: fontFamilies.semibold,
-    color: colors.text.primary.light,
   },
   actionButtonTextPrimary: {
-    color: colors.primary,
+    // color moved to inline styles
   },
 });

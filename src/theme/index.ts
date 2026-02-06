@@ -1,9 +1,11 @@
-export { colors } from './colors';
+export { colors, getThemeColors } from './colors';
+export type { ResolvedColors } from './colors';
 export { spacing, layout } from './spacing';
 export { fontSizes, fontWeights, fontFamilies, lineHeights, letterSpacing, textStyles } from './typography';
 export { borderRadius } from './borderRadius';
 export { shadows, createShadow } from './shadows';
-export { glassStyles, glassConstants, glassColors, glassShadows, glassThinBorderStyles } from './glassStyles';
+export { glassStyles, glassConstants, glassColors, glassShadows, glassThinBorderStyles, getGlassColors, getGlassShadows } from './glassStyles';
+export type { ResolvedGlassColors, ResolvedGlassShadows } from './glassStyles';
 
 import { colors } from './colors';
 import { spacing, layout } from './spacing';

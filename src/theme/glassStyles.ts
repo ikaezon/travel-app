@@ -261,3 +261,114 @@ export const glassThinBorderStyles = StyleSheet.create({
     borderWidth: glassConstants.borderWidth.iconThin,
   },
 });
+
+// ============================================
+// THEME-AWARE GLASS COLORS
+// ============================================
+
+export interface ResolvedGlassColors {
+  overlay: string;
+  overlayStrong: string;
+  overlayBlue: string;
+  overlayOrange: string;
+  borderBlue: string;
+  borderOrange: string;
+  borderShimmerBlue: string;
+  borderShimmerOrange: string;
+  border: string;
+  borderStrong: string;
+  menuItemBorder: string;
+  menuOverlay: string;
+  menuItemPressed: string;
+  shadow: string;
+  shadowMedium: string;
+  /** Top-edge highlight for liquid glass cards */
+  cardHighlightTop?: string;
+}
+
+export function getGlassColors(isDark: boolean): ResolvedGlassColors {
+  if (isDark) {
+    // Obsidian Liquid Glass palette
+    return {
+      overlay: 'rgba(80, 80, 85, 0.15)',
+      overlayStrong: 'rgba(40, 40, 45, 0.40)',
+      overlayBlue: 'rgba(96, 165, 250, 0.15)',
+      overlayOrange: 'rgba(251, 146, 60, 0.12)',
+      borderBlue: 'rgba(96, 165, 250, 0.30)',
+      borderOrange: 'rgba(251, 146, 60, 0.30)',
+      borderShimmerBlue: 'rgba(96, 165, 250, 0.40)',
+      borderShimmerOrange: 'rgba(251, 146, 60, 0.40)',
+      border: 'rgba(255, 255, 255, 0.18)',
+      borderStrong: 'rgba(255, 255, 255, 0.22)',
+      menuItemBorder: 'rgba(255, 255, 255, 0.08)',
+      menuOverlay: 'rgba(30, 30, 35, 0.60)',
+      menuItemPressed: 'rgba(255, 255, 255, 0.05)',
+      shadow: 'rgba(0, 0, 0, 0.50)',
+      shadowMedium: 'rgba(0, 0, 0, 0.60)',
+      cardHighlightTop: 'rgba(255, 255, 255, 0.10)',
+    };
+  }
+
+  return {
+    overlay: glassColors.overlay,
+    overlayStrong: glassColors.overlayStrong,
+    overlayBlue: glassColors.overlayBlue,
+    overlayOrange: glassColors.overlayOrange,
+    borderBlue: glassColors.borderBlue,
+    borderOrange: glassColors.borderOrange,
+    borderShimmerBlue: glassColors.borderShimmerBlue,
+    borderShimmerOrange: glassColors.borderShimmerOrange,
+    border: glassColors.border,
+    borderStrong: glassColors.borderStrong,
+    menuItemBorder: glassColors.menuItemBorder,
+    menuOverlay: glassColors.menuOverlay,
+    menuItemPressed: glassColors.menuItemPressed,
+    shadow: glassColors.shadow,
+    shadowMedium: glassColors.shadowMedium,
+  };
+}
+
+// ============================================
+// THEME-AWARE GLASS SHADOWS
+// ============================================
+
+export interface CardShadowNative {
+  shadowColor: string;
+  shadowOffset: { width: number; height: number };
+  shadowOpacity: number;
+  shadowRadius: number;
+  elevation: number;
+}
+
+export interface ResolvedGlassShadows {
+  card: string;
+  nav: string;
+  icon: string;
+  elevated: string;
+  cardShadowNative?: CardShadowNative;
+}
+
+export function getGlassShadows(isDark: boolean): ResolvedGlassShadows {
+  if (isDark) {
+    return {
+      card: '0 20px 40px -10px rgba(0, 0, 0, 0.50), inset 0 1px 0 rgba(255, 255, 255, 0.10)',
+      nav: '0 -10px 40px -5px rgba(0, 0, 0, 0.60)',
+      icon: 'inset 0 0 15px rgba(255, 255, 255, 0.05)',
+      elevated: '0 20px 40px -10px rgba(0, 0, 0, 0.50), inset 0 1px 0 rgba(255, 255, 255, 0.10)',
+      cardShadowNative: {
+        shadowColor: '#000000',
+        shadowOffset: { width: 0, height: 20 },
+        shadowOpacity: 0.5,
+        shadowRadius: 40,
+        elevation: 24,
+      },
+    };
+  }
+
+  return {
+    card: glassShadows.card,
+    nav: glassShadows.nav,
+    icon: glassShadows.icon,
+    elevated: glassShadows.elevated,
+  };
+}

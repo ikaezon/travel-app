@@ -8,7 +8,8 @@ import {
   PanResponder,
   LayoutChangeEvent,
 } from 'react-native';
-import { colors, fontFamilies, glassColors, glassShadows } from '../../theme';
+import { fontFamilies } from '../../theme';
+import { useTheme } from '../../contexts/ThemeContext';
 
 // Smooth spring config
 const SPRING_CONFIG = {
@@ -33,6 +34,7 @@ export function SegmentedControl({
   selectedValue,
   onValueChange,
 }: SegmentedControlProps) {
+  const theme = useTheme();
   // Track segment layouts
   const segmentLayouts = useRef<{ x: number; width: number; center: number }[]>([]);
   const isInitialized = useRef(false);
@@ -186,7 +188,16 @@ export function SegmentedControl({
       {/* Animated pill indicator */}
       <Animated.View
         style={[
-          styles.pill,
+          {
+            position: 'absolute',
+            left: 3,
+            top: 3,
+            height: 30,
+            borderRadius: 15,
+            backgroundColor: theme.glassColors.borderStrong,
+            boxShadow: theme.glassShadows.icon,
+            zIndex: 1,
+          },
           {
             width: `${segmentWidthPercent}%`,
             transform: [{ translateX: pillTranslateX }],
@@ -208,7 +219,17 @@ export function SegmentedControl({
             accessibilityState={isSelected ? { selected: true } : {}}
             accessibilityLabel={option.label}
           >
-            <Text style={[styles.label, isSelected && styles.labelSelected]}>
+            <Text style={[
+              {
+                fontSize: 12,
+                fontFamily: fontFamilies.semibold,
+                color: theme.colors.text.tertiary,
+              },
+              isSelected && {
+                color: theme.colors.primary,
+                fontFamily: fontFamilies.semibold,
+              },
+            ]}>
               {option.label}
             </Text>
           </Pressable>
@@ -233,24 +254,5 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 8,
     zIndex: 2,
-  },
-  pill: {
-    position: 'absolute',
-    left: 3,
-    top: 3,
-    height: 30,
-    borderRadius: 15,
-    backgroundColor: glassColors.borderStrong,
-    boxShadow: glassShadows.icon,
-    zIndex: 1,
-  },
-  label: {
-    fontSize: 12,
-    fontFamily: fontFamilies.semibold,
-    color: colors.text.tertiary.light,
-  },
-  labelSelected: {
-    color: colors.primary,
-    fontFamily: fontFamilies.semibold,
   },
 });

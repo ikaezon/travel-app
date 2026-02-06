@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { colors, spacing, fontFamilies } from '../../theme';
+import { spacing, fontFamilies } from '../../theme';
+import { useTheme } from '../../contexts/ThemeContext';
 
 interface DetailRowProps {
   label: string;
@@ -17,13 +18,27 @@ export function DetailRow({
   isMonospace = false,
   showBorder = true,
 }: DetailRowProps) {
+  const theme = useTheme();
   return (
-    <View style={[styles.container, showBorder && styles.borderBottom]}>
-      <Text style={styles.label}>{label}</Text>
+    <View style={[
+      styles.container,
+      showBorder && { borderBottomWidth: 1, borderBottomColor: theme.colors.border }
+    ]}>
+      <Text style={{
+        fontSize: 14,
+        fontFamily: fontFamilies.regular,
+        color: theme.colors.text.secondary,
+        flexShrink: 0,
+      }}>{label}</Text>
       <View style={styles.valueWrapper}>
         <Text
           style={[
-            styles.value,
+            {
+              fontSize: 14,
+              fontFamily: fontFamilies.semibold,
+              color: theme.colors.text.primary,
+              textAlign: 'right',
+            },
             valueColor && { color: valueColor },
             isMonospace && styles.monospace,
           ]}
@@ -45,25 +60,9 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.lg,
     gap: spacing.xl,
   },
-  borderBottom: {
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border.light,
-  },
-  label: {
-    fontSize: 14,
-    fontFamily: fontFamilies.regular,
-    color: colors.text.secondary.light,
-    flexShrink: 0,
-  },
   valueWrapper: {
     flex: 1,
     minWidth: 0,
-  },
-  value: {
-    fontSize: 14,
-    fontFamily: fontFamilies.semibold,
-    color: colors.text.primary.light,
-    textAlign: 'right',
   },
   monospace: {
     fontFamily: 'Courier',

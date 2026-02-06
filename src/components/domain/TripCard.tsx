@@ -2,8 +2,10 @@ import React, { useEffect, useRef, useCallback } from 'react';
 import { View, Text, ImageBackground, StyleSheet, Pressable, Animated } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { MaterialIcons } from '@expo/vector-icons';
-import { colors, spacing, borderRadius, fontFamilies, glassStyles, glassColors } from '../../theme';
+import { spacing, borderRadius, fontFamilies, glassStyles } from '../../theme';
 import { TripIconType } from '../../types';
+import { useTheme } from '../../contexts/ThemeContext';
+import { AdaptiveGlassView } from '../ui/AdaptiveGlassView';
 
 interface TripCardProps {
   destination: string;
@@ -14,17 +16,6 @@ interface TripCardProps {
   onPress?: () => void;
   delay?: number;
 }
-
-const getAccentColor = (iconName: TripIconType): string => {
-  switch (iconName) {
-    case 'hotel':
-      return colors.accent.indigo;
-    case 'train':
-      return colors.status.success;
-    default:
-      return colors.accent.blue;
-  }
-};
 
 // Spring configs matching the nav bar bubble feel
 const PRESS_SPRING = { tension: 280, friction: 14, useNativeDriver: true };
@@ -40,8 +31,21 @@ export const TripCard = React.memo(function TripCard({
   onPress,
   delay = 0,
 }: TripCardProps) {
+  const theme = useTheme();
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(1)).current;
+  
+  const getAccentColor = (iconName: TripIconType): string => {
+    switch (iconName) {
+      case 'hotel':
+        return theme.colors.accent.indigo;
+      case 'train':
+        return theme.colors.status.success;
+      default:
+        return theme.colors.accent.blue;
+    }
+  };
+  
   const accentColor = getAccentColor(iconName);
 
   useEffect(() => {
@@ -77,13 +81,17 @@ export const TripCard = React.memo(function TripCard({
   return (
     <Animated.View style={{ opacity: fadeAnim, transform: [{ scale: scaleAnim }] }}>
       <Pressable
-        style={styles.cardWrapper}
+        style={[
+          styles.cardWrapper,
+          !theme.isDark && { borderColor: theme.glassColors.border },
+          theme.isDark && { borderWidth: 0 },
+        ]}
         onPress={onPress}
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
       >
-        <BlurView intensity={24} tint="light" style={[StyleSheet.absoluteFill, glassStyles.blurContentXLarge]} />
-        <View style={styles.cardOverlay} pointerEvents="none" />
+        <AdaptiveGlassView intensity={24} darkIntensity={10} glassEffectStyle="clear" absoluteFill style={glassStyles.blurContentXLarge} />
+        <View style={[styles.cardOverlay, { backgroundColor: theme.isDark ? 'rgba(40, 40, 45, 0.35)' : theme.glassColors.overlay }]} pointerEvents="none" />
 
         <View style={styles.innerContainer}>
           <View style={styles.imageFrame}>
@@ -92,26 +100,27 @@ export const TripCard = React.memo(function TripCard({
               style={styles.image} 
               resizeMode="cover"
             >
-              <BlurView intensity={40} tint="light" style={[styles.durationBadge, glassStyles.blurContentPill]}>
-                <MaterialIcons name="flight-takeoff" size={14} color={colors.text.primary.light} />
-                <Text style={styles.durationText}>{durationLabel}</Text>
-              </BlurView>
+              <AdaptiveGlassView intensity={24} darkIntensity={10} glassEffectStyle="clear" style={[styles.durationBadge, glassStyles.blurContentPill, !theme.isDark && { borderWidth: 1, borderColor: theme.glassColors.borderStrong }]}>
+                <View style={[styles.durationOverlay, { backgroundColor: theme.isDark ? 'rgba(0, 0, 0, 0.35)' : theme.colors.glass.iconInset }]} pointerEvents="none" />
+                <MaterialIcons name="flight-takeoff" size={14} color={theme.colors.text.primary} />
+                <Text style={[styles.durationText, { color: theme.colors.text.primary }]}>{durationLabel}</Text>
+              </AdaptiveGlassView>
             </ImageBackground>
           </View>
 
           <View style={styles.content}>
             <View style={styles.header}>
               <View style={styles.textContainer}>
-                <Text style={styles.destination} numberOfLines={1}>
+                <Text style={[styles.destination, { color: theme.colors.text.primary }]} numberOfLines={1}>
                   {destination}
                 </Text>
-                <Text style={styles.dateRange} numberOfLines={1}>
+                <Text style={[styles.dateRange, { color: theme.colors.text.secondary }]} numberOfLines={1}>
                   {dateRange}
                 </Text>
               </View>
-              <BlurView intensity={40} tint="light" style={[styles.iconBadge, glassStyles.blurContentIcon]}>
+              <AdaptiveGlassView intensity={24} darkIntensity={10} glassEffectStyle="clear" style={[styles.iconBadge, glassStyles.blurContentIcon, !theme.isDark && { borderColor: theme.glassColors.borderStrong }, { backgroundColor: theme.isDark ? 'rgba(255, 255, 255, 0.06)' : theme.colors.glass.iconInset }]}>
                 <MaterialIcons name={getIconName()} size={24} color={accentColor} />
-              </BlurView>
+              </AdaptiveGlassView>
             </View>
           </View>
         </View>
@@ -153,13 +162,13 @@ const styles = StyleSheet.create({
     paddingVertical: 6, 
     borderRadius: borderRadius.full,
     margin: 12,
-    borderColor: glassColors.borderStrong,
-    backgroundColor: glassColors.overlay,
+  },
+  durationOverlay: {
+    ...StyleSheet.absoluteFillObject,
   },
   durationText: {
     fontSize: 12,
     fontFamily: fontFamilies.semibold,
-    color: colors.text.primary.light,
   },
   content: {
     paddingHorizontal: 16,
@@ -176,20 +185,16 @@ const styles = StyleSheet.create({
   },
   destination: {
     fontSize: 18, 
-    fontFamily: fontFamilies.semibold, 
-    color: colors.text.primary.light,
+    fontFamily: fontFamilies.semibold,
   },
   dateRange: {
     fontSize: 14, 
-    fontFamily: fontFamilies.semibold, 
-    color: colors.text.secondary.light,
+    fontFamily: fontFamilies.semibold,
     marginTop: 4, 
   },
   iconBadge: {
     ...glassStyles.iconContainer,
     padding: 10,
-    borderColor: glassColors.borderStrong,
-    backgroundColor: glassColors.overlay,
   },
   progressSection: {
     gap: 8, 
@@ -201,8 +206,7 @@ const styles = StyleSheet.create({
   },
   progressLabel: {
     fontSize: 12, 
-    fontFamily: fontFamilies.semibold, 
-    color: colors.text.secondary.light,
+    fontFamily: fontFamilies.semibold,
   },
   progressTrack: {
     height: 12, 
@@ -214,7 +218,6 @@ const styles = StyleSheet.create({
   progressFill: {
     height: '100%',
     borderRadius: borderRadius.full,
-    shadowColor: colors.primary,
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.5,
     shadowRadius: 12,

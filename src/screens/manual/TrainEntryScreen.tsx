@@ -15,15 +15,17 @@ import { DatePickerInput } from '../../components/ui/DatePickerInput';
 import { TimePickerInput } from '../../components/ui/TimePickerInput';
 import { ShimmerButton } from '../../components/ui/ShimmerButton';
 import { GlassNavHeader } from '../../components/navigation/GlassNavHeader';
-import { colors, spacing } from '../../theme';
+import { spacing } from '../../theme';
 import { MainStackParamList } from '../../navigation/types';
 import { createTrainReservation } from '../../data';
 import { useKeyboardHeight } from '../../hooks';
+import { useTheme } from '../../contexts/ThemeContext';
 
 type NavigationProp = NativeStackNavigationProp<MainStackParamList, 'TrainEntry'>;
 type TrainEntryRouteProp = RouteProp<MainStackParamList, 'TrainEntry'>;
 
 export default function TrainEntryScreen() {
+  const theme = useTheme();
   const navigation = useNavigation<NavigationProp>();
   const route = useRoute<TrainEntryRouteProp>();
   const insets = useSafeAreaInsets();
@@ -76,7 +78,7 @@ export default function TrainEntryScreen() {
 
   return (
     <LinearGradient
-      colors={[colors.gradient.start, colors.gradient.middle, colors.gradient.end]}
+      colors={theme.gradient}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
       style={styles.gradientContainer}

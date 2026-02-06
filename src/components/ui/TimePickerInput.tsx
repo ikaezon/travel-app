@@ -14,13 +14,12 @@ import { BlurView } from 'expo-blur';
 import { MaterialIcons } from '@expo/vector-icons';
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import {
-  colors,
   spacing,
   fontFamilies,
   glassStyles,
-  glassColors,
   glassConstants,
 } from '../../theme';
+import { useTheme } from '../../contexts/ThemeContext';
 import { formatTimeTo12Hour } from '../../utils/dateFormat';
 
 const PICKER_HEIGHT = 320;
@@ -99,6 +98,7 @@ export function TimePickerInput({
   onClose,
   variant = 'default',
 }: TimePickerInputProps) {
+  const theme = useTheme();
   const [visible, setVisible] = useState(false);
   const [pickerReady, setPickerReady] = useState(false);
   const [tempDate, setTempDate] = useState<Date>(() => parseTimeToDate(value));
@@ -192,14 +192,14 @@ export function TimePickerInput({
     <View style={[styles.container, style]}>
       {variant === 'glass' ? (
         <View style={styles.glassWrapper}>
-          <BlurView intensity={24} tint="light" style={[styles.glassBlur, glassStyles.blurContent]}>
+          <BlurView intensity={24} tint={theme.blurTint} style={[styles.glassBlur, glassStyles.blurContent]}>
             <View style={styles.glassOverlay} pointerEvents="none" />
             <View style={styles.glassContent}>
               <View style={styles.labelRow}>
-                <Text style={[styles.label, styles.labelGlass]}>{label}</Text>
+                <Text style={[styles.label, { color: theme.colors.text.secondary }]}>{label}</Text>
               </View>
               <Pressable
-                style={[styles.valueRow, styles.valueRowGlass]}
+                style={[styles.valueRow, { borderColor: theme.glassColors.border }]}
                 onPress={openPicker}
                 accessibilityLabel={label}
                 accessibilityRole="button"
@@ -207,13 +207,13 @@ export function TimePickerInput({
                 <MaterialIcons
                   name={iconName}
                   size={20}
-                  color={colors.text.secondary.light}
+                  color={theme.colors.text.secondary}
                   style={styles.icon}
                 />
-                <Text style={[styles.value, !displayText && styles.placeholder]}>
+                <Text style={[styles.value, !displayText && styles.placeholder, { color: displayText ? theme.colors.text.primary : theme.colors.text.tertiary }]}>
                   {displayText || placeholder}
                 </Text>
-                <MaterialIcons name="chevron-right" size={24} color={colors.text.tertiary.light} />
+                <MaterialIcons name="chevron-right" size={24} color={theme.colors.text.tertiary} />
               </Pressable>
             </View>
           </BlurView>
@@ -232,13 +232,13 @@ export function TimePickerInput({
             <MaterialIcons
               name={iconName}
               size={20}
-              color={colors.text.secondary.light}
+              color={theme.colors.text.secondary}
               style={styles.icon}
             />
-            <Text style={[styles.value, !displayText && styles.placeholder]}>
+            <Text style={[styles.value, !displayText && styles.placeholder, { color: displayText ? theme.colors.text.primary : theme.colors.text.tertiary }]}>
               {displayText || placeholder}
             </Text>
-            <MaterialIcons name="chevron-right" size={24} color={colors.text.tertiary.light} />
+            <MaterialIcons name="chevron-right" size={24} color={theme.colors.text.tertiary} />
           </Pressable>
         </>
       )}
@@ -261,16 +261,16 @@ export function TimePickerInput({
             <Animated.View
               style={[
                 styles.pickerSheetWrapper,
-                { transform: [{ translateY: slideAnim }] },
+                { transform: [{ translateY: slideAnim }], borderColor: theme.glassColors.borderStrong },
               ]}
               onStartShouldSetResponder={() => true}
             >
               <BlurView
                 intensity={40}
-                tint="light"
+                tint={theme.blurTint}
                 style={styles.pickerSheetBlur}
               >
-                <View style={styles.pickerSheetOverlay} pointerEvents="none" />
+                <View style={[styles.pickerSheetOverlay, { backgroundColor: theme.glassColors.menuOverlay }]} pointerEvents="none" />
                 
                 {/* Header */}
                 <View style={styles.pickerHeader}>
@@ -278,34 +278,34 @@ export function TimePickerInput({
                     onPress={closePicker} 
                     style={({ pressed }) => [
                       styles.headerButton,
-                      pressed && styles.headerButtonPressed,
+                      pressed && { backgroundColor: theme.glassColors.menuItemPressed },
                     ]}
                   >
-                    <Text style={styles.cancelText}>Cancel</Text>
+                    <Text style={[styles.cancelText, { color: theme.colors.text.secondary }]}>Cancel</Text>
                   </Pressable>
                   
                   <View style={styles.headerTitleContainer}>
                     <MaterialIcons 
                       name="schedule" 
                       size={18} 
-                      color={colors.primary} 
+                      color={theme.colors.primary} 
                       style={styles.headerIcon}
                     />
-                    <Text style={styles.headerTitle}>Select Time</Text>
+                    <Text style={[styles.headerTitle, { color: theme.colors.text.primary }]}>Select Time</Text>
                   </View>
                   
                   <Pressable 
                     onPress={handleConfirm} 
                     style={({ pressed }) => [
                       styles.headerButton,
-                      pressed && styles.headerButtonPressed,
+                      pressed && { backgroundColor: theme.glassColors.menuItemPressed },
                     ]}
                   >
-                    <Text style={styles.confirmText}>Done</Text>
+                    <Text style={[styles.confirmText, { color: theme.colors.primary }]}>Done</Text>
                   </Pressable>
                 </View>
 
-                <View style={styles.divider} />
+                <View style={[styles.divider, { backgroundColor: theme.glassColors.menuItemBorder }]} />
 
                 {/* Picker - only render after animation */}
                 <View style={styles.pickerContainer}>
@@ -316,7 +316,7 @@ export function TimePickerInput({
                       display="spinner"
                       onChange={handleChange}
                       style={styles.picker}
-                      textColor={colors.text.primary.light}
+                      textColor={theme.colors.text.primary}
                     />
                   ) : (
                     <View style={styles.pickerPlaceholder} />
@@ -357,7 +357,6 @@ const styles = StyleSheet.create({
   },
   glassOverlay: {
     ...glassStyles.cardOverlay,
-    backgroundColor: glassColors.overlayStrong,
   },
   glassContent: {
     position: 'relative',
@@ -368,10 +367,6 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 14,
     fontFamily: fontFamilies.medium,
-    color: colors.text.secondary.light,
-  },
-  labelGlass: {
-    color: colors.text.primary.light,
   },
   valueRow: {
     flexDirection: 'row',
@@ -379,13 +374,8 @@ const styles = StyleSheet.create({
     height: 56,
     borderRadius: glassConstants.radius.icon,
     borderWidth: 1,
-    borderColor: colors.border.light,
-    backgroundColor: colors.surface.light,
     paddingHorizontal: spacing.lg,
-  },
-  valueRowGlass: {
-    backgroundColor: 'rgba(255, 255, 255, 0.5)',
-    borderColor: glassColors.border,
+    backgroundColor: 'transparent',
   },
   icon: {
     marginRight: spacing.sm,
@@ -394,10 +384,9 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 16,
     fontFamily: fontFamilies.regular,
-    color: colors.text.primary.light,
   },
   placeholder: {
-    color: colors.text.tertiary.light,
+    // Placeholder styling handled inline with color
   },
   modalContainer: {
     flex: 1,
@@ -416,7 +405,6 @@ const styles = StyleSheet.create({
     marginBottom: spacing.xl,
     borderRadius: glassConstants.radius.cardLarge,
     borderWidth: glassConstants.borderWidth.card,
-    borderColor: glassColors.borderStrong,
     overflow: 'hidden',
   },
   pickerSheetBlur: {
@@ -425,7 +413,6 @@ const styles = StyleSheet.create({
   },
   pickerSheetOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: glassColors.menuOverlay,
   },
   pickerHeader: {
     flexDirection: 'row',
@@ -439,9 +426,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.sm,
     borderRadius: glassConstants.radius.icon,
   },
-  headerButtonPressed: {
-    backgroundColor: glassColors.menuItemPressed,
-  },
   headerTitleContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -453,22 +437,18 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 17,
     fontFamily: fontFamilies.semibold,
-    color: colors.text.primary.light,
     letterSpacing: -0.3,
   },
   cancelText: {
     fontSize: 17,
     fontFamily: fontFamilies.regular,
-    color: colors.text.secondary.light,
   },
   confirmText: {
     fontSize: 17,
     fontFamily: fontFamilies.semibold,
-    color: colors.primary,
   },
   divider: {
     height: StyleSheet.hairlineWidth,
-    backgroundColor: glassColors.menuItemBorder,
     marginHorizontal: spacing.md,
   },
   pickerContainer: {

@@ -8,7 +8,9 @@ import {
   ChevronRight,
   type LucideIcon,
 } from 'lucide-react-native';
-import { colors, borderRadius, fontFamilies, glassStyles } from '../../theme';
+import { borderRadius, fontFamilies, glassStyles } from '../../theme';
+import { useTheme } from '../../contexts/ThemeContext';
+import { AdaptiveGlassView } from '../ui/AdaptiveGlassView';
 
 const QUICK_ACTION_ICON_MAP = {
   'map-pin-plus': MapPinPlus,
@@ -41,6 +43,7 @@ export function QuickActionCard({
   onPress,
   delay = 0,
 }: QuickActionCardProps) {
+  const theme = useTheme();
   const IconComponent = QUICK_ACTION_ICON_MAP[iconKey];
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(1)).current;
@@ -65,28 +68,33 @@ export function QuickActionCard({
   return (
     <Animated.View style={{ opacity: fadeAnim, transform: [{ scale: scaleAnim }] }}>
       <Pressable
-        style={styles.cardWrapper}
+        style={[
+          styles.cardWrapper,
+          !theme.isDark && { borderColor: theme.glassColors.border },
+          theme.isDark && { borderWidth: 0 },
+          !theme.isDark && { boxShadow: theme.glassShadows.card },
+        ]}
         onPress={onPress}
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
         accessibilityRole="button"
         accessibilityLabel={`${title}. ${subtitle}`}
       >
-        <BlurView intensity={24} tint="light" style={[styles.card, glassStyles.blurContent]}>
-          <View style={styles.cardOverlay} pointerEvents="none" />
+        <AdaptiveGlassView intensity={24} darkIntensity={10} glassEffectStyle="clear" style={[styles.card, glassStyles.blurContent]}>
+          <View style={[styles.cardOverlay, { backgroundColor: theme.isDark ? 'rgba(40, 40, 45, 0.35)' : theme.glassColors.overlay }]} pointerEvents="none" />
           <View style={styles.content}>
-            <BlurView intensity={50} tint="light" style={[styles.iconContainer, glassStyles.blurContentIcon]}>
-              {IconComponent && <IconComponent size={26} color={iconColor} strokeWidth={2} />}
-            </BlurView>
+            <View style={[styles.iconContainer, glassStyles.blurContentIcon, theme.isDark && { borderWidth: 1, borderColor: theme.glassColors.borderStrong }, { backgroundColor: theme.isDark ? 'rgba(255, 255, 255, 0.06)' : theme.colors.glass.iconInset }]}>
+              {IconComponent && <IconComponent size={26} color={theme.isDark ? theme.colors.text.secondary : iconColor} strokeWidth={2} />}
+            </View>
             <View style={styles.textContainer}>
-              <Text style={styles.title}>{title}</Text>
-              <Text style={styles.subtitle}>{subtitle}</Text>
+              <Text style={[styles.title, { color: theme.colors.text.primary }]}>{title}</Text>
+              <Text style={[styles.subtitle, { color: theme.colors.text.tertiary }]}>{subtitle}</Text>
             </View>
           </View>
-          <BlurView intensity={50} tint="light" style={[styles.chevronContainer, glassStyles.blurContentIcon]}>
-            <ChevronRight size={20} color={colors.text.tertiary.light} strokeWidth={2} />
-          </BlurView>
-        </BlurView>
+          <View style={[styles.chevronContainer, glassStyles.blurContentIcon, theme.isDark && { borderWidth: 1, borderColor: theme.glassColors.borderStrong }, { backgroundColor: theme.isDark ? 'rgba(255, 255, 255, 0.06)' : theme.colors.glass.iconInset }]}>
+            <ChevronRight size={20} color={theme.colors.text.tertiary} strokeWidth={2} />
+          </View>
+        </AdaptiveGlassView>
       </Pressable>
     </Animated.View>
   );
@@ -123,13 +131,11 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 16,
     fontFamily: fontFamilies.semibold,
-    color: colors.text.primary.light,
     lineHeight: 20,
   },
   subtitle: {
     fontSize: 12,
     fontFamily: fontFamilies.semibold,
-    color: colors.text.secondary.light,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
     marginTop: 2,
