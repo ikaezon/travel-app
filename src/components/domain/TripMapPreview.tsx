@@ -72,6 +72,7 @@ export function TripMapPreview({ tripId, onExpandPress }: TripMapPreviewProps) {
           showsCompass={false}
           pointerEvents="none"
           mapType="standard"
+          userInterfaceStyle={theme.isDark ? 'dark' : 'light'}
         >
           {markers.map((marker) => (
             <Marker

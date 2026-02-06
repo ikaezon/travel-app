@@ -135,6 +135,7 @@ export default function MapExpandScreen() {
         showsCompass
         toolbarEnabled={false}
         mapType="standard"
+        userInterfaceStyle={theme.isDark ? 'dark' : 'light'}
       >
         {markers.map((marker) => (
           <Marker
