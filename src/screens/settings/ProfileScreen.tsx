@@ -8,13 +8,23 @@ import {
   Pressable,
   ActivityIndicator,
   Alert,
+  Animated,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
+import { BlurView } from 'expo-blur';
 import { MaterialIcons } from '@expo/vector-icons';
 import { SettingsListItem } from '../../components/ui/SettingsListItem';
 import { ToggleSwitch } from '../../components/ui/ToggleSwitch';
-import { colors, spacing, borderRadius } from '../../theme';
-import { useProfileUser, useAppSettings } from '../../hooks';
+import {
+  colors,
+  spacing,
+  borderRadius,
+  fontFamilies,
+  glassStyles,
+  glassColors,
+} from '../../theme';
+import { useProfileUser, useAppSettings, usePressAnimation } from '../../hooks';
 
 interface ProfileScreenProps {
   onEditPress?: () => void;
@@ -35,11 +45,16 @@ export default function ProfileScreen({
   onHelpCenterPress,
   onLogOutPress,
 }: ProfileScreenProps) {
+  const insets = useSafeAreaInsets();
   const { user, isLoading: userLoading } = useProfileUser();
   const { settings, isLoading: settingsLoading, updateSettings } = useAppSettings();
   const [darkMode, setDarkMode] = useState(false);
 
   const isLoading = userLoading || settingsLoading;
+  const topOffset = insets.top + 8;
+  const profileAnim = usePressAnimation();
+  const signOutAnim = usePressAnimation();
+  const editAnim = usePressAnimation();
 
   useEffect(() => {
     if (settings?.darkMode !== undefined) {
@@ -64,169 +79,281 @@ export default function ProfileScreen({
 
   if (isLoading) {
     return (
-      <SafeAreaView style={styles.container} edges={['top']}>
-        <View style={styles.header}>
-          <View style={styles.headerSpacer} />
-          <Text style={styles.headerTitle}>Profile</Text>
-          <View style={styles.headerSpacer} />
+      <LinearGradient
+        colors={[colors.gradient.start, colors.gradient.middle, colors.gradient.end]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.gradientContainer}
+      >
+        <View style={styles.container}>
+          <View style={[styles.topNavContainer, { top: topOffset }]}>
+            <BlurView intensity={24} tint="light" style={[styles.topNavBlur, glassStyles.blurContentLarge]}>
+              <View style={styles.glassOverlay} pointerEvents="none" />
+              <View style={styles.topNavContent}>
+                <View style={styles.navButton} />
+                <View style={styles.headerCenter}>
+                  <Text style={styles.headerLabel}>Profile</Text>
+                  <Text style={styles.headerTitle}>Settings</Text>
+                </View>
+                <View style={styles.navButton} />
+              </View>
+            </BlurView>
+          </View>
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={colors.primary} />
+          </View>
         </View>
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={colors.primary} />
-        </View>
-      </SafeAreaView>
+      </LinearGradient>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      <View style={styles.header}>
-        <View style={styles.headerSpacer} />
-        <Text style={styles.headerTitle}>Profile</Text>
-        <Pressable style={styles.editButton} onPress={onEditPress}>
-          <Text style={styles.editText}>Edit</Text>
-        </Pressable>
-      </View>
-
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
-        <View style={styles.profileHeader}>
-          <View style={styles.profileContent}>
-            <View style={styles.profileImageContainer}>
-              <Image 
-                source={{ uri: user?.photoUrl }} 
-                style={styles.profileImage} 
-              />
-              {user?.isPro && (
-                <View style={styles.proBadge}>
-                  <Text style={styles.proBadgeText}>PRO</Text>
+    <LinearGradient
+      colors={[colors.gradient.start, colors.gradient.middle, colors.gradient.end]}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+      style={styles.gradientContainer}
+    >
+      <View style={styles.container}>
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={[styles.scrollContent, { paddingTop: topOffset + 72 }]}
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.section}>
+            <Animated.View style={{ transform: [{ scale: profileAnim.scaleAnim }] }}>
+            <Pressable
+              style={styles.profileCardWrapper}
+              onPress={onEditPress}
+              onPressIn={profileAnim.onPressIn}
+              onPressOut={profileAnim.onPressOut}
+            >
+              <BlurView intensity={24} tint="light" style={[styles.profileCardBlur, glassStyles.blurContent]}>
+                <View style={styles.glassOverlay} pointerEvents="none" />
+                <View style={styles.profileContent}>
+                  <View style={styles.profileImageContainer}>
+                    <Image source={{ uri: user?.photoUrl }} style={styles.profileImage} />
+                    {user?.isPro && (
+                      <View style={styles.proBadge}>
+                        <Text style={styles.proBadgeText}>PRO</Text>
+                      </View>
+                    )}
+                  </View>
+                  <View style={styles.userInfo}>
+                    <Text style={styles.userName}>{user?.name || 'User'}</Text>
+                    <Text style={styles.userTitle}>{user?.title || ''}</Text>
+                    <Text style={styles.memberSince}>
+                      Member since {user?.memberSince || ''}
+                    </Text>
+                  </View>
                 </View>
-              )}
-            </View>
+              </BlurView>
+            </Pressable>
+            </Animated.View>
+          </View>
 
-            <View style={styles.userInfo}>
-              <Text style={styles.userName}>{user?.name || 'User'}</Text>
-              <Text style={styles.userTitle}>{user?.title || ''}</Text>
-              <Text style={styles.memberSince}>
-                Member since {user?.memberSince || ''}
-              </Text>
+          <View style={styles.section}>
+            <Text style={styles.sectionHeader}>ACCOUNT SETTINGS</Text>
+            <View style={styles.cardsContainer}>
+              <SettingsListItem
+                label="Connected Accounts"
+                iconName="link"
+                onPress={onConnectedAccountsPress}
+                variant="glass"
+              />
+              <SettingsListItem
+                label="Payment Methods"
+                iconName="credit-card"
+                onPress={onPaymentMethodsPress}
+                variant="glass"
+              />
             </View>
           </View>
+
+          <View style={styles.section}>
+            <Text style={styles.sectionHeader}>PREFERENCES</Text>
+            <View style={styles.cardsContainer}>
+              <SettingsListItem
+                label="Notifications"
+                iconName="notifications"
+                onPress={onNotificationsPress}
+                variant="glass"
+              />
+              <SettingsListItem
+                label="Privacy & Security"
+                iconName="lock"
+                onPress={onPrivacyPress}
+                variant="glass"
+              />
+              <SettingsListItem
+                label="Dark Mode"
+                iconName="dark-mode"
+                showChevron={false}
+                rightElement={
+                  <ToggleSwitch value={darkMode} onValueChange={handleDarkModeToggle} />
+                }
+                variant="glass"
+              />
+            </View>
+          </View>
+
+          <View style={styles.section}>
+            <Text style={styles.sectionHeader}>SUPPORT</Text>
+            <View style={styles.cardsContainer}>
+              <SettingsListItem
+                label="Help Center"
+                iconName="help"
+                onPress={onHelpCenterPress}
+                variant="glass"
+              />
+            </View>
+          </View>
+
+          <View style={styles.section}>
+            <Animated.View style={{ transform: [{ scale: signOutAnim.scaleAnim }] }}>
+            <Pressable
+              style={styles.signOutCardWrapper}
+              onPress={onLogOutPress}
+              onPressIn={signOutAnim.onPressIn}
+              onPressOut={signOutAnim.onPressOut}
+            >
+              <BlurView intensity={24} tint="light" style={[styles.signOutBlur, glassStyles.blurContent]}>
+                <View style={[styles.glassOverlay, styles.signOutOverlay]} pointerEvents="none" />
+                <View style={styles.signOutContent}>
+                  <MaterialIcons name="logout" size={20} color={colors.status.error} />
+                  <Text style={styles.signOutText}>Log Out</Text>
+                </View>
+              </BlurView>
+            </Pressable>
+            </Animated.View>
+            <Text style={styles.versionText}>
+              Version {settings?.appVersion || '1.0.0'}
+            </Text>
+          </View>
+        </ScrollView>
+
+        <View style={[styles.topNavContainer, { top: topOffset }]}>
+          <BlurView intensity={24} tint="light" style={[styles.topNavBlur, glassStyles.blurContentLarge]}>
+            <View style={styles.glassOverlay} pointerEvents="none" />
+            <View style={styles.topNavContent}>
+              <View style={styles.navButton} />
+              <View style={styles.headerCenter}>
+                <Text style={styles.headerLabel}>Profile</Text>
+                <Text style={styles.headerTitle}>Settings</Text>
+              </View>
+              <Animated.View style={{ transform: [{ scale: editAnim.scaleAnim }] }}>
+              <Pressable
+                style={styles.navButton}
+                onPress={onEditPress}
+                onPressIn={editAnim.onPressIn}
+                onPressOut={editAnim.onPressOut}
+              >
+                <Text style={styles.editText}>Edit</Text>
+              </Pressable>
+              </Animated.View>
+            </View>
+          </BlurView>
         </View>
-
-        <View style={styles.divider} />
-
-        <Text style={styles.sectionHeader}>ACCOUNT SETTINGS</Text>
-        <SettingsListItem
-          label="Connected Accounts"
-          iconName="link"
-          onPress={onConnectedAccountsPress}
-        />
-        <SettingsListItem
-          label="Payment Methods"
-          iconName="credit-card"
-          onPress={onPaymentMethodsPress}
-        />
-
-        <View style={styles.sectionDivider}>
-          <View style={styles.divider} />
-        </View>
-
-        <Text style={styles.sectionHeader}>PREFERENCES</Text>
-        <SettingsListItem
-          label="Notifications"
-          iconName="notifications"
-          onPress={onNotificationsPress}
-        />
-        <SettingsListItem
-          label="Privacy & Security"
-          iconName="lock"
-          onPress={onPrivacyPress}
-        />
-        <SettingsListItem
-          label="Dark Mode"
-          iconName="dark-mode"
-          showChevron={false}
-          rightElement={
-            <ToggleSwitch value={darkMode} onValueChange={handleDarkModeToggle} />
-          }
-        />
-
-        <Text style={styles.sectionHeader}>SUPPORT</Text>
-        <SettingsListItem label="Help Center" iconName="help" onPress={onHelpCenterPress} />
-
-        <View style={styles.signOutSection}>
-          <Pressable
-            style={({ pressed }) => [
-              styles.signOutButton,
-              pressed && styles.signOutButtonPressed,
-            ]}
-            onPress={onLogOutPress}
-          >
-            <MaterialIcons name="logout" size={20} color={colors.status.error} />
-            <Text style={styles.signOutText}>Log Out</Text>
-          </Pressable>
-          <Text style={styles.versionText}>
-            Version {settings?.appVersion || '1.0.0'}
-          </Text>
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+      </View>
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
+  gradientContainer: {
+    flex: 1,
+  },
   container: {
     flex: 1,
-    backgroundColor: colors.surface.light,
+  },
+  topNavContainer: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+    zIndex: 60,
+  },
+  topNavBlur: {
+    ...glassStyles.navBarWrapper,
+    width: '90%',
+    maxWidth: 340,
+    position: 'relative',
+    height: 56,
+    justifyContent: 'center',
+  },
+  topNavContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+  },
+  navButton: {
+    width: 48,
+    minHeight: 36,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  headerCenter: {
+    alignItems: 'center',
+  },
+  headerLabel: {
+    fontSize: 9,
+    fontFamily: fontFamilies.semibold,
+    color: colors.primary,
+    textTransform: 'uppercase',
+    letterSpacing: 2,
+    marginBottom: 1,
+    opacity: 0.8,
+  },
+  headerTitle: {
+    fontSize: 16,
+    fontFamily: fontFamilies.semibold,
+    color: colors.text.primary.light,
+    letterSpacing: -0.3,
+  },
+  editText: {
+    fontSize: 16,
+    fontFamily: fontFamilies.semibold,
+    color: colors.primary,
+  },
+  glassOverlay: {
+    ...glassStyles.cardOverlay,
+    backgroundColor: glassColors.overlayStrong,
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border.light,
-  },
-  headerSpacer: {
-    width: 48,
-  },
-  headerTitle: {
-    flex: 1,
-    textAlign: 'center',
-    fontSize: 18,
-    fontWeight: '700',
-    color: colors.text.primary.light,
-    letterSpacing: -0.3,
-  },
-  editButton: {
-    width: 48,
-    height: 48,
-    justifyContent: 'center',
-    alignItems: 'flex-end',
-  },
-  editText: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: colors.primary,
-  },
   scrollView: {
     flex: 1,
   },
   scrollContent: {
+    paddingHorizontal: 24,
     paddingBottom: 120,
+    gap: 12,
   },
-  profileHeader: {
+  section: {
+    gap: 12,
+  },
+  sectionHeader: {
+    fontSize: 12,
+    fontFamily: fontFamilies.semibold,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+    color: colors.text.secondary.light,
+    paddingLeft: 4,
+  },
+  cardsContainer: {
+    gap: 12,
+  },
+  profileCardWrapper: {
+    ...glassStyles.cardWrapper,
+    overflow: 'hidden',
+  },
+  profileCardBlur: {
     padding: spacing.lg,
-    marginTop: spacing.lg,
+    position: 'relative',
   },
   profileContent: {
     alignItems: 'center',
@@ -260,7 +387,7 @@ const styles = StyleSheet.create({
   },
   proBadgeText: {
     fontSize: 12,
-    fontWeight: '700',
+    fontFamily: fontFamilies.semibold,
     color: colors.white,
   },
   userInfo: {
@@ -269,69 +396,56 @@ const styles = StyleSheet.create({
   },
   userName: {
     fontSize: 22,
-    fontWeight: '700',
+    fontFamily: fontFamilies.semibold,
     color: colors.text.primary.light,
     letterSpacing: -0.3,
     textAlign: 'center',
   },
   userTitle: {
     fontSize: 14,
-    fontWeight: '400',
+    fontFamily: fontFamilies.regular,
     color: colors.text.secondary.light,
     textAlign: 'center',
     marginTop: spacing.xs,
   },
   memberSince: {
     fontSize: 12,
+    fontFamily: fontFamilies.regular,
     color: colors.text.secondary.light,
     opacity: 0.7,
     marginTop: spacing.xs,
   },
-  divider: {
-    height: 1,
-    backgroundColor: colors.border.light,
-    marginVertical: spacing.sm,
+  signOutCardWrapper: {
+    ...glassStyles.cardWrapper,
+    overflow: 'hidden',
+    borderColor: 'rgba(239, 68, 68, 0.3)',
   },
-  sectionDivider: {
-    paddingHorizontal: spacing.xxl,
-  },
-  sectionHeader: {
-    fontSize: 14,
-    fontWeight: '700',
-    textTransform: 'uppercase',
-    letterSpacing: 1,
-    color: colors.text.secondary.light,
-    paddingHorizontal: spacing.xxl,
-    paddingBottom: spacing.sm,
-    paddingTop: spacing.xxl,
-  },
-  signOutSection: {
-    padding: spacing.xxl,
-    marginTop: spacing.lg,
-    gap: spacing.lg,
-    alignItems: 'center',
-  },
-  signOutButton: {
-    width: '100%',
+  signOutBlur: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    padding: 12,
     gap: spacing.sm,
-    backgroundColor: colors.status.errorLight,
-    paddingVertical: spacing.md,
-    borderRadius: borderRadius.md,
+    position: 'relative',
   },
-  signOutButtonPressed: {
-    backgroundColor: '#fee2e2',
+  signOutOverlay: {
+    backgroundColor: 'rgba(254, 226, 226, 0.4)',
+  },
+  signOutContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
   },
   signOutText: {
     fontSize: 16,
-    fontWeight: '700',
+    fontFamily: fontFamilies.semibold,
     color: colors.status.error,
   },
   versionText: {
     fontSize: 12,
+    fontFamily: fontFamilies.regular,
     color: colors.text.tertiary.light,
     textAlign: 'center',
+    marginTop: spacing.sm,
   },
 });

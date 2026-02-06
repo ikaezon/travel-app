@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   View,
   Text,
@@ -6,16 +6,16 @@ import {
   Pressable,
   ActivityIndicator,
   Alert,
+  Animated,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { colors, spacing, borderRadius } from '../../theme';
+import { colors, spacing, borderRadius, fontFamilies } from '../../theme';
 import { MainStackParamList } from '../../navigation/types';
-import { useReservationByTimelineId } from '../../hooks';
-import { reservationService } from '../../data';
+import { useReservationByTimelineId, useCreateAttachment, usePressAnimation } from '../../hooks';
 
 type NavigationProp = NativeStackNavigationProp<MainStackParamList, 'ReservationAttachments'>;
 type ReservationAttachmentsRouteProp = RouteProp<MainStackParamList, 'ReservationAttachments'>;
@@ -23,9 +23,10 @@ type ReservationAttachmentsRouteProp = RouteProp<MainStackParamList, 'Reservatio
 export default function ReservationAttachmentsScreen() {
   const navigation = useNavigation<NavigationProp>();
   const route = useRoute<ReservationAttachmentsRouteProp>();
-  const reservationId = route.params?.reservationId ?? '';
-  const { reservation, isLoading } = useReservationByTimelineId(reservationId);
-  const [uploading, setUploading] = useState(false);
+  const timelineItemId = route.params?.timelineItemId ?? '';
+  const { reservation, isLoading } = useReservationByTimelineId(timelineItemId);
+  const { createAttachment, isCreating: uploading } = useCreateAttachment();
+  const primaryAnim = usePressAnimation();
 
   const openCameraRoll = async () => {
     if (!reservation) return;
@@ -45,15 +46,14 @@ export default function ReservationAttachmentsScreen() {
     });
     if (result.canceled || !result.assets[0]) return;
     const uri = result.assets[0].uri;
-    setUploading(true);
+    const fileName = result.assets[0].fileName ?? `attachment_${Date.now()}.jpg`;
     try {
-      await reservationService.createAttachmentFromFile(reservation.id, uri);
+      // Use hook instead of direct service call
+      await createAttachment(reservation.id, uri, fileName);
       navigation.goBack();
     } catch (e) {
       const message = e instanceof Error ? e.message : 'Failed to upload attachment.';
       Alert.alert('Upload failed', message);
-    } finally {
-      setUploading(false);
     }
   };
 
@@ -98,13 +98,15 @@ export default function ReservationAttachmentsScreen() {
         <Text style={styles.subtext}>
           Choose from your camera roll to attach to this reservation.
         </Text>
+        <Animated.View style={{ transform: [{ scale: primaryAnim.scaleAnim }] }}>
         <Pressable
-          style={({ pressed }) => [
+          style={[
             styles.primaryButton,
-            pressed && styles.primaryButtonPressed,
             uploading && styles.primaryButtonDisabled,
           ]}
           onPress={openCameraRoll}
+          onPressIn={primaryAnim.onPressIn}
+          onPressOut={primaryAnim.onPressOut}
           disabled={uploading}
         >
           {uploading ? (
@@ -116,6 +118,7 @@ export default function ReservationAttachmentsScreen() {
             </>
           )}
         </Pressable>
+        </Animated.View>
       </View>
     </SafeAreaView>
   );
@@ -142,7 +145,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 18,
-    fontWeight: '700',
+    fontFamily: fontFamilies.semibold,
     color: colors.text.primary.light,
   },
   headerSpacer: {
@@ -170,13 +173,14 @@ const styles = StyleSheet.create({
   },
   heading: {
     fontSize: 20,
-    fontWeight: '700',
+    fontFamily: fontFamilies.semibold,
     color: colors.text.primary.light,
     marginBottom: spacing.sm,
     textAlign: 'center',
   },
   subtext: {
     fontSize: 15,
+    fontFamily: fontFamilies.regular,
     color: colors.text.secondary.light,
     textAlign: 'center',
     marginBottom: spacing.xxl,
@@ -193,15 +197,12 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.md,
     minWidth: 240,
   },
-  primaryButtonPressed: {
-    opacity: 0.9,
-  },
   primaryButtonDisabled: {
     opacity: 0.7,
   },
   primaryButtonText: {
     fontSize: 16,
-    fontWeight: '700',
+    fontFamily: fontFamilies.semibold,
     color: colors.white,
   },
 });

@@ -1,13 +1,19 @@
 import React from 'react';
-import { Text, StyleSheet, Pressable, View } from 'react-native';
+import { Text, StyleSheet, Pressable, View, ActivityIndicator, Animated } from 'react-native';
+import { BlurView } from 'expo-blur';
 import { MaterialIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { colors, fontFamilies, glassStyles, glassColors, glassConstants, glassShadows, borderRadius } from '../../theme';
+import { usePressAnimation } from '../../hooks';
 
 interface ShimmerButtonProps {
   label: string;
   iconName?: keyof typeof MaterialIcons.glyphMap;
   onPress?: () => void;
   disabled?: boolean;
+  loading?: boolean;
+  /** Boarding pass style: liquid glass with blue tint */
+  variant?: 'default' | 'boardingPass';
 }
 
 export function ShimmerButton({
@@ -15,51 +21,114 @@ export function ShimmerButton({
   iconName,
   onPress,
   disabled = false,
+  loading = false,
+  variant = 'default',
 }: ShimmerButtonProps) {
+  const isDisabled = disabled || loading;
+  const { scaleAnim, onPressIn, onPressOut } = usePressAnimation();
+
+  if (variant === 'boardingPass') {
+    return (
+      <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
+      <Pressable
+        style={[
+          styles.boardingPassWrapper,
+          isDisabled && styles.buttonDisabled,
+        ]}
+        onPress={onPress}
+        onPressIn={onPressIn}
+        onPressOut={onPressOut}
+        disabled={isDisabled}
+      >
+        <BlurView intensity={24} tint="light" style={[StyleSheet.absoluteFill, glassStyles.blurContent]} />
+        <View style={styles.boardingPassOverlay} pointerEvents="none" />
+        <View style={styles.content}>
+          {loading ? (
+            <ActivityIndicator size="small" color={colors.reservation.flight.icon} />
+          ) : (
+            <>
+              {iconName && (
+                <MaterialIcons name={iconName} size={24} color={colors.reservation.flight.icon} />
+              )}
+              <Text style={styles.boardingPassLabel}>{label}</Text>
+            </>
+          )}
+        </View>
+      </Pressable>
+      </Animated.View>
+    );
+  }
+
   return (
+    <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
     <Pressable
-      style={({ pressed }) => [
+      style={[
         styles.button,
-        pressed && styles.buttonPressed,
-        disabled && styles.buttonDisabled,
+        isDisabled && styles.buttonDisabled,
       ]}
       onPress={onPress}
-      disabled={disabled}
+      onPressIn={onPressIn}
+      onPressOut={onPressOut}
+      disabled={isDisabled}
     >
-      {/* Shimmer overlay */}
       <LinearGradient
         colors={['transparent', 'rgba(255,255,255,0.25)', 'transparent']}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 0 }}
         style={styles.shimmer}
       />
-      
+
       <View style={styles.content}>
-        {iconName && (
-          <MaterialIcons name={iconName} size={24} color="white" />
+        {loading ? (
+          <ActivityIndicator size="small" color="white" />
+        ) : (
+          <>
+            {iconName && (
+              <MaterialIcons name={iconName} size={24} color="white" />
+            )}
+            <Text style={styles.label}>{label}</Text>
+          </>
         )}
-        <Text style={styles.label}>{label}</Text>
       </View>
     </Pressable>
+    </Animated.View>
   );
 }
 
 const styles = StyleSheet.create({
   button: {
     height: 56,
-    borderRadius: 16,
-    backgroundColor: '#13a4ec',
+    borderRadius: borderRadius.lg,
+    backgroundColor: colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
     overflow: 'hidden',
-    shadowColor: '#13a4ec',
+    shadowColor: colors.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.25,
     shadowRadius: 20,
     elevation: 8,
   },
-  buttonPressed: {
-    transform: [{ scale: 0.95 }],
+  boardingPassWrapper: {
+    height: 56,
+    borderRadius: glassConstants.radius.card,
+    overflow: 'hidden',
+    borderWidth: glassConstants.borderWidth.cardThin,
+    borderColor: glassColors.borderShimmerBlue,
+    boxShadow: glassShadows.icon,
+    position: 'relative',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  boardingPassOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: glassColors.overlayBlue,
+  },
+  boardingPassLabel: {
+    fontSize: 16,
+    fontFamily: fontFamilies.semibold,
+    color: colors.reservation.flight.icon,
+    letterSpacing: 0.3,
   },
   buttonDisabled: {
     opacity: 0.5,
@@ -79,8 +148,8 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 16,
-    fontWeight: '700',
-    color: 'white',
+    fontFamily: fontFamilies.semibold,
+    color: colors.white,
     letterSpacing: 0.3,
   },
 });

@@ -8,15 +8,22 @@ import {
   ImageBackground,
   Platform,
   Keyboard,
+  Animated,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
+import { BlurView } from 'expo-blur';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { FormInput } from '../../components/ui/FormInput';
 import { DatePickerInput } from '../../components/ui/DatePickerInput';
+import { TimePickerInput } from '../../components/ui/TimePickerInput';
+import { ShimmerButton } from '../../components/ui/ShimmerButton';
 import { MainStackParamList } from '../../navigation/types';
+import { colors, fontFamilies, glassStyles, glassColors } from '../../theme';
 import { mockImages, mockReviewDetailsDefaults } from '../../data/mocks';
+import { usePressAnimation } from '../../hooks';
 
 type NavigationProp = NativeStackNavigationProp<MainStackParamList>;
 type ReviewDetailsRouteProp = RouteProp<MainStackParamList, 'ReviewDetails'>;
@@ -38,6 +45,7 @@ export default function ReviewDetailsScreen({
 }: ReviewDetailsScreenProps) {
   const navigation = useNavigation<NavigationProp>();
   const route = useRoute<ReviewDetailsRouteProp>();
+  const insets = useSafeAreaInsets();
   const sourceImageUrl = route.params?.imageUri || mockImages.defaultReviewImage;
 
   const defaults = mockReviewDetailsDefaults as ParsedData;
@@ -49,6 +57,11 @@ export default function ReviewDetailsScreen({
     confirmationCode: initialData.confirmationCode ?? defaults.confirmationCode,
   });
   const [keyboardHeight, setKeyboardHeight] = useState(0);
+
+  const topOffset = insets.top + 8;
+  const sourceAnim = usePressAnimation();
+  const backAnim = usePressAnimation();
+  const helpAnim = usePressAnimation();
 
   useEffect(() => {
     const showSub = Keyboard.addListener(
@@ -65,215 +78,269 @@ export default function ReviewDetailsScreen({
     };
   }, []);
 
-  const handleBackPress = () => {
-    navigation.goBack();
-  };
+  const handleBackPress = () => navigation.goBack();
 
   const handleConfirm = () => {
     navigation.navigate('Tabs');
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      <View style={styles.header}>
-        <Pressable style={styles.headerButton} onPress={handleBackPress}>
-          <MaterialIcons name="arrow-back" size={24} color="#111618" />
-        </Pressable>
-        <Text style={styles.headerTitle}>Review Details</Text>
-        <Pressable style={styles.helpButton}>
-          <Text style={styles.helpText}>Help</Text>
-        </Pressable>
-      </View>
-
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={[
-          styles.scrollContent,
-          { paddingBottom: 100 + keyboardHeight },
-        ]}
-        showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
-      >
-        <View style={styles.sourceSection}>
-          <View style={styles.sourceCard}>
-            <View style={styles.sourceInfo}>
-              <View style={styles.sourceHeader}>
-                <MaterialIcons name="document-scanner" size={20} color="#13a4ec" />
-                <Text style={styles.sourceLabel}>SOURCE</Text>
-              </View>
-              <Text style={styles.sourceTitle}>Original Screenshot</Text>
-              <Text style={styles.sourceSubtitle}>
-                Tap to expand and verify details
-              </Text>
-            </View>
-
-            <Pressable style={styles.thumbnailContainer}>
-              <ImageBackground
-                source={{ uri: sourceImageUrl }}
-                style={styles.thumbnail}
-                imageStyle={styles.thumbnailImage}
-              >
-                <View style={styles.thumbnailOverlay}>
-                  <MaterialIcons name="zoom-in" size={24} color="white" />
+    <LinearGradient
+      colors={[colors.gradient.start, colors.gradient.middle, colors.gradient.end]}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+      style={styles.gradientContainer}
+    >
+      <View style={styles.container}>
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={[
+            styles.scrollContent,
+            {
+              paddingTop: topOffset + 72,
+              paddingBottom: 120 + keyboardHeight,
+            },
+          ]}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
+          <View style={styles.sourceSection}>
+            <Animated.View style={{ transform: [{ scale: sourceAnim.scaleAnim }] }}>
+            <Pressable style={styles.sourceCard} onPressIn={sourceAnim.onPressIn} onPressOut={sourceAnim.onPressOut}>
+              <BlurView intensity={24} tint="light" style={[StyleSheet.absoluteFill, glassStyles.blurContent]} />
+              <View style={styles.sourceCardInner}>
+                <View style={styles.glassOverlay} pointerEvents="none" />
+                <View style={styles.sourceContent}>
+                <View style={styles.sourceInfo}>
+                  <View style={styles.sourceHeader}>
+                    <MaterialIcons name="document-scanner" size={20} color={colors.primary} />
+                    <Text style={styles.sourceLabel}>SOURCE</Text>
+                  </View>
+                  <Text style={styles.sourceTitle}>Original Screenshot</Text>
+                  <Text style={styles.sourceSubtitle}>
+                    Tap to expand and verify details
+                  </Text>
                 </View>
-              </ImageBackground>
+                <Pressable style={styles.thumbnailContainer}>
+                  <ImageBackground
+                    source={{ uri: sourceImageUrl }}
+                    style={styles.thumbnail}
+                    imageStyle={styles.thumbnailImage}
+                  >
+                    <View style={styles.thumbnailOverlay}>
+                      <MaterialIcons name="zoom-in" size={24} color="white" />
+                    </View>
+                  </ImageBackground>
+                </Pressable>
+              </View>
+              </View>
             </Pressable>
+            </Animated.View>
           </View>
-        </View>
 
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Flight Information</Text>
-          <Text style={styles.sectionSubtitle}>
-            AI has auto-filled these details. Please verify.
-          </Text>
-        </View>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Flight Information</Text>
+            <Text style={styles.sectionSubtitle}>
+              AI has auto-filled these details. Please verify.
+            </Text>
+          </View>
 
-        <View style={styles.formContainer}>
-          <FormInput
-            label="Airline"
-            value={formData.airline}
-            onChangeText={(text) =>
-              setFormData((prev) => ({ ...prev, airline: text }))
-            }
-            iconName="flight"
-            rightIconName="check-circle"
-            rightIconColor="#10b981"
-          />
-
-          <FormInput
-            label="Flight Number"
-            value={formData.flightNumber}
-            onChangeText={(text) =>
-              setFormData((prev) => ({ ...prev, flightNumber: text }))
-            }
-            iconName="pin"
-            rightIconName="check-circle"
-            rightIconColor="#10b981"
-          />
-
-          <View style={styles.rowContainer}>
-            <DatePickerInput
-              label="Date"
-              value={formData.date}
-              onChange={(text) =>
-                setFormData((prev) => ({ ...prev, date: text }))
+          <View style={styles.formContainer}>
+            <FormInput
+              label="Airline"
+              value={formData.airline}
+              onChangeText={(text) =>
+                setFormData((prev) => ({ ...prev, airline: text }))
               }
-              placeholder="Tap to select date"
-              iconName="calendar-today"
-              style={styles.halfWidth}
+              iconName="flight"
+              rightIconName="check-circle"
+              rightIconColor={colors.status.success}
+              variant="glass"
             />
             <FormInput
-              label="Time"
-              value={formData.time}
+              label="Flight Number"
+              value={formData.flightNumber}
               onChangeText={(text) =>
-                setFormData((prev) => ({ ...prev, time: text }))
+                setFormData((prev) => ({ ...prev, flightNumber: text }))
               }
-              iconName="schedule"
-              style={styles.halfWidth}
+              iconName="confirmation-number"
+              rightIconName="check-circle"
+              rightIconColor={colors.status.success}
+              variant="glass"
+            />
+            <View style={styles.rowContainer}>
+              <DatePickerInput
+                label="Date"
+                value={formData.date}
+                onChange={(text) =>
+                  setFormData((prev) => ({ ...prev, date: text }))
+                }
+                placeholder="Tap to select date"
+                iconName="calendar-today"
+                style={styles.halfWidth}
+                variant="glass"
+              />
+              <TimePickerInput
+                label="Time"
+                value={formData.time}
+                onChange={(text) =>
+                  setFormData((prev) => ({ ...prev, time: text }))
+                }
+                placeholder="Tap to select"
+                iconName="schedule"
+                style={styles.halfWidth}
+                variant="glass"
+              />
+            </View>
+            <FormInput
+              label="Confirmation Code"
+              value={formData.confirmationCode}
+              onChangeText={(text) =>
+                setFormData((prev) => ({ ...prev, confirmationCode: text }))
+              }
+              placeholder="e.g. G7K9L2"
+              iconName="confirmation-number"
+              isDashed
+              style={styles.topMargin}
+              labelRight={
+                <Pressable>
+                  <Text style={styles.labelLink}>Not found?</Text>
+                </Pressable>
+              }
+              variant="glass"
             />
           </View>
+        </ScrollView>
 
-          <FormInput
-            label="Confirmation Code"
-            value={formData.confirmationCode}
-            onChangeText={(text) =>
-              setFormData((prev) => ({ ...prev, confirmationCode: text }))
-            }
-            placeholder="e.g. G7K9L2"
-            iconName="confirmation-number"
-            isDashed
-            style={styles.topMargin}
-            labelRight={
-              <Pressable>
-                <Text style={styles.labelLink}>Not found?</Text>
-              </Pressable>
-            }
+        <View style={[styles.bottomActions, { paddingBottom: insets.bottom + 16 }]}>
+          <ShimmerButton
+            label="Confirm & Save"
+            iconName="check"
+            onPress={handleConfirm}
+            variant="boardingPass"
           />
         </View>
-      </ScrollView>
 
-      <View style={styles.bottomActions}>
-        <Pressable
-          style={({ pressed }) => [
-            styles.confirmButton,
-            pressed && styles.confirmButtonPressed,
-          ]}
-          onPress={handleConfirm}
-        >
-          <MaterialIcons name="check" size={24} color="white" />
-          <Text style={styles.confirmButtonText}>Confirm &amp; Save</Text>
-        </Pressable>
+        <View style={[styles.headerContainer, { top: topOffset }]}>
+          <BlurView intensity={24} tint="light" style={[styles.headerBlur, glassStyles.blurContentLarge]}>
+            <View style={styles.glassOverlay} pointerEvents="none" />
+            <View style={styles.headerContent}>
+              <Animated.View style={{ transform: [{ scale: backAnim.scaleAnim }] }}>
+              <Pressable
+                style={styles.headerButton}
+                onPress={handleBackPress}
+                onPressIn={backAnim.onPressIn}
+                onPressOut={backAnim.onPressOut}
+              >
+                <MaterialIcons name="arrow-back" size={22} color={colors.text.primary.light} />
+              </Pressable>
+              </Animated.View>
+              <Text style={styles.headerTitle}>Review Details</Text>
+              <Animated.View style={{ transform: [{ scale: helpAnim.scaleAnim }] }}>
+              <Pressable style={styles.helpButton} onPressIn={helpAnim.onPressIn} onPressOut={helpAnim.onPressOut}>
+                <Text style={styles.helpText}>Help</Text>
+              </Pressable>
+              </Animated.View>
+            </View>
+          </BlurView>
+        </View>
       </View>
-    </SafeAreaView>
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
+  gradientContainer: {
+    flex: 1,
+  },
   container: {
     flex: 1,
-    backgroundColor: '#f6f7f8',
   },
-  header: {
-    flexDirection: 'row',
+  headerContainer: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
     alignItems: 'center',
+    zIndex: 60,
+  },
+  headerBlur: {
+    ...glassStyles.navBarWrapper,
+    width: '90%',
+    maxWidth: 340,
+    position: 'relative',
+    height: 56,
+    justifyContent: 'center',
+  },
+  headerContent: {
+    flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: 'center',
     paddingHorizontal: 16,
-    paddingVertical: 12,
-    backgroundColor: 'white',
-    borderBottomWidth: 1,
-    borderBottomColor: '#dbe2e6',
+  },
+  glassOverlay: {
+    ...glassStyles.cardOverlay,
+    backgroundColor: glassColors.overlayStrong,
   },
   headerButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 36,
+    height: 36,
     justifyContent: 'center',
     alignItems: 'center',
   },
   headerTitle: {
     flex: 1,
     textAlign: 'center',
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#111618',
+    fontSize: 16,
+    fontFamily: fontFamilies.semibold,
+    color: colors.text.primary.light,
     letterSpacing: -0.3,
-    paddingRight: 8,
   },
   helpButton: {
     paddingHorizontal: 4,
+    minWidth: 36,
+    alignItems: 'flex-end',
   },
   helpText: {
     fontSize: 16,
-    fontWeight: '700',
-    color: '#13a4ec',
+    fontFamily: fontFamilies.semibold,
+    color: colors.primary,
   },
   scrollView: {
     flex: 1,
   },
   scrollContent: {
-    // paddingBottom is now dynamic based on keyboard
+    paddingHorizontal: 24,
   },
   sourceSection: {
-    padding: 16,
+    marginBottom: 16,
   },
   sourceCard: {
+    ...glassStyles.cardWrapper,
+    overflow: 'hidden',
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    padding: 16,
+    position: 'relative',
+  },
+  sourceCardInner: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'flex-start',
     justifyContent: 'space-between',
     gap: 16,
-    borderRadius: 12,
-    backgroundColor: 'white',
-    padding: 16,
-    borderWidth: 1,
-    borderColor: '#dbe2e6',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 1,
+    position: 'relative',
+    zIndex: 1,
+  },
+  sourceContent: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    gap: 16,
   },
   sourceInfo: {
-    flex: 3,
+    flex: 1,
     gap: 4,
   },
   sourceHeader: {
@@ -284,36 +351,37 @@ const styles = StyleSheet.create({
   },
   sourceLabel: {
     fontSize: 12,
-    fontWeight: '700',
+    fontFamily: fontFamilies.semibold,
     textTransform: 'uppercase',
     letterSpacing: 1,
-    color: '#617c89',
+    color: colors.text.secondary.light,
   },
   sourceTitle: {
     fontSize: 14,
-    fontWeight: '700',
-    color: '#111618',
+    fontFamily: fontFamilies.semibold,
+    color: colors.text.primary.light,
     lineHeight: 18,
   },
   sourceSubtitle: {
     fontSize: 12,
-    color: '#617c89',
+    fontFamily: fontFamilies.regular,
+    color: colors.text.secondary.light,
     lineHeight: 16,
   },
   thumbnailContainer: {
     width: 80,
     height: 80,
-    borderRadius: 8,
+    borderRadius: 12,
     overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: '#dbe2e6',
+    borderWidth: 2,
+    borderColor: glassColors.border,
   },
   thumbnail: {
     width: '100%',
     height: '100%',
   },
   thumbnailImage: {
-    borderRadius: 8,
+    borderRadius: 10,
   },
   thumbnailOverlay: {
     ...StyleSheet.absoluteFillObject,
@@ -322,73 +390,45 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   sectionHeader: {
-    paddingHorizontal: 16,
     paddingTop: 8,
-    paddingBottom: 8,
+    paddingBottom: 12,
   },
   sectionTitle: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: '#111618',
+    fontSize: 20,
+    fontFamily: fontFamilies.semibold,
+    color: colors.text.primary.light,
     lineHeight: 28,
   },
   sectionSubtitle: {
     fontSize: 14,
-    color: '#617c89',
+    fontFamily: fontFamilies.regular,
+    color: colors.text.secondary.light,
     marginTop: 4,
   },
   formContainer: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    gap: 16,
+    gap: 12,
   },
   rowContainer: {
     flexDirection: 'row',
-    gap: 16,
+    gap: 12,
   },
   halfWidth: {
     flex: 1,
   },
   topMargin: {
-    marginTop: 8,
+    marginTop: 0,
   },
   labelLink: {
     fontSize: 12,
-    fontWeight: '600',
-    color: '#13a4ec',
+    fontFamily: fontFamilies.semibold,
+    color: colors.primary,
   },
   bottomActions: {
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    borderTopWidth: 1,
-    borderTopColor: '#dbe2e6',
-  },
-  confirmButton: {
-    width: '100%',
-    height: 56,
-    borderRadius: 12,
-    backgroundColor: '#13a4ec',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    shadowColor: '#13a4ec',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 12,
-    elevation: 8,
-  },
-  confirmButtonPressed: {
-    transform: [{ scale: 0.98 }],
-  },
-  confirmButtonText: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: 'white',
+    paddingHorizontal: 24,
+    paddingTop: 16,
   },
 });

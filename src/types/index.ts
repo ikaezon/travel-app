@@ -13,7 +13,6 @@ export interface User {
 
 export interface Trip {
   id: string;
-  /** Full destination display e.g. "Paris, France" (from autocomplete or free text) */
   destination: string;
   dateRange: string;
   durationLabel: string;
@@ -55,6 +54,7 @@ export interface Reservation {
   vehicleInfo?: string;
   boardingZone?: string;
   priority?: string;
+  address?: string;
   attachments: Attachment[];
 }
 
@@ -70,7 +70,7 @@ export interface QuickAction {
   id: string;
   title: string;
   subtitle: string;
-  iconName: string;
+  iconKey: string;
   iconColor: string;
   iconBgColor: string;
   route: string;

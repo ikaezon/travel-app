@@ -1,7 +1,9 @@
 import React from 'react';
-import { View, Text, StyleSheet, Pressable } from 'react-native';
+import { View, Text, StyleSheet, Pressable, Animated } from 'react-native';
+import { BlurView } from 'expo-blur';
 import { MaterialIcons } from '@expo/vector-icons';
-import { borderRadius, colors, spacing } from '../../theme';
+import { colors, spacing, fontFamilies, glassStyles, glassColors, glassConstants } from '../../theme';
+import { usePressAnimation } from '../../hooks';
 
 interface StatCardProps {
   label: string;
@@ -11,6 +13,8 @@ interface StatCardProps {
 }
 
 export function StatCard({ label, value, iconName, onPress }: StatCardProps) {
+  const { scaleAnim, onPressIn, onPressOut } = usePressAnimation();
+
   const content = (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -23,48 +27,47 @@ export function StatCard({ label, value, iconName, onPress }: StatCardProps) {
 
   if (onPress) {
     return (
+      <Animated.View style={{ transform: [{ scale: scaleAnim }], flex: 1, minWidth: 0 }}>
       <Pressable
-        style={({ pressed }) => [
-          styles.pressable,
-          pressed && styles.pressed,
-        ]}
+        style={styles.cardWrapper}
         onPress={onPress}
+        onPressIn={onPressIn}
+        onPressOut={onPressOut}
         accessibilityRole="button"
         accessibilityLabel={`${label}: ${value}`}
       >
+        <BlurView intensity={24} tint="light" style={[StyleSheet.absoluteFill, glassStyles.blurContent]} />
+        <View style={styles.cardOverlay} pointerEvents="none" />
         {content}
       </Pressable>
+      </Animated.View>
     );
   }
 
   return (
-    <View style={styles.pressable} accessibilityLabel={`${label}: ${value}`}>
+    <View style={styles.cardWrapper} accessibilityLabel={`${label}: ${value}`}>
+      <BlurView intensity={24} tint="light" style={[StyleSheet.absoluteFill, glassStyles.blurContent]} />
+      <View style={styles.cardOverlay} pointerEvents="none" />
       {content}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  pressable: {
+  cardWrapper: {
+    ...glassStyles.cardWrapper,
     flex: 1,
     minWidth: 0,
+    borderWidth: glassConstants.borderWidth.cardThin,
+    position: 'relative',
   },
-  pressed: {
-    transform: [{ scale: 1.02 }],
+  cardOverlay: {
+    ...glassStyles.cardOverlay,
+    backgroundColor: glassColors.overlayStrong,
   },
   container: {
     gap: spacing.sm,
-    borderRadius: borderRadius.md,
     padding: spacing.lg,
-    backgroundColor: colors.surface.light,
-    borderWidth: 1,
-    borderColor: colors.border.light,
-    shadowColor: colors.black,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 1,
-    overflow: 'hidden',
   },
   header: {
     flexDirection: 'row',
@@ -75,14 +78,14 @@ const styles = StyleSheet.create({
   label: {
     flex: 1,
     fontSize: 12,
-    fontWeight: '700',
+    fontFamily: fontFamilies.semibold,
     textTransform: 'uppercase',
     letterSpacing: 1,
     color: colors.text.secondary.light,
   },
   value: {
     fontSize: 24,
-    fontWeight: '700',
+    fontFamily: fontFamilies.semibold,
     color: colors.text.primary.light,
     letterSpacing: -0.5,
     lineHeight: 28,

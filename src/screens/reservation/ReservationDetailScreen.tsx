@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import {
   View,
@@ -10,30 +10,50 @@ import {
   Image,
   ActivityIndicator,
   Alert,
+  Linking,
+  Platform,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { BlurView } from 'expo-blur';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { StatCard } from '../../components/ui/StatCard';
 import { DetailRow } from '../../components/ui/DetailRow';
-import { GlassDropdownMenu } from '../../components/ui';
+import { GlassDropdownMenu } from '../../components/ui/GlassDropdownMenu';
+import { GlassNavHeader } from '../../components/navigation/GlassNavHeader';
 import { MainStackParamList } from '../../navigation/types';
 import { useReservationByTimelineId } from '../../hooks';
-import { getReservationStatusConfig } from '../../constants';
-import { colors, spacing, borderRadius } from '../../theme';
-import { reservationService, tripService } from '../../data';
+import { colors, spacing, fontFamilies, glassStyles, glassColors, glassConstants, glassShadows } from '../../theme';
+import { deleteReservationWithTimeline } from '../../data';
+import { shortenCountryInAddress } from '../../utils/addressFormat';
+import { formatReservationDateDisplay, getReservationDisplayAddress } from '../../utils/reservationFormat';
+import type { Reservation } from '../../types';
 
 type NavigationProp = NativeStackNavigationProp<MainStackParamList>;
 type ReservationDetailRouteProp = RouteProp<MainStackParamList, 'ReservationDetail'>;
 
+function getReservationStatusConfig(status: Reservation['status']) {
+  switch (status) {
+    case 'confirmed':
+      return { label: 'Confirmed', bgColor: colors.status.successLight, textColor: colors.status.success };
+    case 'pending':
+      return { label: 'Pending', bgColor: colors.status.warningLight, textColor: colors.status.warning };
+    case 'cancelled':
+      return { label: 'Cancelled', bgColor: colors.status.errorLight, textColor: colors.status.error };
+    default:
+      return { label: 'Unknown', bgColor: colors.border.light, textColor: colors.text.tertiary.light };
+  }
+}
+
 export default function ReservationDetailScreen() {
   const navigation = useNavigation<NavigationProp>();
   const route = useRoute<ReservationDetailRouteProp>();
-  const reservationId = route.params?.reservationId || '';
+  const insets = useSafeAreaInsets();
+  const timelineItemId = route.params?.timelineItemId || '';
 
-  const { reservation, isLoading, error, refetch } = useReservationByTimelineId(reservationId);
+  const { reservation, isLoading, error, refetch } = useReservationByTimelineId(timelineItemId);
   const [menuVisible, setMenuVisible] = useState(false);
 
   useFocusEffect(
@@ -46,13 +66,13 @@ export default function ReservationDetailScreen() {
 
   const handleEditReservation = useCallback(() => {
     setMenuVisible(false);
-    navigation.navigate('EditReservation', { reservationId });
-  }, [navigation, reservationId]);
+    navigation.navigate('EditReservation', { timelineItemId });
+  }, [navigation, timelineItemId]);
 
   const handleAddAttachments = useCallback(() => {
     setMenuVisible(false);
-    navigation.navigate('ReservationAttachments', { reservationId });
-  }, [navigation, reservationId]);
+    navigation.navigate('ReservationAttachments', { timelineItemId });
+  }, [navigation, timelineItemId]);
 
   const handleDeleteReservation = useCallback(() => {
     setMenuVisible(false);
@@ -67,8 +87,7 @@ export default function ReservationDetailScreen() {
           style: 'destructive',
           onPress: async () => {
             try {
-              await reservationService.deleteReservation(reservation.id);
-              await tripService.deleteTimelineItem(reservationId);
+              await deleteReservationWithTimeline(reservation.id, timelineItemId);
               navigation.goBack();
             } catch (e) {
               const message = e instanceof Error ? e.message : 'Failed to delete reservation.';
@@ -78,7 +97,7 @@ export default function ReservationDetailScreen() {
         },
       ]
     );
-  }, [reservation, reservationId, navigation]);
+  }, [reservation, timelineItemId, navigation]);
 
   const handleMenuSelect = useCallback(
     (index: number) => {
@@ -89,207 +108,172 @@ export default function ReservationDetailScreen() {
     [handleEditReservation, handleAddAttachments, handleDeleteReservation]
   );
 
+  const directionsAddress = reservation ? getReservationDisplayAddress(reservation) : null;
+
+  const handleOpenDirections = useCallback(() => {
+    if (!directionsAddress) {
+      Alert.alert('No Address', 'No address available for directions.');
+      return;
+    }
+
+    const encodedAddress = encodeURIComponent(directionsAddress);
+    
+    // Use Apple Maps on iOS, Google Maps on Android
+    const url = Platform.select({
+      ios: `maps://maps.apple.com/?daddr=${encodedAddress}`,
+      android: `geo:0,0?q=${encodedAddress}`,
+      default: `https://maps.apple.com/?daddr=${encodedAddress}`,
+    });
+
+    Linking.canOpenURL(url).then((supported) => {
+      if (supported) {
+        Linking.openURL(url);
+      } else {
+        // Fallback to web URL
+        Linking.openURL(`https://maps.apple.com/?daddr=${encodedAddress}`);
+      }
+    });
+  }, [directionsAddress]);
+
+  const topOffset = insets.top + 8;
+  const showContent = Boolean(!isLoading && !error && reservation);
+  const headerTitle = reservation?.providerName || 'Reservation Details';
+  const statusConfig = reservation ? getReservationStatusConfig(reservation.status) : null;
+
+  const displayAddress = useMemo(() => {
+    if (!reservation) return '';
+    const addr = getReservationDisplayAddress(reservation);
+    return addr ? shortenCountryInAddress(addr) : '';
+  }, [reservation]);
+
+  const dateDisplayText = useMemo(() => {
+    if (!reservation) return '';
+    return formatReservationDateDisplay(reservation);
+  }, [reservation]);
+
+  let content: React.ReactNode;
+
   if (isLoading) {
-    return (
-      <SafeAreaView style={styles.container} edges={['top']}>
-        <View style={styles.header}>
-          <Pressable style={styles.backButton} onPress={handleBackPress} accessibilityLabel="Go back">
-            <MaterialIcons name="arrow-back" size={24} color={colors.text.primary.light} />
-          </Pressable>
-          <Text style={styles.headerTitle}>Reservation Details</Text>
-          <View style={styles.headerSpacer} />
-        </View>
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={colors.primary} />
-        </View>
-      </SafeAreaView>
-    );
-  }
-
-  if (error) {
-    return (
-      <SafeAreaView style={styles.container} edges={['top']}>
-        <View style={styles.header}>
-          <Pressable style={styles.backButton} onPress={handleBackPress} accessibilityLabel="Go back">
-            <MaterialIcons name="arrow-back" size={24} color={colors.text.primary.light} />
-          </Pressable>
-          <Text style={styles.headerTitle}>Reservation Details</Text>
-          <View style={styles.headerSpacer} />
-        </View>
-        <View style={styles.errorContainer}>
-          <MaterialIcons name="error-outline" size={32} color={colors.status.error} />
-          <Text style={styles.errorTitle}>Unable to load reservation</Text>
-          <Text style={styles.errorSubtitle}>Please try again in a moment.</Text>
-        </View>
-      </SafeAreaView>
-    );
-  }
-
-  if (!reservation) {
-    return (
-      <SafeAreaView style={styles.container} edges={['top']}>
-        <View style={styles.header}>
-          <Pressable style={styles.backButton} onPress={handleBackPress} accessibilityLabel="Go back">
-            <MaterialIcons name="arrow-back" size={24} color={colors.text.primary.light} />
-          </Pressable>
-          <Text style={styles.headerTitle}>Reservation Details</Text>
-          <View style={styles.headerSpacer} />
-        </View>
-        <View style={styles.loadingContainer}>
-          <Text style={styles.errorText}>Reservation not found</Text>
-        </View>
-      </SafeAreaView>
-    );
-  }
-
-  const statusConfig = getReservationStatusConfig(reservation.status);
-
-  return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      <View style={styles.headerRow}>
-        <Pressable style={styles.backButton} onPress={handleBackPress} accessibilityLabel="Go back">
-          <MaterialIcons name="arrow-back" size={24} color={colors.text.primary.light} />
-        </Pressable>
-        <Text style={styles.headerTitle}>Reservation Details</Text>
-        <View style={styles.headerActionWrap}>
-          <Pressable
-            style={({ pressed }) => [styles.headerAction, pressed && styles.headerActionPressed]}
-            onPress={() => setMenuVisible(true)}
-            accessibilityLabel="More options"
-          >
-            <MaterialIcons name="more-vert" size={24} color={colors.text.primary.light} />
-          </Pressable>
-          <GlassDropdownMenu
-            visible={menuVisible}
-            onClose={() => setMenuVisible(false)}
-            actions={[
-              { label: 'Edit reservation', icon: 'edit' },
-              { label: 'Add attachments', icon: 'attach-file' },
-              { label: 'Delete', icon: 'delete-outline', destructive: true },
-            ]}
-            onSelect={handleMenuSelect}
-            style={styles.menuDropdown}
-            uniformItemBackground
-          />
-        </View>
+    content = (
+      <View style={[styles.loadingContainer, { paddingTop: topOffset + 72 }]}>
+        <ActivityIndicator size="large" color={colors.primary} />
       </View>
-
-      {menuVisible && (
-        <Pressable
-          style={styles.menuScrim}
-          onPress={() => setMenuVisible(false)}
-          accessibilityLabel="Close menu"
-        />
-      )}
-
+    );
+  } else if (error) {
+    content = (
+      <View style={[styles.errorContainer, { paddingTop: topOffset + 72 }]}>
+        <MaterialIcons name="error-outline" size={32} color={colors.status.error} />
+        <Text style={styles.errorTitle}>Unable to load reservation</Text>
+        <Text style={styles.errorSubtitle}>Please try again in a moment.</Text>
+      </View>
+    );
+  } else if (!reservation) {
+    content = (
+      <View style={[styles.errorContainer, { paddingTop: topOffset + 72 }]}>
+        <Text style={styles.errorText}>Reservation not found</Text>
+      </View>
+    );
+  } else {
+    content = (
       <ScrollView
         style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[styles.scrollContent, { paddingTop: topOffset + 72 }]}
         showsVerticalScrollIndicator={false}
+        removeClippedSubviews={Platform.OS === 'android'}
       >
         <View style={styles.heroSection}>
-          <ImageBackground
-            source={{ uri: reservation.headerImageUrl }}
-            style={styles.heroImage}
-            imageStyle={styles.heroImageStyle}
-          >
-            <LinearGradient
-              colors={['rgba(0,0,0,0)', 'rgba(0,0,0,0.6)']}
-              style={styles.heroGradient}
+          <View style={styles.heroCard}>
+            <View style={[StyleSheet.absoluteFill, styles.heroCardBg]} pointerEvents="none" />
+            <ImageBackground
+              source={{ uri: reservation.headerImageUrl }}
+              style={styles.heroImage}
+              imageStyle={styles.heroImageStyle}
             >
-              <View style={styles.heroContent}>
-                <Text style={styles.airlineName}>{reservation.providerName}</Text>
-                {reservation.operatedBy && (
-                  <Text style={styles.operatedBy}>{reservation.operatedBy}</Text>
-                )}
-              </View>
-            </LinearGradient>
-          </ImageBackground>
+              <LinearGradient
+                colors={['rgba(0,0,0,0)', 'rgba(0,0,0,0.6)']}
+                style={styles.heroGradient}
+              >
+                <View style={styles.heroContent}>
+                  <Text style={styles.airlineName}>{reservation.providerName}</Text>
+                  {reservation.operatedBy && (
+                    <Text style={styles.operatedBy}>{reservation.operatedBy}</Text>
+                  )}
+                </View>
+              </LinearGradient>
+            </ImageBackground>
+          </View>
         </View>
 
         <View style={styles.headlineSection}>
           <View style={styles.headlineContent}>
             <View style={styles.headlineLeft}>
-              <Text style={styles.route}>{reservation.route}</Text>
-              <Text style={styles.dateInfo}>
-                {reservation.type === 'hotel'
-                  ? reservation.duration?.includes(' - ')
-                    ? reservation.duration
-                    : reservation.duration === reservation.date
-                      ? reservation.date
-                      : `${reservation.date} • ${reservation.duration}`
-                  : `${reservation.date} • ${reservation.duration}`}
+              <Text style={styles.route}>
+                {reservation.type === 'hotel' ? reservation.providerName : reservation.route}
               </Text>
+              <Text style={styles.dateInfo}>{dateDisplayText}</Text>
             </View>
-            <View
-              style={[
-                styles.statusBadge,
-                { backgroundColor: statusConfig.bgColor },
-              ]}
-            >
-              <Text style={[styles.statusText, { color: statusConfig.textColor }]}>
-                {statusConfig.label}
-              </Text>
-            </View>
+            {statusConfig && (
+              <View style={[styles.statusBadge, styles.statusBadgeSolid, { backgroundColor: statusConfig.bgColor }]}>
+                <Text style={[styles.statusText, { color: statusConfig.textColor }]}>
+                  {statusConfig.label}
+                </Text>
+              </View>
+            )}
           </View>
         </View>
 
-        {reservation.type === 'flight' && reservation.terminal && (
+        {reservation.type === 'flight' && (
           <View style={styles.statsGrid}>
-            <StatCard label="Terminal" value={reservation.terminal} iconName="meeting-room" />
+            <StatCard label="Terminal" value={reservation.terminal || '-'} iconName="meeting-room" />
             <StatCard label="Gate" value={reservation.gate || '-'} iconName="door-sliding" />
             <StatCard label="Seat" value={reservation.seat || '-'} iconName="airline-seat-recline-extra" />
           </View>
         )}
 
-        {reservation.type === 'flight' && (
-          <View style={styles.qrSection}>
-            <View style={styles.qrContainer}>
-              <View style={styles.qrCode}>
-                <View style={styles.qrPattern}>
-                  {[...Array(8)].map((_, row) => (
-                    <View key={row} style={styles.qrRow}>
-                      {[...Array(8)].map((_, col) => {
-                        const isBlack = (row + col) % 2 === 0 || (row === col);
-                        return (
-                          <View
-                            key={col}
-                            style={[
-                              styles.qrCell,
-                              isBlack && styles.qrCellBlack,
-                            ]}
-                          />
-                        );
-                      })}
-                    </View>
-                  ))}
-                </View>
-              </View>
-              <View style={styles.qrInfo}>
-                <Text style={styles.qrTitle}>Boarding Pass</Text>
-                <Text style={styles.qrSubtitle}>
-                  {reservation.boardingZone || 'Zone 1'} • {reservation.priority || 'Standard'}
-                </Text>
-              </View>
-            </View>
-          </View>
-        )}
-
         <View style={styles.detailsSection}>
-          <View style={styles.detailsList}>
-            <DetailRow
-              label="Confirmation #"
-              value={reservation.confirmationCode}
-              isMonospace
-              showBorder
-            />
-            {reservation.vehicleInfo && (
+          <View style={styles.detailsCard}>
+            <View style={[StyleSheet.absoluteFill, styles.cardSolidBg]} pointerEvents="none" />
+            <View style={styles.detailsList}>
               <DetailRow
-                label={reservation.type === 'flight' ? 'Aircraft' : 'Vehicle'}
-                value={reservation.vehicleInfo}
-                showBorder={false}
+                label="Confirmation"
+                value={reservation.confirmationCode}
+                valueColor={colors.primary}
+                isMonospace
+                showBorder={reservation.type === 'flight' || Boolean(reservation.vehicleInfo)}
               />
-            )}
+              {reservation.type === 'flight' && (
+                <>
+                  <DetailRow
+                    label="Flight Status"
+                    value="On Time"
+                    valueColor={colors.status.success}
+                    showBorder
+                  />
+                  <DetailRow
+                    label="Cabin Class"
+                    value="Delta One Suite"
+                    showBorder={Boolean(reservation.vehicleInfo)}
+                  />
+                </>
+              )}
+              {reservation.vehicleInfo && (
+                <DetailRow
+                  label={reservation.type === 'flight' ? 'Aircraft' : 'Vehicle'}
+                  value={reservation.vehicleInfo}
+                  showBorder={Boolean(directionsAddress)}
+                />
+              )}
+              {directionsAddress && (
+                <Pressable onPress={handleOpenDirections}>
+                  <DetailRow
+                    label="Address"
+                    value={displayAddress}
+                    valueColor={colors.primary}
+                    showBorder={false}
+                  />
+                </Pressable>
+              )}
+            </View>
           </View>
         </View>
 
@@ -304,6 +288,7 @@ export default function ReservationDetailScreen() {
                   pressed && styles.attachmentCardPressed,
                 ]}
               >
+                <View style={[StyleSheet.absoluteFill, styles.cardSolidBg]} pointerEvents="none" />
                 {attachment.thumbnailUrl && (
                   <Image
                     source={{ uri: attachment.thumbnailUrl }}
@@ -325,15 +310,83 @@ export default function ReservationDetailScreen() {
             ))}
           </View>
         )}
+
+        <View style={styles.bottomActions}>
+          <Pressable style={({ pressed }) => [styles.actionButton, pressed && styles.actionButtonPressed]}>
+            <View style={[StyleSheet.absoluteFill, styles.actionButtonBg]} pointerEvents="none" />
+            <MaterialIcons name="calendar-today" size={20} color={colors.text.primary.light} />
+            <Text style={styles.actionButtonText}>Calendar</Text>
+          </Pressable>
+          {directionsAddress && (
+            <Pressable 
+              style={({ pressed }) => [styles.actionButton, styles.actionButtonPrimary, pressed && styles.actionButtonPressed]}
+              onPress={handleOpenDirections}
+            >
+              <View style={[StyleSheet.absoluteFill, styles.actionButtonBg, styles.actionButtonBgPrimary]} pointerEvents="none" />
+              <MaterialIcons name="directions" size={20} color={colors.primary} />
+              <Text style={[styles.actionButtonText, styles.actionButtonTextPrimary]}>Directions</Text>
+            </Pressable>
+          )}
+        </View>
       </ScrollView>
-    </SafeAreaView>
+    );
+  }
+
+  return (
+    <LinearGradient
+      colors={[colors.gradient.start, colors.gradient.middle, colors.gradient.end]}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+      style={styles.gradientContainer}
+    >
+      <View style={styles.container}>
+        {showContent && menuVisible && (
+          <Pressable
+            style={styles.menuScrim}
+            onPress={() => setMenuVisible(false)}
+            accessibilityLabel="Close menu"
+          />
+        )}
+
+        <GlassNavHeader
+          title={headerTitle}
+          label="Reservation"
+          onBackPress={handleBackPress}
+          rightAction={{
+            icon: 'more-horiz',
+            onPress: () => setMenuVisible(true),
+            accessibilityLabel: 'More options',
+          }}
+          showRightAction={showContent}
+        />
+
+        {showContent && (
+          <GlassDropdownMenu
+            visible={menuVisible}
+            onClose={() => setMenuVisible(false)}
+            actions={[
+              { label: 'Edit reservation', icon: 'edit' },
+              { label: 'Add attachments', icon: 'attach-file' },
+              { label: 'Delete', icon: 'delete-outline', destructive: true },
+            ]}
+            onSelect={handleMenuSelect}
+            style={[styles.menuDropdown, { top: topOffset + 64 }]}
+            uniformItemBackground
+          />
+        )}
+
+        {content}
+      </View>
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
+  gradientContainer: {
+    flex: 1,
+  },
   container: {
     flex: 1,
-    backgroundColor: colors.surface.light,
   },
   loadingContainer: {
     flex: 1,
@@ -349,100 +402,62 @@ const styles = StyleSheet.create({
   },
   errorTitle: {
     fontSize: 16,
-    fontWeight: '700',
+    fontFamily: fontFamilies.semibold,
     color: colors.text.primary.light,
     textAlign: 'center',
   },
   errorSubtitle: {
     fontSize: 14,
-    fontWeight: '500',
+    fontFamily: fontFamilies.medium,
     color: colors.text.secondary.light,
     textAlign: 'center',
   },
   errorText: {
     fontSize: 16,
+    fontFamily: fontFamilies.regular,
     color: colors.text.secondary.light,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-    backgroundColor: colors.surface.light,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border.light,
-  },
-  headerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-    backgroundColor: colors.surface.light,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border.light,
-  },
-  backButton: {
-    padding: spacing.xs,
-    marginLeft: -spacing.xs,
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: colors.text.primary.light,
-  },
-  headerSpacer: {
-    width: 32,
-  },
-  headerActionWrap: {
-    position: 'relative',
-    minWidth: 40,
-    alignItems: 'flex-end',
-  },
-  headerAction: {
-    width: 40,
-    height: 40,
-    borderRadius: borderRadius.full,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  headerActionPressed: {
-    backgroundColor: colors.background.light,
   },
   menuScrim: {
     position: 'absolute',
-    top: 56,
     left: 0,
     right: 0,
+    top: 0,
     bottom: 0,
-    zIndex: 1,
+    zIndex: 50,
     backgroundColor: 'transparent',
   },
   menuDropdown: {
-    top: 44,
-    right: 0,
+    position: 'absolute',
+    right: 24,
+    zIndex: 70,
   },
   scrollView: {
     flex: 1,
   },
   scrollContent: {
-    paddingBottom: 40,
+    paddingBottom: 120,
+    gap: 16,
   },
   heroSection: {
-    paddingHorizontal: 16,
-    paddingTop: 16,
-    paddingBottom: 8,
+    paddingHorizontal: 20,
+  },
+  heroCardBg: {
+    backgroundColor: colors.glass.background,
+    borderRadius: glassConstants.radiusInner.cardXLarge,
+  },
+  heroCard: {
+    ...glassStyles.cardWrapperLarge,
+    minHeight: 220,
+    borderWidth: 1,
+    boxShadow: glassShadows.elevated,
   },
   heroImage: {
     width: '100%',
-    minHeight: 200,
-    borderRadius: 12,
-    overflow: 'hidden',
-    backgroundColor: 'white',
+    minHeight: 220,
+    justifyContent: 'flex-end',
   },
   heroImageStyle: {
-    borderRadius: 12,
+    borderRadius: glassConstants.radius.cardXLarge,
   },
   heroGradient: {
     flex: 1,
@@ -453,20 +468,19 @@ const styles = StyleSheet.create({
   },
   airlineName: {
     fontSize: 30,
-    fontWeight: '700',
+    fontFamily: fontFamilies.semibold,
     color: 'white',
     letterSpacing: -0.5,
   },
   operatedBy: {
     fontSize: 14,
-    fontWeight: '500',
+    fontFamily: fontFamilies.medium,
     color: 'rgba(255, 255, 255, 0.9)',
     marginTop: 4,
   },
   headlineSection: {
-    paddingHorizontal: 16,
-    paddingTop: 24,
-    paddingBottom: 8,
+    paddingHorizontal: 20,
+    paddingTop: 8,
   },
   headlineContent: {
     flexDirection: 'row',
@@ -478,25 +492,32 @@ const styles = StyleSheet.create({
   },
   route: {
     fontSize: 28,
-    fontWeight: '700',
+    fontFamily: fontFamilies.semibold,
     color: colors.text.primary.light,
     letterSpacing: -0.5,
     lineHeight: 32,
   },
   dateInfo: {
     fontSize: 14,
-    fontWeight: '500',
+    fontFamily: fontFamilies.medium,
     color: colors.text.secondary.light,
     marginTop: 4,
   },
   statusBadge: {
+    ...glassStyles.pillContainer,
     paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 9999,
+    paddingVertical: 6,
+    borderColor: glassColors.border,
+    justifyContent: 'center',
+    alignItems: 'center',
+    minWidth: 90,
+  },
+  statusBadgeSolid: {
+    opacity: 0.9,
   },
   statusText: {
     fontSize: 12,
-    fontWeight: '700',
+    fontFamily: fontFamilies.semibold,
     textTransform: 'uppercase',
     letterSpacing: 1,
   },
@@ -504,101 +525,45 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 16,
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-  },
-  qrSection: {
-    marginHorizontal: 16,
-    marginBottom: 24,
-  },
-  qrContainer: {
-    padding: 24,
-    borderRadius: 12,
-    backgroundColor: colors.surface.light,
-    borderWidth: 1,
-    borderColor: colors.border.light,
-    alignItems: 'center',
-    gap: 16,
-    shadowColor: colors.black,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 1,
-  },
-  qrCode: {
-    width: 192,
-    height: 192,
-    backgroundColor: colors.surface.light,
-    padding: 8,
-    borderRadius: 8,
-    borderWidth: 2,
-    borderColor: colors.border.light,
-    borderStyle: 'dashed',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  qrPattern: {
-    width: '100%',
-    height: '100%',
-  },
-  qrRow: {
-    flex: 1,
-    flexDirection: 'row',
-  },
-  qrCell: {
-    flex: 1,
-    backgroundColor: 'white',
-  },
-  qrCellBlack: {
-    backgroundColor: colors.text.primary.light,
-  },
-  qrInfo: {
-    alignItems: 'center',
-  },
-  qrTitle: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: colors.text.primary.light,
-  },
-  qrSubtitle: {
-    fontSize: 12,
-    color: colors.text.secondary.light,
-    marginTop: 4,
+    paddingHorizontal: 20,
+    paddingTop: 8,
   },
   detailsSection: {
-    paddingHorizontal: 16,
-    paddingBottom: 16,
+    paddingHorizontal: 20,
+  },
+  cardSolidBg: {
+    backgroundColor: colors.glass.background,
+    borderRadius: glassConstants.radiusInner.card,
+  },
+  detailsCard: {
+    ...glassStyles.cardWrapper,
+    borderWidth: glassConstants.borderWidth.cardThin,
+    position: 'relative',
   },
   detailsList: {
-    backgroundColor: colors.surface.light,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: colors.border.light,
     overflow: 'hidden',
   },
   attachmentsSection: {
-    paddingHorizontal: 16,
+    paddingHorizontal: 20,
     paddingBottom: 24,
+    gap: 12,
   },
   attachmentsTitle: {
     fontSize: 16,
-    fontWeight: '700',
+    fontFamily: fontFamilies.semibold,
     color: colors.text.primary.light,
-    marginBottom: 12,
-    paddingHorizontal: 4,
   },
   attachmentCard: {
+    ...glassStyles.cardWrapper,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 16,
-    backgroundColor: colors.surface.light,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: colors.border.light,
     padding: 12,
+    position: 'relative',
   },
   attachmentCardPressed: {
-    backgroundColor: colors.background.light,
+    opacity: 0.9,
+    transform: [{ scale: 0.99 }],
   },
   attachmentThumbnail: {
     width: 64,
@@ -612,11 +577,50 @@ const styles = StyleSheet.create({
   },
   attachmentName: {
     fontSize: 14,
-    fontWeight: '700',
+    fontFamily: fontFamilies.semibold,
     color: colors.text.primary.light,
   },
   attachmentMeta: {
     fontSize: 12,
+    fontFamily: fontFamilies.regular,
     color: colors.text.secondary.light,
+  },
+  bottomActions: {
+    flexDirection: 'row',
+    gap: 16,
+    paddingHorizontal: 20,
+    paddingBottom: 40,
+  },
+  actionButton: {
+    ...glassStyles.pillContainer,
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 16,
+    position: 'relative',
+  },
+  actionButtonBg: {
+    backgroundColor: colors.glass.background,
+    borderRadius: glassConstants.radius.pill,
+  },
+  actionButtonBgPrimary: {
+    backgroundColor: glassColors.overlayBlue,
+  },
+  actionButtonPrimary: {
+    borderColor: glassColors.borderBlue,
+  },
+  actionButtonPressed: {
+    opacity: 0.8,
+    transform: [{ scale: 0.98 }],
+  },
+  actionButtonText: {
+    fontSize: 16,
+    fontFamily: fontFamilies.semibold,
+    color: colors.text.primary.light,
+  },
+  actionButtonTextPrimary: {
+    color: colors.primary,
   },
 });

@@ -17,16 +17,19 @@ export type MainStackParamList = {
   TripList: undefined;
   TripOverview: { tripId: string; tripName?: string };
   CreateTrip: undefined;
-  /** When navigating from timeline, pass the timeline item id; screens use useReservationByTimelineId. From elsewhere (e.g. deep link) pass reservation id and use useReservationById. */
-  ReservationDetail: { reservationId: string };
-  EditReservation: { reservationId: string };
-  ReservationAttachments: { reservationId: string };
+  /** timelineItemId: The ID of the timeline item (not the reservation ID) */
+  ReservationDetail: { timelineItemId: string };
+  /** timelineItemId: The ID of the timeline item (not the reservation ID) */
+  EditReservation: { timelineItemId: string };
+  /** timelineItemId: The ID of the timeline item (not the reservation ID) */
+  ReservationAttachments: { timelineItemId: string };
   ScreenshotUpload: undefined;
   ReviewDetails: { imageUri: string };
   ManualEntryOptions: undefined;
   FlightEntry: { tripId?: string };
   LodgingEntry: { tripId?: string };
   TrainEntry: { tripId: string };
+  MapExpand: { tripId: string; tripName?: string };
 };
 
 export type MainTabParamList = {

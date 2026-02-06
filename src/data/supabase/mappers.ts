@@ -1,9 +1,3 @@
-/**
- * Database mappers
- * Convert between database types (snake_case) and app types (camelCase)
- * Centralized mapping logic for consistency and testability
- */
-
 import type { User, Trip, TimelineItem, Reservation, Attachment } from '../../types';
 import type {
   DbUser,
@@ -14,15 +8,13 @@ import type {
   DbTripInsert,
   DbTripUpdate,
   DbTimelineItemInsert,
+  DbTimelineItemUpdate,
   DbReservationInsert,
   DbReservationUpdate,
   DbAttachmentInsert,
   DbUserUpdate,
 } from './database.types';
-
-// ============================================
-// USER MAPPERS
-// ============================================
+import { formatTimeTo12Hour } from '../../utils/dateFormat';
 
 export function mapUserFromDb(row: DbUser): User {
   return {
@@ -48,10 +40,6 @@ export function mapUserToDb(user: Partial<User>): DbUserUpdate {
   
   return mapped;
 }
-
-// ============================================
-// TRIP MAPPERS
-// ============================================
 
 export function mapTripFromDb(row: DbTrip): Trip {
   return {
@@ -90,17 +78,13 @@ export function mapTripUpdateToDb(updates: Partial<Trip>): DbTripUpdate {
   return mapped;
 }
 
-// ============================================
-// TIMELINE ITEM MAPPERS
-// ============================================
-
 export function mapTimelineItemFromDb(row: DbTimelineItem): TimelineItem {
   return {
     id: row.id,
     tripId: row.trip_id,
     type: row.type,
     date: row.date,
-    time: row.time,
+    time: formatTimeTo12Hour(row.time),
     title: row.title,
     subtitle: row.subtitle ?? '',
     metadata: row.metadata ?? undefined,
@@ -110,9 +94,12 @@ export function mapTimelineItemFromDb(row: DbTimelineItem): TimelineItem {
   };
 }
 
-export function mapTimelineItemToDb(item: Omit<TimelineItem, 'id'>): DbTimelineItemInsert {
+export function mapTimelineItemToDb(
+  item: Omit<TimelineItem, 'id'> & { reservationId?: string }
+): DbTimelineItemInsert {
   return {
     trip_id: item.tripId,
+    reservation_id: item.reservationId || null,
     type: item.type,
     date: item.date,
     time: item.time,
@@ -125,9 +112,22 @@ export function mapTimelineItemToDb(item: Omit<TimelineItem, 'id'>): DbTimelineI
   };
 }
 
-// ============================================
-// ATTACHMENT MAPPERS
-// ============================================
+export function mapTimelineItemUpdateToDb(
+  updates: Partial<TimelineItem> & { reservationId?: string }
+): DbTimelineItemUpdate {
+  const mapped: DbTimelineItemUpdate = {};
+  if (updates.reservationId !== undefined) mapped.reservation_id = updates.reservationId || null;
+  if (updates.type !== undefined) mapped.type = updates.type;
+  if (updates.date !== undefined) mapped.date = updates.date;
+  if (updates.time !== undefined) mapped.time = updates.time;
+  if (updates.title !== undefined) mapped.title = updates.title;
+  if (updates.subtitle !== undefined) mapped.subtitle = updates.subtitle || null;
+  if (updates.metadata !== undefined) mapped.metadata = updates.metadata || null;
+  if (updates.actionLabel !== undefined) mapped.action_label = updates.actionLabel || null;
+  if (updates.actionIcon !== undefined) mapped.action_icon = updates.actionIcon || null;
+  if (updates.thumbnailUrl !== undefined) mapped.thumbnail_url = updates.thumbnailUrl || null;
+  return mapped;
+}
 
 export function mapAttachmentFromDb(row: DbAttachment): Attachment {
   return {
@@ -146,13 +146,9 @@ export function mapAttachmentToDb(attachment: Omit<Attachment, 'id'>, reservatio
     date: attachment.date || null,
     size: attachment.size || null,
     thumbnail_url: attachment.thumbnailUrl || null,
-    storage_path: null, // Set when uploading to Supabase Storage
+    storage_path: null,
   };
 }
-
-// ============================================
-// RESERVATION MAPPERS
-// ============================================
 
 export function mapReservationFromDb(row: DbReservation, attachments: Attachment[] = []): Reservation {
   return {
@@ -174,6 +170,7 @@ export function mapReservationFromDb(row: DbReservation, attachments: Attachment
     vehicleInfo: row.vehicle_info ?? undefined,
     boardingZone: row.boarding_zone ?? undefined,
     priority: row.priority ?? undefined,
+    address: row.address ?? undefined,
     attachments,
   };
 }
@@ -197,6 +194,7 @@ export function mapReservationToDb(reservation: Omit<Reservation, 'id' | 'attach
     vehicle_info: reservation.vehicleInfo || null,
     boarding_zone: reservation.boardingZone || null,
     priority: reservation.priority || null,
+    address: reservation.address || null,
   };
 }
 
@@ -219,6 +217,7 @@ export function mapReservationUpdateToDb(updates: Partial<Reservation>): DbReser
   if (updates.vehicleInfo !== undefined) mapped.vehicle_info = updates.vehicleInfo || null;
   if (updates.boardingZone !== undefined) mapped.boarding_zone = updates.boardingZone || null;
   if (updates.priority !== undefined) mapped.priority = updates.priority || null;
+  if (updates.address !== undefined) mapped.address = updates.address || null;
   
   return mapped;
 }

@@ -9,9 +9,10 @@ import {
   Dimensions,
   ViewStyle,
 } from 'react-native';
+import { BlurView } from 'expo-blur';
 import { MaterialIcons } from '@expo/vector-icons';
 import { Calendar } from 'react-native-calendars';
-import { colors, spacing, borderRadius, shadows } from '../../theme';
+import { colors, spacing, borderRadius, shadows, fontFamilies, glassStyles, glassColors } from '../../theme';
 import { parseToCalendarDate, formatCalendarDateToLongDisplay } from '../../utils/dateFormat';
 
 const POPUP_FADE_DURATION = 150;
@@ -51,8 +52,9 @@ export interface DatePickerInputProps {
   style?: ViewStyle;
   onOpen?: () => void;
   onClose?: () => void;
-  /** Match page bottom padding so the calendar modal doesn't extend into it (e.g. spacing.xxl + keyboardHeight). */
   bottomPadding?: number;
+  /** Use liquid glass card styling */
+  variant?: 'default' | 'glass';
 }
 
 type InputLayout = { x: number; y: number; width: number; height: number };
@@ -77,6 +79,7 @@ export function DatePickerInput({
   onOpen,
   onClose,
   bottomPadding = 0,
+  variant = 'default',
 }: DatePickerInputProps) {
   const [visible, setVisible] = useState(false);
   const [inputLayout, setInputLayout] = useState<InputLayout | null>(null);
@@ -141,26 +144,58 @@ export function DatePickerInput({
 
   return (
     <View ref={containerRef} style={[styles.container, style]} collapsable={false}>
-      <View style={styles.labelRow}>
-        <Text style={styles.label}>{label}</Text>
-      </View>
-      <Pressable
-        style={styles.valueRow}
-        onPress={openPopup}
-        accessibilityLabel={label}
-        accessibilityRole="button"
-      >
-        <MaterialIcons
-          name={iconName}
-          size={20}
-          color={colors.text.secondary.light}
-          style={styles.icon}
-        />
-        <Text style={[styles.value, !displayText && styles.placeholder]}>
-          {displayText || placeholder}
-        </Text>
-        <MaterialIcons name="chevron-right" size={24} color={colors.text.tertiary.light} />
-      </Pressable>
+      {variant === 'glass' ? (
+        <View style={styles.glassWrapper}>
+          <BlurView intensity={24} tint="light" style={[styles.glassBlur, glassStyles.blurContent]}>
+            <View style={styles.glassOverlay} pointerEvents="none" />
+            <View style={styles.glassContent}>
+              <View style={styles.labelRow}>
+                <Text style={[styles.label, styles.labelGlass]}>{label}</Text>
+              </View>
+              <Pressable
+                style={[styles.valueRow, styles.valueRowGlass]}
+                onPress={openPopup}
+                accessibilityLabel={label}
+                accessibilityRole="button"
+              >
+                <MaterialIcons
+                  name={iconName}
+                  size={20}
+                  color={colors.text.secondary.light}
+                  style={styles.icon}
+                />
+                <Text style={[styles.value, !displayText && styles.placeholder]}>
+                  {displayText || placeholder}
+                </Text>
+                <MaterialIcons name="chevron-right" size={24} color={colors.text.tertiary.light} />
+              </Pressable>
+            </View>
+          </BlurView>
+        </View>
+      ) : (
+        <>
+          <View style={styles.labelRow}>
+            <Text style={styles.label}>{label}</Text>
+          </View>
+          <Pressable
+            style={styles.valueRow}
+            onPress={openPopup}
+            accessibilityLabel={label}
+            accessibilityRole="button"
+          >
+            <MaterialIcons
+              name={iconName}
+              size={20}
+              color={colors.text.secondary.light}
+              style={styles.icon}
+            />
+            <Text style={[styles.value, !displayText && styles.placeholder]}>
+              {displayText || placeholder}
+            </Text>
+            <MaterialIcons name="chevron-right" size={24} color={colors.text.tertiary.light} />
+          </Pressable>
+        </>
+      )}
 
       <Modal
         visible={visible}
@@ -208,13 +243,32 @@ const styles = StyleSheet.create({
   container: {
     width: '100%',
   },
+  glassWrapper: {
+    ...glassStyles.cardWrapper,
+    overflow: 'hidden',
+    width: '100%',
+  },
+  glassBlur: {
+    padding: 12,
+    position: 'relative',
+  },
+  glassOverlay: {
+    ...glassStyles.cardOverlay,
+    backgroundColor: glassColors.overlayStrong,
+  },
+  glassContent: {
+    position: 'relative',
+  },
   labelRow: {
     marginBottom: spacing.sm,
   },
   label: {
     fontSize: 14,
-    fontWeight: '500',
+    fontFamily: fontFamilies.medium,
     color: colors.text.secondary.light,
+  },
+  labelGlass: {
+    color: colors.text.primary.light,
   },
   valueRow: {
     flexDirection: 'row',
@@ -226,13 +280,17 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface.light,
     paddingHorizontal: spacing.lg,
   },
+  valueRowGlass: {
+    backgroundColor: 'rgba(255, 255, 255, 0.5)',
+    borderColor: glassColors.border,
+  },
   icon: {
     marginRight: spacing.sm,
   },
   value: {
     flex: 1,
     fontSize: 16,
-    fontWeight: '400',
+    fontFamily: fontFamilies.regular,
     color: colors.text.primary.light,
   },
   placeholder: {

@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { colors, spacing } from '../../theme';
+import { colors, spacing, fontFamilies } from '../../theme';
 
 interface DetailRowProps {
   label: string;
@@ -20,15 +20,19 @@ export function DetailRow({
   return (
     <View style={[styles.container, showBorder && styles.borderBottom]}>
       <Text style={styles.label}>{label}</Text>
-      <Text
-        style={[
-          styles.value,
-          valueColor && { color: valueColor },
-          isMonospace && styles.monospace,
-        ]}
-      >
-        {value}
-      </Text>
+      <View style={styles.valueWrapper}>
+        <Text
+          style={[
+            styles.value,
+            valueColor && { color: valueColor },
+            isMonospace && styles.monospace,
+          ]}
+          numberOfLines={4}
+          ellipsizeMode="tail"
+        >
+          {value}
+        </Text>
+      </View>
     </View>
   );
 }
@@ -47,12 +51,17 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 14,
-    fontWeight: '400',
+    fontFamily: fontFamilies.regular,
     color: colors.text.secondary.light,
+    flexShrink: 0,
+  },
+  valueWrapper: {
+    flex: 1,
+    minWidth: 0,
   },
   value: {
     fontSize: 14,
-    fontWeight: '700',
+    fontFamily: fontFamilies.semibold,
     color: colors.text.primary.light,
     textAlign: 'right',
   },

@@ -1,8 +1,3 @@
-/**
- * Application configuration module
- * Validates and exports environment variables
- */
-
 interface Config {
   supabase: {
     url: string;
@@ -32,5 +27,4 @@ function createConfig(): Config {
   };
 }
 
-// Validate config on import - fail fast if env vars are missing
 export const config = createConfig();

@@ -1,8 +1,3 @@
-/**
- * Database error handling
- * Custom error types for consistent error handling across services
- */
-
 import { PostgrestError } from '@supabase/supabase-js';
 import { config } from '../../config';
 
@@ -32,51 +27,40 @@ export class DatabaseError extends Error {
     this.originalError = originalError;
     this.details = details;
 
-    // Maintains proper stack trace for where error was thrown (V8 engines)
     if (Error.captureStackTrace) {
       Error.captureStackTrace(this, DatabaseError);
     }
   }
 }
 
-/**
- * Maps PostgreSQL error codes to our error codes
- */
 function mapPostgresErrorCode(pgCode: string): DatabaseErrorCode {
   switch (pgCode) {
-    case '23505': // unique_violation
+    case '23505':
       return 'DUPLICATE';
-    case '23503': // foreign_key_violation
-    case '23502': // not_null_violation
-    case '23514': // check_violation
+    case '23503':
+    case '23502':
+    case '23514':
       return 'CONSTRAINT_VIOLATION';
-    case '42501': // insufficient_privilege
-    case '42000': // syntax error or access rule violation
+    case '42501':
+    case '42000':
       return 'PERMISSION_DENIED';
     default:
       return 'UNKNOWN';
   }
 }
 
-/**
- * Wraps a Supabase/Postgrest error into a DatabaseError
- * Only logs details in development mode
- */
 export function wrapDatabaseError(
   error: PostgrestError | Error | unknown,
   context?: string
 ): DatabaseError {
-  // Log in development only
   if (config.isDevelopment) {
     console.error('[DatabaseError]', context ?? '', error);
   }
 
-  // Handle PostgrestError from Supabase
   if (error && typeof error === 'object' && 'code' in error) {
     const pgError = error as PostgrestError;
     const code = mapPostgresErrorCode(pgError.code);
-    
-    // Don't leak internal details in production
+
     const message = config.isDevelopment
       ? pgError.message
       : getGenericErrorMessage(code);
@@ -89,7 +73,6 @@ export function wrapDatabaseError(
     );
   }
 
-  // Handle standard Error
   if (error instanceof Error) {
     const message = config.isDevelopment
       ? error.message
@@ -98,14 +81,9 @@ export function wrapDatabaseError(
     return new DatabaseError(message, 'UNKNOWN', error);
   }
 
-  // Handle unknown error type
   return new DatabaseError('An unexpected error occurred', 'UNKNOWN');
 }
 
-/**
- * Returns generic user-facing error messages
- * Used in production to avoid leaking internal details
- */
 function getGenericErrorMessage(code: DatabaseErrorCode): string {
   switch (code) {
     case 'NOT_FOUND':
@@ -125,9 +103,6 @@ function getGenericErrorMessage(code: DatabaseErrorCode): string {
   }
 }
 
-/**
- * Helper to check if a Supabase response has an error
- */
 export function hasError<T>(response: { data: T | null; error: PostgrestError | null }): response is { data: null; error: PostgrestError } {
   return response.error !== null;
 }

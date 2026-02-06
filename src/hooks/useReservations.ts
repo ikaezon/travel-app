@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { Reservation } from '../types';
 import { reservationService } from '../data';
 import { useAsyncData } from './useAsyncData';
@@ -62,4 +62,81 @@ export function useReservationByTimelineId(timelineId: string): UseReservationRe
   });
 
   return { reservation: data, isLoading, isRefetching, error, refetch };
+}
+
+/**
+ * Hook for updating a reservation.
+ */
+interface UseUpdateReservationResult {
+  updateReservation: (
+    reservationId: string,
+    updates: Partial<Omit<Reservation, 'id' | 'tripId' | 'type'>>
+  ) => Promise<Reservation>;
+  isUpdating: boolean;
+  error: Error | null;
+}
+
+export function useUpdateReservation(): UseUpdateReservationResult {
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
+
+  const updateReservation = useCallback(
+    async (
+      reservationId: string,
+      updates: Partial<Omit<Reservation, 'id' | 'tripId' | 'type'>>
+    ) => {
+      setIsUpdating(true);
+      setError(null);
+      try {
+        const result = await reservationService.updateReservation(reservationId, updates);
+        return result;
+      } catch (err) {
+        const error = err instanceof Error ? err : new Error('Failed to update reservation');
+        setError(error);
+        throw error;
+      } finally {
+        setIsUpdating(false);
+      }
+    },
+    []
+  );
+
+  return { updateReservation, isUpdating, error };
+}
+
+/**
+ * Hook for creating an attachment from a file.
+ */
+interface UseCreateAttachmentResult {
+  createAttachment: (
+    reservationId: string,
+    fileUri: string,
+    fileName?: string
+  ) => Promise<void>;
+  isCreating: boolean;
+  error: Error | null;
+}
+
+export function useCreateAttachment(): UseCreateAttachmentResult {
+  const [isCreating, setIsCreating] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
+
+  const createAttachment = useCallback(
+    async (reservationId: string, fileUri: string, fileName?: string) => {
+      setIsCreating(true);
+      setError(null);
+      try {
+        await reservationService.createAttachmentFromFile(reservationId, fileUri, { name: fileName });
+      } catch (err) {
+        const error = err instanceof Error ? err : new Error('Failed to create attachment');
+        setError(error);
+        throw error;
+      } finally {
+        setIsCreating(false);
+      }
+    },
+    []
+  );
+
+  return { createAttachment, isCreating, error };
 }

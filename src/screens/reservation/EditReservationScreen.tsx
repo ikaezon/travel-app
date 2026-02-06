@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
+  TextInput,
   StyleSheet,
   ScrollView,
   Pressable,
@@ -9,18 +10,31 @@ import {
   Keyboard,
   ActivityIndicator,
   Alert,
+  Animated,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
+import { BlurView } from 'expo-blur';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { FormInput } from '../../components/ui/FormInput';
+import { AddressAutocomplete } from '../../components/ui/AddressAutocomplete';
+import { DualAirportInput } from '../../components/ui/DualAirportInput';
 import { DatePickerInput } from '../../components/ui/DatePickerInput';
 import { DateRangePickerInput } from '../../components/ui/DateRangePickerInput';
-import { colors, spacing, borderRadius } from '../../theme';
+import { ShimmerButton } from '../../components/ui/ShimmerButton';
+import {
+  colors,
+  spacing,
+  borderRadius,
+  fontFamilies,
+  glassStyles,
+  glassColors,
+} from '../../theme';
 import { MainStackParamList } from '../../navigation/types';
-import { useReservationByTimelineId } from '../../hooks';
-import { reservationService } from '../../data';
+import { useReservationByTimelineId, useUpdateReservation, usePressAnimation } from '../../hooks';
+import { tripService } from '../../data';
 import { formatCalendarDateToLongDisplay, parseToCalendarDate } from '../../utils/dateFormat';
 
 type NavigationProp = NativeStackNavigationProp<MainStackParamList, 'EditReservation'>;
@@ -29,48 +43,73 @@ type EditReservationRouteProp = RouteProp<MainStackParamList, 'EditReservation'>
 export default function EditReservationScreen() {
   const navigation = useNavigation<NavigationProp>();
   const route = useRoute<EditReservationRouteProp>();
-  const reservationId = route.params?.reservationId ?? '';
+  const insets = useSafeAreaInsets();
+  const timelineItemId = route.params?.timelineItemId ?? '';
 
-  const { reservation, isLoading } = useReservationByTimelineId(reservationId);
+  const { reservation, isLoading } = useReservationByTimelineId(timelineItemId);
+  const { updateReservation, isUpdating } = useUpdateReservation();
+  const backAnim = usePressAnimation();
   const [providerName, setProviderName] = useState('');
   const [routeText, setRouteText] = useState('');
+  const [departureAirport, setDepartureAirport] = useState('');
+  const [arrivalAirport, setArrivalAirport] = useState('');
   const [date, setDate] = useState('');
-  const [duration, setDuration] = useState('');
   const [checkInDate, setCheckInDate] = useState<string | null>(null);
   const [checkOutDate, setCheckOutDate] = useState<string | null>(null);
   const [confirmationCode, setConfirmationCode] = useState('');
   const [terminal, setTerminal] = useState('');
   const [gate, setGate] = useState('');
   const [seat, setSeat] = useState('');
+  const [address, setAddress] = useState('');
   const [keyboardHeight, setKeyboardHeight] = useState(0);
   const [saving, setSaving] = useState(false);
+
+  const topOffset = insets.top + 8;
 
   useEffect(() => {
     if (reservation) {
       setProviderName(reservation.providerName);
       setRouteText(reservation.route);
       setDate(reservation.date);
-      setDuration(reservation.duration);
       setConfirmationCode(reservation.confirmationCode);
       setTerminal(reservation.terminal ?? '');
       setGate(reservation.gate ?? '');
       setSeat(reservation.seat ?? '');
-      
-      // For hotel reservations, parse date range from duration (supports "YYYY-MM-DD - YYYY-MM-DD" or "February 26, 2026 - March 2, 2026")
-      if (reservation.type === 'hotel' && reservation.duration) {
-        const parts = reservation.duration.split(/\s*-\s*/);
+      setAddress(reservation.address ?? '');
+
+      if (reservation.type === 'flight' && reservation.route) {
+        const parts = reservation.route.split(/\s*[→\-–—]\s*|\s+to\s+/i).map((s) => s.trim());
         if (parts.length >= 2) {
-          const start = parseToCalendarDate(parts[0].trim());
-          const end = parseToCalendarDate(parts[1].trim());
-          if (start) setCheckInDate(start);
-          if (end) setCheckOutDate(end);
-        } else {
-          const single = parseToCalendarDate(reservation.duration.trim());
-          if (single) {
-            setCheckInDate(single);
-            setCheckOutDate(single);
+          setDepartureAirport(parts[0] || '');
+          setArrivalAirport(parts[1] || '');
+        } else if (parts.length === 1 && parts[0]) {
+          setDepartureAirport(parts[0]);
+        }
+      }
+
+      if (reservation.type === 'hotel') {
+        // Parse date range from duration (e.g. "February 5, 2025 - February 8, 2025" or "2025-02-05 - 2025-02-08")
+        // Same pattern as flight: pre-populate from existing data when editing
+        let parsedStart: string | null = null;
+        let parsedEnd: string | null = null;
+        const duration = reservation.duration?.trim();
+        if (duration) {
+          const parts = duration.split(/\s*[-–—]\s*/); // hyphen, en-dash, em-dash
+          if (parts.length >= 2) {
+            parsedStart = parseToCalendarDate(parts[0].trim());
+            parsedEnd = parseToCalendarDate(parts[1].trim());
+          } else {
+            parsedStart = parseToCalendarDate(duration);
+            parsedEnd = parsedStart;
           }
         }
+        // Fallback: use reservation.date when duration is empty (same as flight uses date directly)
+        if (!parsedStart && reservation.date) {
+          parsedStart = parseToCalendarDate(reservation.date);
+          parsedEnd = parsedStart;
+        }
+        if (parsedStart) setCheckInDate(parsedStart);
+        if (parsedEnd) setCheckOutDate(parsedEnd);
       }
     }
   }, [reservation]);
@@ -95,27 +134,41 @@ export default function EditReservationScreen() {
     Keyboard.dismiss();
     setSaving(true);
     try {
-      // For hotel reservations, save in display format "February 26, 2026"
       let finalDate = date;
-      let finalDuration = duration;
+      let finalDuration = reservation.duration;
       if (reservation.type === 'hotel' && checkInDate && checkOutDate) {
         const startDisplay = formatCalendarDateToLongDisplay(checkInDate);
         const endDisplay = formatCalendarDateToLongDisplay(checkOutDate);
         finalDuration = checkInDate === checkOutDate ? startDisplay : `${startDisplay} - ${endDisplay}`;
         finalDate = startDisplay;
       }
-      
-      const updated = await reservationService.updateReservation(reservation.id, {
+
+      const finalRoute =
+        reservation.type === 'flight'
+          ? [departureAirport.trim(), arrivalAirport.trim()].filter(Boolean).join(' → ') || routeText
+          : reservation.type === 'hotel'
+            ? providerName
+            : routeText;
+
+      // Use hook for reservation update instead of direct service call
+      const updated = await updateReservation(reservation.id, {
         providerName,
-        route: routeText,
+        route: finalRoute,
         date: finalDate,
         duration: finalDuration,
         confirmationCode,
         terminal: terminal || undefined,
         gate: gate || undefined,
         seat: seat || undefined,
+        address: address.trim() || undefined,
       });
       if (updated) {
+        await tripService.updateTimelineItem(timelineItemId, {
+          title: providerName,
+          date: finalDate,
+          subtitle: finalRoute || routeText,
+          reservationId: reservation.id,
+        });
         navigation.goBack();
       } else {
         Alert.alert('Error', 'Could not update reservation. It may have been deleted.');
@@ -133,20 +186,34 @@ export default function EditReservationScreen() {
     setCheckOutDate(end);
   };
 
+  const handleBackPress = () => navigation.goBack();
+
   if (isLoading || !reservation) {
     return (
-      <SafeAreaView style={styles.container} edges={['top']}>
-        <View style={styles.header}>
-          <Pressable style={styles.backButton} onPress={() => navigation.goBack()}>
-            <MaterialIcons name="arrow-back" size={24} color={colors.text.primary.light} />
-          </Pressable>
-          <Text style={styles.title}>Edit reservation</Text>
-          <View style={styles.headerSpacer} />
+      <LinearGradient
+        colors={[colors.gradient.start, colors.gradient.middle, colors.gradient.end]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.gradientContainer}
+      >
+        <View style={styles.container}>
+          <View style={[styles.headerContainer, { top: topOffset }]}>
+            <BlurView intensity={24} tint="light" style={[styles.headerBlur, glassStyles.blurContentLarge]}>
+              <View style={styles.glassOverlay} pointerEvents="none" />
+              <View style={styles.headerContent}>
+                <Pressable style={styles.backButton} onPress={handleBackPress}>
+                  <MaterialIcons name="arrow-back" size={22} color={colors.text.primary.light} />
+                </Pressable>
+                <Text style={styles.headerTitle}>Edit reservation</Text>
+                <View style={styles.headerSpacer} />
+              </View>
+            </BlurView>
+          </View>
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={colors.primary} />
+          </View>
         </View>
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={colors.primary} />
-        </View>
-      </SafeAreaView>
+      </LinearGradient>
     );
   }
 
@@ -154,147 +221,230 @@ export default function EditReservationScreen() {
   const isHotel = reservation.type === 'hotel';
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      <View style={styles.header}>
-        <Pressable
-          style={styles.backButton}
-          onPress={() => navigation.goBack()}
-          accessibilityLabel="Go back"
+    <LinearGradient
+      colors={[colors.gradient.start, colors.gradient.middle, colors.gradient.end]}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+      style={styles.gradientContainer}
+    >
+      <View style={styles.container}>
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={[
+            styles.scrollContent,
+            {
+              paddingTop: topOffset + 72,
+              paddingBottom: spacing.xxl + keyboardHeight,
+            },
+          ]}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
         >
-          <MaterialIcons name="arrow-back" size={24} color={colors.text.primary.light} />
-        </Pressable>
-        <Text style={styles.title}>Edit reservation</Text>
-        <View style={styles.headerSpacer} />
-      </View>
-
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={[
-          styles.scrollContent,
-          { paddingBottom: spacing.xxl + keyboardHeight },
-        ]}
-        showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
-      >
-        <FormInput
-          label="Provider"
-          value={providerName}
-          onChangeText={setProviderName}
-          placeholder="e.g. Air France"
-          iconName="business"
-        />
-        <FormInput
-          label="Route"
-          value={routeText}
-          onChangeText={setRouteText}
-          placeholder="e.g. LAX → CDG"
-          iconName="route"
-        />
-        {isHotel ? (
-          <DateRangePickerInput
-            label="Check-in / Check-out dates"
-            startDate={checkInDate}
-            endDate={checkOutDate}
-            onRangeChange={handleHotelDateRangeChange}
-            placeholder="Tap to select dates"
+          <FormInput
+            label={isHotel ? 'Property name' : 'Provider'}
+            value={providerName}
+            onChangeText={setProviderName}
+            placeholder={isHotel ? 'e.g. Hilton Downtown' : 'e.g. Air France'}
+            iconName={isHotel ? 'hotel' : 'business'}
+            variant="glass"
           />
-        ) : (
-          <>
+          {isFlight ? (
+            <DualAirportInput
+              departureValue={departureAirport}
+              arrivalValue={arrivalAirport}
+              onDepartureChange={setDepartureAirport}
+              onArrivalChange={setArrivalAirport}
+              departurePlaceholder="LAX"
+              arrivalPlaceholder="CDG"
+            />
+          ) : !isHotel ? (
+            <FormInput
+              label="Route"
+              value={routeText}
+              onChangeText={setRouteText}
+              placeholder="e.g. Paris → London"
+              iconName="route"
+              variant="glass"
+            />
+          ) : null}
+          {isHotel && (
+            <AddressAutocomplete
+              label="Address"
+              value={address}
+              onChangeText={setAddress}
+              placeholder="Search for an address..."
+              variant="glass"
+            />
+          )}
+          {isHotel ? (
+            <DateRangePickerInput
+              label="Check-in / Check-out dates"
+              startDate={checkInDate}
+              endDate={checkOutDate}
+              onRangeChange={handleHotelDateRangeChange}
+              placeholder="Tap to select dates"
+              variant="glass"
+            />
+          ) : (
             <DatePickerInput
               label="Date"
               value={date}
               onChange={setDate}
               placeholder="Tap to select date"
               iconName="event"
+              variant="glass"
             />
-            <FormInput
-              label="Duration"
-              value={duration}
-              onChangeText={setDuration}
-              placeholder="e.g. 11h 20m"
-              iconName="schedule"
-            />
-          </>
-        )}
-        <FormInput
-          label="Confirmation code"
-          value={confirmationCode}
-          onChangeText={setConfirmationCode}
-          placeholder="Booking reference"
-          iconName="confirmation-number"
-        />
-        {isFlight && (
-          <>
-            <FormInput
-              label="Terminal"
-              value={terminal}
-              onChangeText={setTerminal}
-              placeholder="e.g. 2"
-              iconName="meeting-room"
-            />
-            <FormInput
-              label="Gate"
-              value={gate}
-              onChangeText={setGate}
-              placeholder="e.g. B12"
-              iconName="door-sliding"
-            />
-            <FormInput
-              label="Seat"
-              value={seat}
-              onChangeText={setSeat}
-              placeholder="e.g. 14A"
-              iconName="airline-seat-recline-extra"
-            />
-          </>
-        )}
-
-        <Pressable
-          style={({ pressed }) => [
-            styles.saveButton,
-            pressed && styles.saveButtonPressed,
-            saving && styles.saveButtonDisabled,
-          ]}
-          onPress={handleSave}
-          disabled={saving}
-        >
-          {saving ? (
-            <ActivityIndicator size="small" color={colors.white} />
-          ) : (
-            <Text style={styles.saveButtonText}>Save changes</Text>
           )}
-        </Pressable>
-      </ScrollView>
-    </SafeAreaView>
+          {isFlight ? (
+            <View style={styles.flightDetailsCard}>
+              <BlurView intensity={24} tint="light" style={[styles.flightDetailsBlur, glassStyles.blurContent]}>
+                <View style={styles.glassOverlay} pointerEvents="none" />
+                <View style={styles.flightDetailsContent}>
+                  <Text style={styles.flightDetailsLabel}>Flight details</Text>
+                  <View style={styles.flightDetailsGrid}>
+                    <View style={styles.flightDetailsInputRow}>
+                      <View style={styles.flightDetailsInputCol}>
+                        <MaterialIcons name="confirmation-number" size={16} color={colors.text.secondary.light} style={styles.flightDetailsIcon} />
+                        <TextInput
+                          style={styles.flightDetailsInput}
+                          value={confirmationCode}
+                          onChangeText={setConfirmationCode}
+                          placeholder="Conf #"
+                          placeholderTextColor={colors.text.tertiary.light}
+                        />
+                      </View>
+                      <View style={styles.flightDetailsDivider} />
+                      <View style={styles.flightDetailsInputCol}>
+                        <MaterialIcons name="meeting-room" size={16} color={colors.text.secondary.light} style={styles.flightDetailsIcon} />
+                        <TextInput
+                          style={styles.flightDetailsInput}
+                          value={terminal}
+                          onChangeText={setTerminal}
+                          placeholder="Terminal"
+                          placeholderTextColor={colors.text.tertiary.light}
+                        />
+                      </View>
+                    </View>
+                    <View style={styles.flightDetailsRowDivider} />
+                    <View style={styles.flightDetailsInputRow}>
+                      <View style={styles.flightDetailsInputCol}>
+                        <MaterialIcons name="door-sliding" size={16} color={colors.text.secondary.light} style={styles.flightDetailsIcon} />
+                        <TextInput
+                          style={styles.flightDetailsInput}
+                          value={gate}
+                          onChangeText={setGate}
+                          placeholder="Gate"
+                          placeholderTextColor={colors.text.tertiary.light}
+                        />
+                      </View>
+                      <View style={styles.flightDetailsDivider} />
+                      <View style={styles.flightDetailsInputCol}>
+                        <MaterialIcons name="airline-seat-recline-extra" size={16} color={colors.text.secondary.light} style={styles.flightDetailsIcon} />
+                        <TextInput
+                          style={styles.flightDetailsInput}
+                          value={seat}
+                          onChangeText={setSeat}
+                          placeholder="Seat"
+                          placeholderTextColor={colors.text.tertiary.light}
+                        />
+                      </View>
+                    </View>
+                  </View>
+                </View>
+              </BlurView>
+            </View>
+          ) : (
+            <FormInput
+              label="Confirmation code"
+              value={confirmationCode}
+              onChangeText={setConfirmationCode}
+              placeholder="Booking reference"
+              iconName="confirmation-number"
+              variant="glass"
+            />
+          )}
+
+          <ShimmerButton
+            label="Save changes"
+            iconName="save"
+            onPress={handleSave}
+            disabled={saving}
+            loading={saving}
+            variant="boardingPass"
+          />
+        </ScrollView>
+
+        <View style={[styles.headerContainer, { top: topOffset }]}>
+          <BlurView intensity={24} tint="light" style={[styles.headerBlur, glassStyles.blurContentLarge]}>
+            <View style={styles.glassOverlay} pointerEvents="none" />
+            <View style={styles.headerContent}>
+              <Animated.View style={{ transform: [{ scale: backAnim.scaleAnim }] }}>
+              <Pressable
+                style={styles.backButton}
+                onPress={handleBackPress}
+                onPressIn={backAnim.onPressIn}
+                onPressOut={backAnim.onPressOut}
+                accessibilityLabel="Go back"
+              >
+                <MaterialIcons name="arrow-back" size={22} color={colors.text.primary.light} />
+              </Pressable>
+              </Animated.View>
+              <Text style={styles.headerTitle}>Edit reservation</Text>
+              <View style={styles.headerSpacer} />
+            </View>
+          </BlurView>
+        </View>
+      </View>
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
+  gradientContainer: {
+    flex: 1,
+  },
   container: {
     flex: 1,
-    backgroundColor: colors.surface.light,
   },
-  header: {
-    flexDirection: 'row',
+  headerContainer: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
     alignItems: 'center',
+    zIndex: 60,
+  },
+  headerBlur: {
+    ...glassStyles.navBarWrapper,
+    width: '90%',
+    maxWidth: 340,
+    position: 'relative',
+    height: 56,
+    justifyContent: 'center',
+  },
+  headerContent: {
+    flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-    backgroundColor: colors.surface.light,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border.light,
+    alignItems: 'center',
+    paddingHorizontal: 16,
+  },
+  glassOverlay: {
+    ...glassStyles.cardOverlay,
+    backgroundColor: glassColors.overlayStrong,
   },
   backButton: {
-    padding: spacing.xs,
-    marginLeft: -spacing.xs,
+    width: 36,
+    height: 36,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  title: {
-    fontSize: 18,
-    fontWeight: '700',
+  headerTitle: {
+    fontSize: 16,
+    fontFamily: fontFamilies.semibold,
     color: colors.text.primary.light,
+    letterSpacing: -0.3,
   },
   headerSpacer: {
-    width: 32,
+    width: 36,
   },
   loadingContainer: {
     flex: 1,
@@ -303,30 +453,65 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     flex: 1,
-    backgroundColor: colors.surface.light,
   },
   scrollContent: {
-    padding: spacing.lg,
-    gap: spacing.lg,
-    paddingBottom: spacing.xxl,
+    paddingHorizontal: 24,
+    gap: 12,
   },
-  saveButton: {
-    marginTop: spacing.lg,
-    backgroundColor: colors.primary,
-    paddingVertical: spacing.lg,
+  flightDetailsCard: {
+    ...glassStyles.cardWrapper,
+    overflow: 'hidden',
+    width: '100%',
+  },
+  flightDetailsBlur: {
+    padding: 12,
+    position: 'relative' as const,
+  },
+  flightDetailsContent: {
+    position: 'relative' as const,
+  },
+  flightDetailsLabel: {
+    fontSize: 14,
+    fontFamily: fontFamilies.medium,
+    color: colors.text.primary.light,
+    marginBottom: spacing.sm,
+  },
+  flightDetailsGrid: {
+    backgroundColor: 'rgba(255, 255, 255, 0.5)',
     borderRadius: borderRadius.md,
-    alignItems: 'center',
-    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: glassColors.border,
+    overflow: 'hidden',
   },
-  saveButtonPressed: {
-    opacity: 0.9,
+  flightDetailsInputRow: {
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    height: 48,
   },
-  saveButtonDisabled: {
-    opacity: 0.7,
+  flightDetailsRowDivider: {
+    height: 1,
+    backgroundColor: glassColors.border,
   },
-  saveButtonText: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: colors.white,
+  flightDetailsInputCol: {
+    flex: 1,
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    paddingHorizontal: 8,
+    height: '100%' as unknown as number,
+  },
+  flightDetailsIcon: {
+    marginRight: 4,
+  },
+  flightDetailsInput: {
+    flex: 1,
+    fontSize: 15,
+    fontFamily: fontFamilies.regular,
+    color: colors.text.primary.light,
+    height: '100%' as unknown as number,
+  },
+  flightDetailsDivider: {
+    width: 1,
+    height: 28,
+    backgroundColor: glassColors.border,
   },
 });

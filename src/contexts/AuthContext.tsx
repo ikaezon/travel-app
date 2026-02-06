@@ -1,10 +1,3 @@
-/**
- * Auth context: holds session state and login/logout handlers.
- * RootNavigator reads from this instead of holding auth state.
- * When Supabase Auth is added, replace the mock implementation with
- * session from supabase.auth.getSession() and onAuthStateChange.
- */
-
 import React, { createContext, useCallback, useContext, useMemo, useState } from 'react';
 
 interface AuthContextValue {

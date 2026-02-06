@@ -1,7 +1,8 @@
 import React from 'react';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { View, Text, Pressable, StyleSheet, Animated } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
-import { colors, spacing } from '../../theme';
+import { colors, spacing, fontFamilies } from '../../theme';
+import { usePressAnimation } from '../../hooks';
 
 interface ErrorViewProps {
   title?: string;
@@ -19,6 +20,8 @@ export function ErrorView({
   onRetry,
   style,
 }: ErrorViewProps) {
+  const { scaleAnim, onPressIn, onPressOut } = usePressAnimation();
+
   return (
     <View
       style={[styles.container, style]}
@@ -29,14 +32,18 @@ export function ErrorView({
       <Text style={styles.title}>{title}</Text>
       <Text style={styles.subtitle}>{subtitle}</Text>
       {onRetry && (
+        <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
         <Pressable
-          style={({ pressed }) => [styles.retryButton, pressed && styles.retryButtonPressed]}
+          style={styles.retryButton}
           onPress={onRetry}
+          onPressIn={onPressIn}
+          onPressOut={onPressOut}
           accessibilityRole="button"
           accessibilityLabel="Try again"
         >
           <Text style={styles.retryButtonText}>Try again</Text>
         </Pressable>
+        </Animated.View>
       )}
     </View>
   );
@@ -52,13 +59,13 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 16,
-    fontWeight: '700',
+    fontFamily: fontFamilies.semibold,
     color: colors.text.primary.light,
     textAlign: 'center',
   },
   subtitle: {
     fontSize: 14,
-    fontWeight: '500',
+    fontFamily: fontFamilies.medium,
     color: colors.text.secondary.light,
     textAlign: 'center',
   },
@@ -67,12 +74,9 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.lg,
   },
-  retryButtonPressed: {
-    opacity: 0.8,
-  },
   retryButtonText: {
     fontSize: 15,
-    fontWeight: '600',
+    fontFamily: fontFamilies.semibold,
     color: colors.primary,
   },
 });

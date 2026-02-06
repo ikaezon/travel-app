@@ -4,27 +4,32 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  Image,
   Pressable,
   Alert,
+  Animated,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { MaterialIcons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
+import { BlurView } from 'expo-blur';
+import { Menu, MoreHorizontal } from 'lucide-react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { TripCard } from '../../components/domain/TripCard';
-import { pickImageFromLibrary } from '../../native';
-import { QuickActionCard } from '../../components/domain/QuickActionCard';
-import { FadeInView, LoadingView, ErrorView } from '../../components/ui';
-import { colors, spacing } from '../../theme';
+import { pickImageFromLibrary } from '../../native/imagePicker';
+import { QuickActionCard, type QuickActionIconKey } from '../../components/domain/QuickActionCard';
+import { LoadingView } from '../../components/ui/LoadingView';
+import { ErrorView } from '../../components/ui/ErrorView';
+import { colors, spacing, borderRadius, fontFamilies, glassStyles, glassColors, glassShadows, glassConstants } from '../../theme';
 import { MainStackParamList } from '../../navigation/types';
-import { QUICK_ACTION_ROUTES } from '../../constants';
-import { useCurrentUser, useUpcomingTrips, useQuickActions } from '../../hooks';
+import { useCurrentUser, useUpcomingTrips, useQuickActions, usePressAnimation } from '../../hooks';
+
+const QUICK_ACTION_ROUTES: readonly string[] = ['ManualEntryOptions', 'ScreenshotUpload', 'CreateTrip'];
 
 type NavigationProp = NativeStackNavigationProp<MainStackParamList>;
 
 export default function TripDashboardScreen() {
   const navigation = useNavigation<NavigationProp>();
+  const insets = useSafeAreaInsets();
   const { user, isLoading: userLoading, error: userError, refetch: refetchUser } = useCurrentUser();
   const { trips, isLoading: tripsLoading, error: tripsError, refetch: refetchTrips } = useUpcomingTrips();
   const { quickActions, isLoading: actionsLoading, error: actionsError, refetch: refetchActions } = useQuickActions();
@@ -54,6 +59,9 @@ export default function TripDashboardScreen() {
   const handleSeeAllPress = useCallback(() => navigation.navigate('TripList'), [navigation]);
 
   const handleRetry = useCallback(() => refetchAll(), [refetchAll]);
+  const seeAllAnim = usePressAnimation();
+  const menuAnim = usePressAnimation();
+  const moreAnim = usePressAnimation();
 
   const handleQuickActionPress = useCallback(
     async (route: string) => {
@@ -82,220 +90,239 @@ export default function TripDashboardScreen() {
 
   if (isLoading) {
     return (
-      <SafeAreaView style={styles.container} edges={['top']}>
-        <LoadingView />
-      </SafeAreaView>
+      <LinearGradient
+        colors={[colors.gradient.start, colors.gradient.middle, colors.gradient.end]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.gradientContainer}
+      >
+        <View style={styles.container}>
+          <LoadingView />
+        </View>
+      </LinearGradient>
     );
   }
 
   if (hasError) {
     return (
-      <SafeAreaView style={styles.container} edges={['top']}>
-        <ErrorView
-          title="Unable to load your dashboard"
-          subtitle="Please try again in a moment."
-          onRetry={handleRetry}
-        />
-      </SafeAreaView>
+      <LinearGradient
+        colors={[colors.gradient.start, colors.gradient.middle, colors.gradient.end]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.gradientContainer}
+      >
+        <View style={styles.container}>
+          <ErrorView
+            title="Unable to load your dashboard"
+            subtitle="Please try again in a moment."
+            onRetry={handleRetry}
+          />
+        </View>
+      </LinearGradient>
     );
   }
 
+  const topOffset = insets.top + 8;
+
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      <FadeInView duration={150} delay={0}>
-        <View style={styles.header}>
-          <View style={styles.headerLeft}>
-            <Pressable style={styles.profileContainer}>
-              <Image 
-                source={{ uri: user?.photoUrl }} 
-                style={styles.profileImage} 
-              />
-              <View style={styles.onlineBadge} />
-            </Pressable>
-            <View style={styles.greetingContainer}>
-              <Text style={styles.greetingText}>Welcome back,</Text>
-              <Text style={styles.userName}>{user?.name || 'Traveler'}</Text>
+    <LinearGradient
+      colors={[colors.gradient.start, colors.gradient.middle, colors.gradient.end]}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+      style={styles.gradientContainer}
+    >
+      <View style={styles.container}>
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={[styles.scrollContent, { paddingTop: topOffset + 72 }]}
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Upcoming Trips</Text>
+              <Animated.View style={{ transform: [{ scale: seeAllAnim.scaleAnim }] }}>
+              <Pressable onPress={handleSeeAllPress} onPressIn={seeAllAnim.onPressIn} onPressOut={seeAllAnim.onPressOut}>
+                <BlurView intensity={24} tint="light" style={[styles.seeAllButtonContainer, glassStyles.blurContentPill]}>
+                  <View style={styles.glassOverlay} pointerEvents="none" />
+                  <Text style={styles.seeAllButton}>See All</Text>
+                </BlurView>
+              </Pressable>
+              </Animated.View>
+            </View>
+
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.tripsCarousel}
+              snapToInterval={320}
+              decelerationRate="fast"
+            >
+              {trips.map((trip, index) => (
+                <TripCard
+                  key={trip.id}
+                  destination={trip.destination}
+                  dateRange={trip.dateRange}
+                  durationLabel={trip.durationLabel}
+                  imageUrl={trip.imageUrl}
+                  iconName={trip.iconName}
+                  onPress={() => handleTripPress(trip.id, trip.destination)}
+                  delay={index * 60}
+                />
+              ))}
+            </ScrollView>
+          </View>
+
+          <View style={[styles.section, styles.quickActionsSection]}>
+            <Text style={styles.sectionTitle}>Quick Actions</Text>
+            <View style={styles.actionsContainer}>
+              {quickActions.map((action, index) => (
+                <QuickActionCard
+                  key={action.id}
+                  title={action.title}
+                  subtitle={action.subtitle}
+                  iconKey={action.iconKey as QuickActionIconKey}
+                  iconColor={action.iconColor}
+                  iconBgColor={action.iconBgColor}
+                  onPress={() => handleQuickActionPress(action.route)}
+                  delay={trips.length * 60 + index * 50}
+                />
+              ))}
             </View>
           </View>
+        </ScrollView>
 
-          <Pressable style={styles.notificationButton}>
-            <MaterialIcons name="notifications" size={24} color={colors.text.primary.light} />
-            <View style={styles.notificationDot} />
-          </Pressable>
+        <View style={[styles.topNavContainer, { top: topOffset }]}>
+          <BlurView intensity={24} tint="light" style={[styles.topNavBlur, glassStyles.blurContentLarge]}>
+            <View style={styles.glassOverlay} pointerEvents="none" />
+            <View style={styles.topNavContent}>
+              <Animated.View style={{ transform: [{ scale: menuAnim.scaleAnim }] }}>
+              <Pressable onPressIn={menuAnim.onPressIn} onPressOut={menuAnim.onPressOut}>
+                <View style={styles.navButton}>
+                  <Menu size={22} color={colors.text.primary.light} strokeWidth={2} />
+                </View>
+              </Pressable>
+              </Animated.View>
+
+              <View style={styles.headerCenter}>
+                <Text style={styles.headerLabel}>Dashboard</Text>
+                <Text style={styles.headerTitle}>My Trips</Text>
+              </View>
+
+              <Animated.View style={{ transform: [{ scale: moreAnim.scaleAnim }] }}>
+              <Pressable onPressIn={moreAnim.onPressIn} onPressOut={moreAnim.onPressOut}>
+                <View style={styles.navButton}>
+                  <MoreHorizontal size={22} color={colors.text.primary.light} strokeWidth={2} />
+                </View>
+              </Pressable>
+              </Animated.View>
+            </View>
+          </BlurView>
         </View>
-      </FadeInView>
-
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Upcoming Trips</Text>
-            <Pressable onPress={handleSeeAllPress}>
-              <Text style={styles.seeAllButton}>See All</Text>
-            </Pressable>
-          </View>
-
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.tripsCarousel}
-            snapToInterval={296}
-            decelerationRate="fast"
-          >
-            {trips.map((trip, index) => (
-              <TripCard
-                key={trip.id}
-                destination={trip.destination}
-                dateRange={trip.dateRange}
-                durationLabel={trip.durationLabel}
-                imageUrl={trip.imageUrl}
-                iconName={trip.iconName}
-                onPress={() => handleTripPress(trip.id, trip.destination)}
-                delay={index * 60}
-              />
-            ))}
-          </ScrollView>
-        </View>
-
-        <View style={[styles.section, styles.quickActionsSection]}>
-          <Text style={styles.sectionTitle}>Quick Actions</Text>
-          <View style={styles.actionsContainer}>
-            {quickActions.map((action, index) => (
-              <QuickActionCard
-                key={action.id}
-                title={action.title}
-                subtitle={action.subtitle}
-                iconName={action.iconName as keyof typeof MaterialIcons.glyphMap}
-                iconColor={action.iconColor}
-                iconBgColor={action.iconBgColor}
-                onPress={() => handleQuickActionPress(action.route)}
-                delay={trips.length * 60 + index * 50}
-              />
-            ))}
-          </View>
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+      </View>
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
+  gradientContainer: {
+    flex: 1,
+  },
   container: {
     flex: 1,
-    backgroundColor: colors.background.light,
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-    backgroundColor: 'rgba(246, 247, 248, 0.9)',
-  },
-  headerLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-  },
-  profileContainer: {
-    position: 'relative',
-  },
-  profileImage: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    borderWidth: 2,
-    borderColor: colors.primaryLight,
-  },
-  onlineBadge: {
+  topNavContainer: {
     position: 'absolute',
-    bottom: 0,
+    left: 0,
     right: 0,
-    width: 12,
-    height: 12,
-    backgroundColor: colors.status.success,
-    borderRadius: 6,
-    borderWidth: 2,
-    borderColor: colors.background.light,
+    alignItems: 'center',
+    zIndex: 60,
   },
-  greetingContainer: {
-    gap: spacing.xxs,
-  },
-  greetingText: {
-    fontSize: 12,
-    fontWeight: '500',
-    color: colors.text.secondary.light,
-  },
-  userName: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: colors.text.primary.light,
-    letterSpacing: -0.3,
-    lineHeight: 22,
-  },
-  notificationButton: {
+  topNavBlur: {
+    ...glassStyles.navBarWrapper,
+    width: '90%',
+    maxWidth: 340,
     position: 'relative',
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: colors.white,
+    height: 56,
+    justifyContent: 'center',
+  },
+  topNavContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+  },
+  navButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: colors.black,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 1,
   },
-  notificationDot: {
-    position: 'absolute',
-    top: 8,
-    right: 8,
-    width: 8,
-    height: 8,
-    backgroundColor: colors.status.error,
-    borderRadius: 4,
+  headerCenter: {
+    alignItems: 'center',
+  },
+  headerLabel: {
+    fontSize: 9,
+    fontFamily: fontFamilies.semibold,
+    color: colors.primary,
+    textTransform: 'uppercase',
+    letterSpacing: 2,
+    marginBottom: 1,
+    opacity: 0.8,
+  },
+  headerTitle: {
+    fontSize: 16,
+    fontFamily: fontFamilies.semibold,
+    color: colors.text.primary.light,
+    letterSpacing: -0.3,
+  },
+  glassOverlay: {
+    ...glassStyles.cardOverlay,
+    backgroundColor: glassColors.overlayStrong,
   },
   scrollView: {
     flex: 1,
   },
   scrollContent: {
-    gap: spacing.xxl,
+    gap: 12,
     paddingBottom: 100,
   },
   section: {
-    gap: spacing.md,
+    gap: 12,
   },
   sectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.sm,
+    paddingHorizontal: 24,
   },
   sectionTitle: {
     fontSize: 20,
-    fontWeight: '700',
+    fontFamily: fontFamilies.semibold,
     color: colors.text.primary.light,
-    lineHeight: 28,
+    letterSpacing: -0.3,
+  },
+  seeAllButtonContainer: {
+    ...glassStyles.pillContainer,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderWidth: 1.5,
+    borderColor: glassColors.border,
   },
   seeAllButton: {
     fontSize: 14,
-    fontWeight: '700',
+    fontFamily: fontFamilies.semibold,
     color: colors.primary,
   },
   tripsCarousel: {
-    paddingHorizontal: spacing.lg,
-    gap: spacing.lg,
-    paddingBottom: spacing.lg,
+    paddingHorizontal: 24,
+    paddingBottom: 8,
+    gap: 20,
   },
   quickActionsSection: {
-    paddingHorizontal: spacing.lg,
+    paddingHorizontal: 24,
   },
   actionsContainer: {
-    gap: spacing.md,
+    gap: 12,
   },
 });
