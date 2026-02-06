@@ -169,7 +169,7 @@ const styles = StyleSheet.create({
   },
   navButtonOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(255, 255, 255, 0.55)',
+    backgroundColor: 'rgba(255, 255, 255, 0.25)',
   },
   navButtonSpacer: {
     width: BUTTON_SIZE,
