@@ -4,11 +4,13 @@ import { RootStackParamList } from './types';
 import { AuthNavigator } from './AuthNavigator';
 import { MainStackNavigator } from './MainStackNavigator';
 import { useAuth } from '../contexts/AuthContext';
+import { useTheme } from '../contexts/ThemeContext';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export function RootNavigator() {
   const { isAuthenticated, signIn, signOut } = useAuth();
+  const { colors } = useTheme();
 
   return (
     <Stack.Navigator
@@ -16,6 +18,7 @@ export function RootNavigator() {
       screenOptions={{
         headerShown: false,
         animation: 'fade',
+        contentStyle: { backgroundColor: colors.gradient.start },
       }}
     >
       {!isAuthenticated ? (

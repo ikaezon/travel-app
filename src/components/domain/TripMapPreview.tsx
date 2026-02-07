@@ -9,19 +9,18 @@ import {
   Animated,
 } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
-import { BlurView } from 'expo-blur';
 import * as Haptics from 'expo-haptics';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTripMapData } from '../../hooks/useTripMapData';
 import { mockImages } from '../../data/mocks';
 import {
-  colors,
   fontFamilies,
   glassStyles,
-  glassColors,
-  glassShadows,
+  glassConstants,
 } from '../../theme';
 import { usePressAnimation } from '../../hooks';
+import { useTheme } from '../../contexts/ThemeContext';
+import { AdaptiveGlassView } from '../ui/AdaptiveGlassView';
 
 interface TripMapPreviewProps {
   tripId: string;
@@ -33,6 +32,7 @@ interface TripMapPreviewProps {
  * Falls back to a placeholder image when geocoding is unavailable or returns no results.
  */
 export function TripMapPreview({ tripId, onExpandPress }: TripMapPreviewProps) {
+  const theme = useTheme();
   const { region, markers, isLoading, hasData } = useTripMapData(tripId, {
     destinationOnly: true,
   });
@@ -45,17 +45,19 @@ export function TripMapPreview({ tripId, onExpandPress }: TripMapPreviewProps) {
   }, [onExpandPress]);
 
   return (
-    <View style={styles.container}>
-      <BlurView
+    <View style={[styles.container, theme.glass.cardWrapperStyle, { boxShadow: theme.glass.elevatedBoxShadow }]}>
+      <AdaptiveGlassView
         intensity={24}
-        tint="light"
-        style={[StyleSheet.absoluteFill, glassStyles.blurContent]}
+        darkIntensity={10}
+        glassEffectStyle="clear"
+        absoluteFill
+        style={glassStyles.blurContent}
       />
-      <View style={styles.glassOverlay} pointerEvents="none" />
+      <View style={[styles.glassOverlay, { backgroundColor: theme.glass.overlayStrong }]} pointerEvents="none" />
 
       {isLoading && (
         <View style={styles.centeredContent}>
-          <ActivityIndicator size="large" color={colors.primary} />
+          <ActivityIndicator size="large" color={theme.colors.primary} />
         </View>
       )}
 
@@ -73,6 +75,7 @@ export function TripMapPreview({ tripId, onExpandPress }: TripMapPreviewProps) {
           showsCompass={false}
           pointerEvents="none"
           mapType="standard"
+          userInterfaceStyle={theme.isDark ? 'dark' : 'light'}
         >
           {markers.map((marker) => (
             <Marker
@@ -82,7 +85,7 @@ export function TripMapPreview({ tripId, onExpandPress }: TripMapPreviewProps) {
                 longitude: marker.longitude,
               }}
               title={marker.title}
-              pinColor={marker.isDestination ? colors.primary : colors.status.error}
+              pinColor={marker.isDestination ? theme.colors.primary : theme.colors.status.error}
             />
           ))}
         </MapView>
@@ -98,9 +101,9 @@ export function TripMapPreview({ tripId, onExpandPress }: TripMapPreviewProps) {
             <MaterialIcons
               name="location-off"
               size={24}
-              color={colors.text.tertiary.light}
+              color={theme.colors.text.tertiary}
             />
-            <Text style={styles.fallbackText}>No location data</Text>
+            <Text style={[styles.fallbackText, { color: theme.colors.text.tertiary }]}>No location data</Text>
           </View>
         </ImageBackground>
       )}
@@ -114,14 +117,15 @@ export function TripMapPreview({ tripId, onExpandPress }: TripMapPreviewProps) {
         accessibilityLabel="Expand map view"
         accessibilityRole="button"
       >
-        <BlurView
+        <AdaptiveGlassView
           intensity={40}
-          tint="light"
-          style={[styles.expandBadgeBlur, glassStyles.blurContentPill]}
+          darkIntensity={10}
+          glassEffectStyle="clear"
+          style={[styles.expandBadgeBlur, glassStyles.blurContentPill, theme.glass.pillContainerStyle]}
         >
-          <MaterialIcons name="map" size={14} color={colors.primary} />
-          <Text style={styles.expandBadgeText}>Expand View</Text>
-        </BlurView>
+          <MaterialIcons name="map" size={14} color={theme.colors.primary} />
+          <Text style={[styles.expandBadgeText, { color: theme.colors.text.primary }]}>Expand View</Text>
+        </AdaptiveGlassView>
       </Pressable>
       </Animated.View>
     </View>
@@ -134,12 +138,10 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 180,
     borderWidth: 1,
-    boxShadow: glassShadows.elevated,
     overflow: 'hidden',
   },
   glassOverlay: {
     ...glassStyles.cardOverlay,
-    backgroundColor: glassColors.overlayStrong,
   },
   centeredContent: {
     ...StyleSheet.absoluteFillObject,
@@ -148,7 +150,7 @@ const styles = StyleSheet.create({
   },
   map: {
     ...StyleSheet.absoluteFillObject,
-    borderRadius: 24,
+    borderRadius: glassConstants.radius.card,
   },
   fallbackImage: {
     ...StyleSheet.absoluteFillObject,
@@ -156,7 +158,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   fallbackImageStyle: {
-    borderRadius: 24,
+    borderRadius: glassConstants.radius.card,
   },
   fallbackOverlay: {
     alignItems: 'center',
@@ -165,7 +167,6 @@ const styles = StyleSheet.create({
   fallbackText: {
     fontSize: 12,
     fontFamily: fontFamilies.medium,
-    color: colors.text.tertiary.light,
   },
   expandBadge: {
     position: 'absolute',
@@ -180,12 +181,10 @@ const styles = StyleSheet.create({
     gap: 6,
     paddingHorizontal: 14,
     paddingVertical: 8,
-    borderRadius: 20,
-    borderColor: glassColors.borderStrong,
+    borderRadius: glassConstants.radius.pill,
   },
   expandBadgeText: {
     fontSize: 13,
     fontFamily: fontFamilies.semibold,
-    color: colors.text.primary.light,
   },
 });

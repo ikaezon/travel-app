@@ -71,7 +71,6 @@ export async function createFlightReservation(
     [departureAirport.trim(), arrivalAirport.trim()].filter(Boolean).join(' → ') || 'TBD';
   const title = [providerName, flightNumber?.trim()].filter(Boolean).join(' ') || 'Flight';
 
-  // Create reservation first
   const reservation = await reservationService.createReservation({
     tripId,
     type: 'flight',
@@ -86,7 +85,6 @@ export async function createFlightReservation(
     attachments: [],
   });
 
-  // Create timeline item with link to reservation
   const timelineItem = await tripService.createTimelineItem(tripId, {
     type: 'flight',
     date: departureDate.trim() || 'TBD',
@@ -213,9 +211,7 @@ export async function deleteReservationWithTimeline(
   reservationId: string,
   timelineItemId: string
 ): Promise<void> {
-  // Delete timeline item first (the view layer)
   await tripService.deleteTimelineItem(timelineItemId);
 
-  // Then delete the reservation
   await reservationService.deleteReservation(reservationId);
 }

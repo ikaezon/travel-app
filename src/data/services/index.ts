@@ -13,7 +13,6 @@ export type {
   CreateTrainInput,
 } from './reservationWorkflows';
 export {
-  fetchPlaceSuggestions,
   isPlaceAutocompleteAvailable,
   createPlaceAutocompleteService,
 } from './placeAutocompleteService';
@@ -24,3 +23,7 @@ export {
   isGeocodingAvailable,
 } from './geocodingService';
 export type { GeocodeResult } from './geocodingService';
+export {
+  fetchCoverImageForDestination,
+  isCoverImageAvailable,
+} from './coverImageService';

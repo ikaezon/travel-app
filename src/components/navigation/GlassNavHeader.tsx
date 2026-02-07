@@ -1,11 +1,11 @@
 import React, { useRef, useCallback } from 'react';
 import { View, Text, StyleSheet, Pressable, Animated } from 'react-native';
-import { BlurView } from 'expo-blur';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { colors, fontFamilies, glassStyles, glassColors } from '../../theme';
+import { fontFamilies, glassStyles } from '../../theme';
+import { useTheme } from '../../contexts/ThemeContext';
+import { AdaptiveGlassView } from '../ui/AdaptiveGlassView';
 
-// Spring configs matching the bottom tab bar bubble feel
 const PRESS_SPRING = { tension: 280, friction: 14, useNativeDriver: true };
 const RELEASE_SPRING = { tension: 200, friction: 18, useNativeDriver: true };
 const PRESS_SCALE = 1.12;
@@ -44,6 +44,7 @@ function GlassNavButton({
   accessibilityLabel: string;
 }) {
   const scale = useRef(new Animated.Value(1)).current;
+  const theme = useTheme();
 
   const handlePressIn = useCallback(() => {
     Animated.spring(scale, { ...PRESS_SPRING, toValue: PRESS_SCALE }).start();
@@ -63,10 +64,10 @@ function GlassNavButton({
         accessibilityRole="button"
         style={styles.navButtonPressable}
       >
-        <BlurView intensity={45} tint="light" style={styles.navButtonBlur}>
-          <View style={styles.navButtonOverlay} pointerEvents="none" />
-          <MaterialIcons name={icon} size={22} color={colors.text.primary.light} />
-        </BlurView>
+        <AdaptiveGlassView intensity={45} glassEffectStyle="clear" useGlassInLightMode style={[styles.navButtonBlur, { borderColor: theme.glass.borderStrong }]}>
+          {!theme.isDark && <View style={[styles.navButtonOverlay, { backgroundColor: 'rgba(255, 255, 255, 0.25)' }]} pointerEvents="none" />}
+          <MaterialIcons name={icon} size={22} color={theme.colors.text.primary} />
+        </AdaptiveGlassView>
       </Pressable>
     </Animated.View>
   );
@@ -85,15 +86,18 @@ export function GlassNavHeader({
 }: GlassNavHeaderProps) {
   const insets = useSafeAreaInsets();
   const topOffset = insets.top + 8;
+  const theme = useTheme();
 
   return (
     <View style={[styles.container, { top: topOffset }]}>
-      <BlurView
-        intensity={24}
-        tint="light"
-        style={[styles.blurContainer, glassStyles.blurContentLarge]}
-      >
-        <View style={styles.glassOverlay} pointerEvents="none" />
+      <View style={styles.barWrapper}>
+        <AdaptiveGlassView
+          intensity={24}
+          useGlassInLightMode
+          style={[styles.blurContainer, glassStyles.blurContentLarge, theme.glass.navWrapperStyle]}
+        >
+          {!theme.isDark && <View style={[styles.glassOverlay, { backgroundColor: theme.glass.overlay }]} pointerEvents="none" />}
+        </AdaptiveGlassView>
         <View style={styles.content}>
           <GlassNavButton
             icon="arrow-back"
@@ -102,8 +106,8 @@ export function GlassNavHeader({
           />
 
           <View style={styles.titleContainer}>
-            {label && <Text style={styles.label}>{label}</Text>}
-            <Text style={styles.title} numberOfLines={1}>
+            {label && <Text style={[styles.label, { color: theme.colors.primary }]}>{label}</Text>}
+            <Text style={[styles.title, { color: theme.colors.text.primary }]} numberOfLines={1}>
               {title}
             </Text>
           </View>
@@ -118,7 +122,7 @@ export function GlassNavHeader({
             <View style={styles.navButtonSpacer} />
           )}
         </View>
-      </BlurView>
+      </View>
     </View>
   );
 }
@@ -131,23 +135,28 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     zIndex: 60,
   },
-  blurContainer: {
+  barWrapper: {
     ...glassStyles.navBarWrapper,
     width: '90%',
     maxWidth: 360,
-    position: 'relative',
     height: 56,
-    justifyContent: 'center',
+    position: 'relative',
+  },
+  blurContainer: {
+    ...StyleSheet.absoluteFillObject,
+    ...glassStyles.navBarWrapper,
+    zIndex: 0,
   },
   glassOverlay: {
-    ...glassStyles.cardOverlay,
-    backgroundColor: glassColors.overlayStrong,
+    ...StyleSheet.absoluteFillObject,
   },
   content: {
+    ...StyleSheet.absoluteFillObject,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 16,
+    zIndex: 2,
   },
   navButtonOuter: {
     width: BUTTON_SIZE,
@@ -163,13 +172,11 @@ const styles = StyleSheet.create({
     borderRadius: BUTTON_RADIUS,
     overflow: 'hidden',
     borderWidth: 1.5,
-    borderColor: glassColors.borderStrong,
     justifyContent: 'center',
     alignItems: 'center',
   },
   navButtonOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(255, 255, 255, 0.25)',
   },
   navButtonSpacer: {
     width: BUTTON_SIZE,
@@ -183,7 +190,6 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 9,
     fontFamily: fontFamilies.semibold,
-    color: colors.primary,
     textTransform: 'uppercase',
     letterSpacing: 2,
     marginBottom: 1,
@@ -192,7 +198,6 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 16,
     fontFamily: fontFamilies.semibold,
-    color: colors.text.primary.light,
     letterSpacing: -0.3,
   },
 });

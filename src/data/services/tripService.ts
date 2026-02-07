@@ -92,6 +92,23 @@ export const tripService = {
     return (response.data as DbTimelineItem[]).map(mapTimelineItemFromDb);
   },
 
+  async getTimelineItemById(timelineItemId: string): Promise<TimelineItem | null> {
+    const response = await supabase
+      .from('timeline_items')
+      .select('*')
+      .eq('id', timelineItemId)
+      .single();
+
+    if (response.error) {
+      if (response.error.code === 'Error parsing value for type "timeline_items"') {
+        return null;
+      }
+      throw wrapDatabaseError(response.error, 'getTimelineItemById');
+    }
+
+    return mapTimelineItemFromDb(response.data as DbTimelineItem);
+  },
+
   async createTimelineItem(
     tripId: string,
     item: Omit<TimelineItem, 'id' | 'tripId'> & { reservationId?: string }
@@ -196,6 +213,16 @@ export const tripService = {
       throw wrapDatabaseError(reservationsResponse.error, 'deleteTrip:reservations');
     }
     const reservationIds = (reservationsResponse.data ?? []).map((r) => r.id);
+
+    // Order matters: timeline_items FK → reservations, attachments FK → reservations
+    // Delete timeline_items first (they reference reservations), then attachments, then reservations
+    const timelineResponse = await supabase
+      .from('timeline_items')
+      .delete()
+      .eq('trip_id', tripId);
+    if (timelineResponse.error) {
+      throw wrapDatabaseError(timelineResponse.error, 'deleteTrip:timeline_items');
+    }
     if (reservationIds.length > 0) {
       const attResponse = await supabase
         .from('attachments')
@@ -208,13 +235,6 @@ export const tripService = {
     const resResponse = await supabase.from('reservations').delete().eq('trip_id', tripId);
     if (resResponse.error) {
       throw wrapDatabaseError(resResponse.error, 'deleteTrip:reservations');
-    }
-    const timelineResponse = await supabase
-      .from('timeline_items')
-      .delete()
-      .eq('trip_id', tripId);
-    if (timelineResponse.error) {
-      throw wrapDatabaseError(timelineResponse.error, 'deleteTrip:timeline_items');
     }
     const response = await supabase
       .from('trips')

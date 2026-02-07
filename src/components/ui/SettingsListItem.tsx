@@ -1,9 +1,10 @@
 import React from 'react';
 import { View, Text, StyleSheet, Pressable, Animated } from 'react-native';
-import { BlurView } from 'expo-blur';
 import { MaterialIcons } from '@expo/vector-icons';
-import { colors, spacing, fontFamilies, glassStyles, glassColors } from '../../theme';
+import { spacing, fontFamilies, glassStyles, glassConstants } from '../../theme';
 import { usePressAnimation } from '../../hooks';
+import { useTheme } from '../../contexts/ThemeContext';
+import { AdaptiveGlassView } from './AdaptiveGlassView';
 
 interface SettingsListItemProps {
   label: string;
@@ -11,7 +12,6 @@ interface SettingsListItemProps {
   onPress?: () => void;
   rightElement?: React.ReactNode;
   showChevron?: boolean;
-  /** Use liquid glass card styling (for Profile screen) */
   variant?: 'default' | 'glass';
 }
 
@@ -23,25 +23,31 @@ export function SettingsListItem({
   showChevron = true,
   variant = 'default',
 }: SettingsListItemProps) {
+  const theme = useTheme();
   const { scaleAnim, onPressIn, onPressOut } = usePressAnimation();
 
   const content = (
     <View style={variant === 'glass' ? styles.glassContainer : styles.container}>
       <View style={styles.leftContent}>
         {variant === 'glass' ? (
-          <BlurView intensity={50} tint="light" style={[styles.glassIconContainer, glassStyles.blurContentIcon]}>
-            <MaterialIcons name={iconName} size={20} color={colors.primary} />
-          </BlurView>
+          <AdaptiveGlassView intensity={50} darkIntensity={10} glassEffectStyle="clear" style={[styles.glassIconContainer, glassStyles.blurContentIcon, theme.glass.iconContainerStyle]}>
+            <MaterialIcons name={iconName} size={20} color={theme.colors.primary} />
+          </AdaptiveGlassView>
         ) : (
-          <View style={styles.iconContainer}>
-            <MaterialIcons name={iconName} size={20} color={colors.primary} />
+          <View style={[styles.iconContainer, { backgroundColor: theme.colors.background }]}>
+            <MaterialIcons name={iconName} size={20} color={theme.colors.primary} />
           </View>
         )}
-        <Text style={styles.label}>{label}</Text>
+        <Text style={{
+          fontSize: 16,
+          fontFamily: fontFamilies.medium,
+          color: theme.colors.text.primary,
+          flex: 1,
+        }}>{label}</Text>
       </View>
       {rightElement || (showChevron && (
         <View style={styles.chevronContainer}>
-          <MaterialIcons name="chevron-right" size={20} color={colors.text.tertiary.light} />
+          <MaterialIcons name="chevron-right" size={20} color={theme.colors.text.tertiary} />
         </View>
       ))}
     </View>
@@ -49,16 +55,16 @@ export function SettingsListItem({
 
   if (variant === 'glass') {
     const wrapper = (
-      <BlurView intensity={24} tint="light" style={[styles.glassBlur, glassStyles.blurContent]}>
-        <View style={styles.glassOverlay} pointerEvents="none" />
+      <AdaptiveGlassView intensity={24} darkIntensity={10} glassEffectStyle="clear" style={[styles.glassBlur, glassStyles.blurContent]}>
+        <View style={[styles.glassOverlay, { backgroundColor: theme.glass.overlay }]} pointerEvents="none" />
         {content}
-      </BlurView>
+      </AdaptiveGlassView>
     );
     if (onPress) {
       return (
         <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
         <Pressable
-          style={styles.glassPressable}
+          style={[styles.glassPressable, theme.glass.cardWrapperStyle]}
           onPress={onPress}
           onPressIn={onPressIn}
           onPressOut={onPressOut}
@@ -68,7 +74,7 @@ export function SettingsListItem({
         </Animated.View>
       );
     }
-    return <View style={styles.glassPressable}>{wrapper}</View>;
+    return <View style={[styles.glassPressable, theme.glass.cardWrapperStyle]}>{wrapper}</View>;
   }
 
   if (onPress) {
@@ -90,7 +96,7 @@ const styles = StyleSheet.create({
     minHeight: 56,
   },
   pressed: {
-    backgroundColor: colors.background.light,
+    opacity: 0.7,
   },
   container: {
     flexDirection: 'row',
@@ -108,13 +114,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: 12,
-    gap: 12,
+    padding: 14,
+    gap: 14,
     position: 'relative',
   },
   glassOverlay: {
     ...glassStyles.cardOverlay,
-    backgroundColor: glassColors.overlayStrong,
   },
   glassContainer: {
     flexDirection: 'row',
@@ -130,26 +135,19 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   iconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
-    backgroundColor: colors.background.light,
+    width: 48,
+    height: 48,
+    borderRadius: glassConstants.radius.icon,
     justifyContent: 'center',
     alignItems: 'center',
   },
   glassIconContainer: {
     ...glassStyles.iconContainer,
-    width: 40,
-    height: 40,
-    padding: 10,
+    width: 48,
+    height: 48,
+    padding: 14,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  label: {
-    fontSize: 16,
-    fontFamily: fontFamilies.medium,
-    color: colors.text.primary.light,
-    flex: 1,
   },
   chevronContainer: {
     paddingLeft: spacing.sm,

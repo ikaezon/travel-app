@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -10,11 +10,9 @@ import {
   Keyboard,
   ActivityIndicator,
   Alert,
-  Animated,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { BlurView } from 'expo-blur';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -23,37 +21,93 @@ import { AddressAutocomplete } from '../../components/ui/AddressAutocomplete';
 import { DualAirportInput } from '../../components/ui/DualAirportInput';
 import { DatePickerInput } from '../../components/ui/DatePickerInput';
 import { DateRangePickerInput } from '../../components/ui/DateRangePickerInput';
+import { TimePickerInput } from '../../components/ui/TimePickerInput';
 import { ShimmerButton } from '../../components/ui/ShimmerButton';
+import { GlassNavHeader } from '../../components/navigation/GlassNavHeader';
+import { AdaptiveGlassView } from '../../components/ui/AdaptiveGlassView';
 import {
-  colors,
   spacing,
   borderRadius,
   fontFamilies,
   glassStyles,
-  glassColors,
+  glassConstants,
 } from '../../theme';
+import { useTheme } from '../../contexts/ThemeContext';
 import { MainStackParamList } from '../../navigation/types';
-import { useReservationByTimelineId, useUpdateReservation, usePressAnimation } from '../../hooks';
+import { useReservationByTimelineId, useUpdateReservation, useTimelineItemById } from '../../hooks';
 import { tripService } from '../../data';
 import { formatCalendarDateToLongDisplay, parseToCalendarDate } from '../../utils/dateFormat';
+
+/**
+ * Parses the timeline title to extract provider name and flight/train number.
+ * The title format is typically "ProviderName Number" (e.g., "Delta 123" or "SNCF TGV 6789")
+ * Returns { providerName, number } where number may be empty if not present.
+ */
+function parseTimelineTitle(title: string, reservationProviderName: string): { providerName: string; number: string } {
+  const trimmedTitle = title.trim();
+  const trimmedProvider = reservationProviderName.trim();
+  
+  if (trimmedTitle.toLowerCase().startsWith(trimmedProvider.toLowerCase())) {
+    const remainder = trimmedTitle.slice(trimmedProvider.length).trim();
+    return { providerName: trimmedProvider, number: remainder };
+  }
+  
+  const lastSpaceIndex = trimmedTitle.lastIndexOf(' ');
+  if (lastSpaceIndex > 0) {
+    const possibleNumber = trimmedTitle.slice(lastSpaceIndex + 1);
+    if (/\d/.test(possibleNumber)) {
+      return { providerName: trimmedTitle.slice(0, lastSpaceIndex), number: possibleNumber };
+    }
+  }
+  
+  return { providerName: trimmedTitle, number: '' };
+}
+
+/**
+ * Converts 12-hour time format (e.g., "2:30 PM") to 24-hour format (e.g., "14:30")
+ * for the TimePickerInput which uses 24-hour format internally.
+ */
+function parse12HourTo24Hour(time12h: string): string {
+  if (!time12h) return '';
+  
+  if (!/[ap]m/i.test(time12h)) return time12h;
+  
+  const match = time12h.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+  if (!match) return time12h;
+  
+  let hours = parseInt(match[1], 10);
+  const minutes = match[2];
+  const period = match[3].toUpperCase();
+  
+  if (period === 'PM' && hours !== 12) {
+    hours += 12;
+  } else if (period === 'AM' && hours === 12) {
+    hours = 0;
+  }
+  
+  return `${hours.toString().padStart(2, '0')}:${minutes}`;
+}
 
 type NavigationProp = NativeStackNavigationProp<MainStackParamList, 'EditReservation'>;
 type EditReservationRouteProp = RouteProp<MainStackParamList, 'EditReservation'>;
 
 export default function EditReservationScreen() {
+  const theme = useTheme();
   const navigation = useNavigation<NavigationProp>();
   const route = useRoute<EditReservationRouteProp>();
   const insets = useSafeAreaInsets();
   const timelineItemId = route.params?.timelineItemId ?? '';
 
   const { reservation, isLoading } = useReservationByTimelineId(timelineItemId);
+  const { timelineItem, isLoading: isLoadingTimeline } = useTimelineItemById(timelineItemId);
   const { updateReservation, isUpdating } = useUpdateReservation();
-  const backAnim = usePressAnimation();
   const [providerName, setProviderName] = useState('');
+  const [flightOrTrainNumber, setFlightOrTrainNumber] = useState('');
   const [routeText, setRouteText] = useState('');
   const [departureAirport, setDepartureAirport] = useState('');
   const [arrivalAirport, setArrivalAirport] = useState('');
   const [date, setDate] = useState('');
+  const [departureTime, setDepartureTime] = useState('');
   const [checkInDate, setCheckInDate] = useState<string | null>(null);
   const [checkOutDate, setCheckOutDate] = useState<string | null>(null);
   const [confirmationCode, setConfirmationCode] = useState('');
@@ -88,13 +142,11 @@ export default function EditReservationScreen() {
       }
 
       if (reservation.type === 'hotel') {
-        // Parse date range from duration (e.g. "February 5, 2025 - February 8, 2025" or "2025-02-05 - 2025-02-08")
-        // Same pattern as flight: pre-populate from existing data when editing
         let parsedStart: string | null = null;
         let parsedEnd: string | null = null;
         const duration = reservation.duration?.trim();
         if (duration) {
-          const parts = duration.split(/\s*[-–—]\s*/); // hyphen, en-dash, em-dash
+          const parts = duration.split(/\s*[-–—]\s*/);
           if (parts.length >= 2) {
             parsedStart = parseToCalendarDate(parts[0].trim());
             parsedEnd = parseToCalendarDate(parts[1].trim());
@@ -103,7 +155,6 @@ export default function EditReservationScreen() {
             parsedEnd = parsedStart;
           }
         }
-        // Fallback: use reservation.date when duration is empty (same as flight uses date directly)
         if (!parsedStart && reservation.date) {
           parsedStart = parseToCalendarDate(reservation.date);
           parsedEnd = parsedStart;
@@ -111,8 +162,20 @@ export default function EditReservationScreen() {
         if (parsedStart) setCheckInDate(parsedStart);
         if (parsedEnd) setCheckOutDate(parsedEnd);
       }
+
+      if (timelineItem) {
+        if (reservation.type === 'flight' || reservation.type === 'train') {
+          const parsed = parseTimelineTitle(timelineItem.title, reservation.providerName);
+          setFlightOrTrainNumber(parsed.number);
+        }
+        
+        if (timelineItem.time) {
+          const time24h = parse12HourTo24Hour(timelineItem.time);
+          setDepartureTime(time24h);
+        }
+      }
     }
-  }, [reservation]);
+  }, [reservation, timelineItem]);
 
   useEffect(() => {
     const showSub = Keyboard.addListener(
@@ -150,7 +213,6 @@ export default function EditReservationScreen() {
             ? providerName
             : routeText;
 
-      // Use hook for reservation update instead of direct service call
       const updated = await updateReservation(reservation.id, {
         providerName,
         route: finalRoute,
@@ -163,10 +225,17 @@ export default function EditReservationScreen() {
         address: address.trim() || undefined,
       });
       if (updated) {
+        const trimmedNumber = flightOrTrainNumber.trim();
+        const finalTitle = trimmedNumber ? `${providerName} ${trimmedNumber}` : providerName;
+
+        const trimmedCode = confirmationCode.trim();
+        const trimmedTime = departureTime.trim();
         await tripService.updateTimelineItem(timelineItemId, {
-          title: providerName,
+          title: finalTitle,
           date: finalDate,
           subtitle: finalRoute || routeText,
+          metadata: trimmedCode ? `Conf: #${trimmedCode}` : '',
+          time: trimmedTime || '',
           reservationId: reservation.id,
         });
         navigation.goBack();
@@ -186,31 +255,20 @@ export default function EditReservationScreen() {
     setCheckOutDate(end);
   };
 
-  const handleBackPress = () => navigation.goBack();
+  const handleBackPress = useCallback(() => navigation.goBack(), [navigation]);
 
-  if (isLoading || !reservation) {
+  if (isLoading || isLoadingTimeline || !reservation) {
     return (
       <LinearGradient
-        colors={[colors.gradient.start, colors.gradient.middle, colors.gradient.end]}
+        colors={theme.gradient}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={styles.gradientContainer}
       >
         <View style={styles.container}>
-          <View style={[styles.headerContainer, { top: topOffset }]}>
-            <BlurView intensity={24} tint="light" style={[styles.headerBlur, glassStyles.blurContentLarge]}>
-              <View style={styles.glassOverlay} pointerEvents="none" />
-              <View style={styles.headerContent}>
-                <Pressable style={styles.backButton} onPress={handleBackPress}>
-                  <MaterialIcons name="arrow-back" size={22} color={colors.text.primary.light} />
-                </Pressable>
-                <Text style={styles.headerTitle}>Edit reservation</Text>
-                <View style={styles.headerSpacer} />
-              </View>
-            </BlurView>
-          </View>
+          <GlassNavHeader title="Edit reservation" onBackPress={handleBackPress} />
           <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color={colors.primary} />
+            <ActivityIndicator size="large" color={theme.colors.primary} />
           </View>
         </View>
       </LinearGradient>
@@ -219,10 +277,11 @@ export default function EditReservationScreen() {
 
   const isFlight = reservation.type === 'flight';
   const isHotel = reservation.type === 'hotel';
+  const isTrain = reservation.type === 'train';
 
   return (
     <LinearGradient
-      colors={[colors.gradient.start, colors.gradient.middle, colors.gradient.end]}
+      colors={theme.gradient}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
       style={styles.gradientContainer}
@@ -295,63 +354,82 @@ export default function EditReservationScreen() {
               variant="glass"
             />
           )}
+          {(isFlight || isTrain) && (
+            <>
+              <FormInput
+                label={isFlight ? 'Flight number' : 'Train number'}
+                value={flightOrTrainNumber}
+                onChangeText={setFlightOrTrainNumber}
+                placeholder={isFlight ? 'e.g. 123' : 'e.g. TGV 6789'}
+                iconName={isFlight ? 'flight' : 'train'}
+                variant="glass"
+              />
+              <TimePickerInput
+                label="Departure time"
+                value={departureTime}
+                onChange={setDepartureTime}
+                placeholder="Tap to select time"
+                variant="glass"
+              />
+            </>
+          )}
           {isFlight ? (
-            <View style={styles.flightDetailsCard}>
-              <BlurView intensity={24} tint="light" style={[styles.flightDetailsBlur, glassStyles.blurContent]}>
-                <View style={styles.glassOverlay} pointerEvents="none" />
+            <View style={[styles.flightDetailsCard, theme.glass.cardWrapperStyle]}>
+              <AdaptiveGlassView intensity={24} darkIntensity={10} glassEffectStyle="clear" style={[styles.flightDetailsBlur, glassStyles.blurContent]}>
+                <View style={[styles.glassOverlay, { backgroundColor: theme.glass.overlayStrong }]} pointerEvents="none" />
                 <View style={styles.flightDetailsContent}>
-                  <Text style={styles.flightDetailsLabel}>Flight details</Text>
-                  <View style={styles.flightDetailsGrid}>
+                  <Text style={[styles.flightDetailsLabel, { color: theme.colors.text.primary }]}>Flight details</Text>
+                  <View style={[styles.flightDetailsGrid, { backgroundColor: theme.isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(255, 255, 255, 0.5)', borderColor: theme.glass.border }]}>
                     <View style={styles.flightDetailsInputRow}>
                       <View style={styles.flightDetailsInputCol}>
-                        <MaterialIcons name="confirmation-number" size={16} color={colors.text.secondary.light} style={styles.flightDetailsIcon} />
+                        <MaterialIcons name="confirmation-number" size={16} color={theme.colors.text.secondary} style={styles.flightDetailsIcon} />
                         <TextInput
-                          style={styles.flightDetailsInput}
+                          style={[styles.flightDetailsInput, { color: theme.colors.text.primary }]}
                           value={confirmationCode}
                           onChangeText={setConfirmationCode}
                           placeholder="Conf #"
-                          placeholderTextColor={colors.text.tertiary.light}
+                          placeholderTextColor={theme.colors.text.tertiary}
                         />
                       </View>
-                      <View style={styles.flightDetailsDivider} />
+                      <View style={[styles.flightDetailsDivider, { backgroundColor: theme.glass.border }]} />
                       <View style={styles.flightDetailsInputCol}>
-                        <MaterialIcons name="meeting-room" size={16} color={colors.text.secondary.light} style={styles.flightDetailsIcon} />
+                        <MaterialIcons name="meeting-room" size={16} color={theme.colors.text.secondary} style={styles.flightDetailsIcon} />
                         <TextInput
-                          style={styles.flightDetailsInput}
+                          style={[styles.flightDetailsInput, { color: theme.colors.text.primary }]}
                           value={terminal}
                           onChangeText={setTerminal}
                           placeholder="Terminal"
-                          placeholderTextColor={colors.text.tertiary.light}
+                          placeholderTextColor={theme.colors.text.tertiary}
                         />
                       </View>
                     </View>
-                    <View style={styles.flightDetailsRowDivider} />
+                    <View style={[styles.flightDetailsRowDivider, { backgroundColor: theme.glass.border }]} />
                     <View style={styles.flightDetailsInputRow}>
                       <View style={styles.flightDetailsInputCol}>
-                        <MaterialIcons name="door-sliding" size={16} color={colors.text.secondary.light} style={styles.flightDetailsIcon} />
+                        <MaterialIcons name="door-sliding" size={16} color={theme.colors.text.secondary} style={styles.flightDetailsIcon} />
                         <TextInput
-                          style={styles.flightDetailsInput}
+                          style={[styles.flightDetailsInput, { color: theme.colors.text.primary }]}
                           value={gate}
                           onChangeText={setGate}
                           placeholder="Gate"
-                          placeholderTextColor={colors.text.tertiary.light}
+                          placeholderTextColor={theme.colors.text.tertiary}
                         />
                       </View>
-                      <View style={styles.flightDetailsDivider} />
+                      <View style={[styles.flightDetailsDivider, { backgroundColor: theme.glass.border }]} />
                       <View style={styles.flightDetailsInputCol}>
-                        <MaterialIcons name="airline-seat-recline-extra" size={16} color={colors.text.secondary.light} style={styles.flightDetailsIcon} />
+                        <MaterialIcons name="airline-seat-recline-extra" size={16} color={theme.colors.text.secondary} style={styles.flightDetailsIcon} />
                         <TextInput
-                          style={styles.flightDetailsInput}
+                          style={[styles.flightDetailsInput, { color: theme.colors.text.primary }]}
                           value={seat}
                           onChangeText={setSeat}
                           placeholder="Seat"
-                          placeholderTextColor={colors.text.tertiary.light}
+                          placeholderTextColor={theme.colors.text.tertiary}
                         />
                       </View>
                     </View>
                   </View>
                 </View>
-              </BlurView>
+              </AdaptiveGlassView>
             </View>
           ) : (
             <FormInput
@@ -374,26 +452,7 @@ export default function EditReservationScreen() {
           />
         </ScrollView>
 
-        <View style={[styles.headerContainer, { top: topOffset }]}>
-          <BlurView intensity={24} tint="light" style={[styles.headerBlur, glassStyles.blurContentLarge]}>
-            <View style={styles.glassOverlay} pointerEvents="none" />
-            <View style={styles.headerContent}>
-              <Animated.View style={{ transform: [{ scale: backAnim.scaleAnim }] }}>
-              <Pressable
-                style={styles.backButton}
-                onPress={handleBackPress}
-                onPressIn={backAnim.onPressIn}
-                onPressOut={backAnim.onPressOut}
-                accessibilityLabel="Go back"
-              >
-                <MaterialIcons name="arrow-back" size={22} color={colors.text.primary.light} />
-              </Pressable>
-              </Animated.View>
-              <Text style={styles.headerTitle}>Edit reservation</Text>
-              <View style={styles.headerSpacer} />
-            </View>
-          </BlurView>
-        </View>
+        <GlassNavHeader title="Edit reservation" onBackPress={handleBackPress} />
       </View>
     </LinearGradient>
   );
@@ -406,45 +465,8 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  headerContainer: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    alignItems: 'center',
-    zIndex: 60,
-  },
-  headerBlur: {
-    ...glassStyles.navBarWrapper,
-    width: '90%',
-    maxWidth: 340,
-    position: 'relative',
-    height: 56,
-    justifyContent: 'center',
-  },
-  headerContent: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-  },
   glassOverlay: {
     ...glassStyles.cardOverlay,
-    backgroundColor: glassColors.overlayStrong,
-  },
-  backButton: {
-    width: 36,
-    height: 36,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  headerTitle: {
-    fontSize: 16,
-    fontFamily: fontFamilies.semibold,
-    color: colors.text.primary.light,
-    letterSpacing: -0.3,
-  },
-  headerSpacer: {
-    width: 36,
   },
   loadingContainer: {
     flex: 1,
@@ -473,14 +495,11 @@ const styles = StyleSheet.create({
   flightDetailsLabel: {
     fontSize: 14,
     fontFamily: fontFamilies.medium,
-    color: colors.text.primary.light,
     marginBottom: spacing.sm,
   },
   flightDetailsGrid: {
-    backgroundColor: 'rgba(255, 255, 255, 0.5)',
-    borderRadius: borderRadius.md,
+    borderRadius: glassConstants.radius.card,
     borderWidth: 1,
-    borderColor: glassColors.border,
     overflow: 'hidden',
   },
   flightDetailsInputRow: {
@@ -490,7 +509,6 @@ const styles = StyleSheet.create({
   },
   flightDetailsRowDivider: {
     height: 1,
-    backgroundColor: glassColors.border,
   },
   flightDetailsInputCol: {
     flex: 1,
@@ -506,12 +524,10 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 15,
     fontFamily: fontFamilies.regular,
-    color: colors.text.primary.light,
     height: '100%' as unknown as number,
   },
   flightDetailsDivider: {
     width: 1,
     height: 28,
-    backgroundColor: glassColors.border,
   },
 });

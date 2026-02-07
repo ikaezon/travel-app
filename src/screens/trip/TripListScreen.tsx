@@ -12,22 +12,18 @@ import {
 import { usePressAnimation } from '../../hooks';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { BlurView } from 'expo-blur';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { colors, spacing, borderRadius, fontFamilies, glassStyles, glassColors, glassConstants } from '../../theme';
+import { spacing, borderRadius, fontFamilies, glassStyles, glassConstants } from '../../theme';
 import { MainStackParamList } from '../../navigation/types';
 import { useTrips } from '../../hooks';
 import { Trip } from '../../types';
+import { useTheme } from '../../contexts/ThemeContext';
+import { AdaptiveGlassView } from '../../components/ui/AdaptiveGlassView';
+import { GlassNavHeader } from '../../components/navigation/GlassNavHeader';
 
 type NavigationProp = NativeStackNavigationProp<MainStackParamList>;
-
-const TRIP_STATUS_DOT_STYLE: Record<Trip['status'], { backgroundColor: string }> = {
-  ongoing: { backgroundColor: colors.status.success },
-  upcoming: { backgroundColor: colors.primary },
-  completed: { backgroundColor: colors.text.tertiary.light },
-};
 
 const TRIP_STATUS_LABEL: Record<Trip['status'], string> = {
   ongoing: 'Ongoing',
@@ -42,32 +38,46 @@ interface TripItemProps {
 }
 
 const TripItem = React.memo(function TripItem({ trip, index, onPress }: TripItemProps) {
-  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const theme = useTheme();
+  
+  const entranceScaleAnim = useRef(new Animated.Value(0.95)).current;
   const { scaleAnim, onPressIn, onPressOut } = usePressAnimation();
 
   useEffect(() => {
-    Animated.timing(fadeAnim, {
+    Animated.spring(entranceScaleAnim, {
       toValue: 1,
-      duration: 180,
+      tension: 100,
+      friction: 12,
       delay: index * 80,
       useNativeDriver: true,
     }).start();
-  }, [fadeAnim, index]);
+  }, [index]);
 
   const tripName = trip.destination;
   const statusLabel = TRIP_STATUS_LABEL[trip.status] ?? trip.status;
-  const statusDotStyle = TRIP_STATUS_DOT_STYLE[trip.status] ?? { backgroundColor: colors.text.secondary.light };
+  
+  const TRIP_STATUS_DOT_STYLE: Record<Trip['status'], { backgroundColor: string }> = {
+    ongoing: { backgroundColor: theme.colors.status.success },
+    upcoming: { backgroundColor: theme.colors.primary },
+    completed: { backgroundColor: theme.colors.text.tertiary },
+  };
+  const statusDotStyle = TRIP_STATUS_DOT_STYLE[trip.status] ?? { backgroundColor: theme.colors.text.secondary };
+
+  const animatedStyle = { transform: [{ scale: Animated.multiply(entranceScaleAnim, scaleAnim) }] };
 
   return (
-    <Animated.View style={{ opacity: fadeAnim, transform: [{ scale: scaleAnim }] }}>
+    <Animated.View style={animatedStyle}>
       <Pressable
-        style={styles.tripCard}
+        style={[
+          styles.tripCard,
+          theme.glass.cardWrapperStyle,
+        ]}
         onPress={() => onPress(trip.id, tripName)}
         onPressIn={onPressIn}
         onPressOut={onPressOut}
       >
-        <BlurView intensity={glassConstants.blur.card} tint="light" style={[StyleSheet.absoluteFill, glassStyles.blurContentXLarge]} />
-        <View style={styles.cardOverlay} pointerEvents="none" />
+        <AdaptiveGlassView intensity={24} darkIntensity={10} glassEffectStyle="clear" absoluteFill style={glassStyles.blurContentXLarge} />
+        <View style={[styles.cardOverlay, { backgroundColor: theme.glass.overlayStrong }]} pointerEvents="none" />
 
         <View style={styles.innerContainer}>
           <View style={styles.imageFrame}>
@@ -77,15 +87,15 @@ const TripItem = React.memo(function TripItem({ trip, index, onPress }: TripItem
               resizeMode="cover"
             >
               <View style={styles.tripBadgeContainer}>
-                <BlurView intensity={40} tint="light" style={[styles.statusBadge, glassStyles.blurContentPill]}>
+                <AdaptiveGlassView intensity={40} darkIntensity={10} glassEffectStyle="clear" style={[styles.statusBadge, glassStyles.blurContentPill, { borderColor: theme.glass.borderStrong, backgroundColor: theme.glass.overlay }]}>
                   <View style={[styles.statusDot, statusDotStyle]} />
-                  <Text style={styles.statusText}>{statusLabel}</Text>
-                </BlurView>
+                  <Text style={[styles.statusText, { color: theme.colors.text.primary }]}>{statusLabel}</Text>
+                </AdaptiveGlassView>
                 
-                <BlurView intensity={40} tint="light" style={[styles.durationBadge, glassStyles.blurContentPill]}>
-                  <MaterialIcons name="schedule" size={14} color={colors.text.primary.light} />
-                  <Text style={styles.durationText}>{trip.durationLabel}</Text>
-                </BlurView>
+                <AdaptiveGlassView intensity={40} darkIntensity={10} glassEffectStyle="clear" style={[styles.durationBadge, glassStyles.blurContentPill, { borderColor: theme.glass.borderStrong, backgroundColor: theme.glass.overlay }]}>
+                  <MaterialIcons name="schedule" size={14} color={theme.colors.text.primary} />
+                  <Text style={[styles.durationText, { color: theme.colors.text.primary }]}>{trip.durationLabel}</Text>
+                </AdaptiveGlassView>
               </View>
             </ImageBackground>
           </View>
@@ -93,14 +103,14 @@ const TripItem = React.memo(function TripItem({ trip, index, onPress }: TripItem
           <View style={styles.tripContent}>
             <View style={styles.tripHeader}>
               <View style={styles.textContainer}>
-                <Text style={styles.tripDestination} numberOfLines={1}>
+                <Text style={[styles.tripDestination, { color: theme.colors.text.primary }]} numberOfLines={1}>
                   {trip.destination}
                 </Text>
-                <Text style={styles.tripDateRange}>{trip.dateRange}</Text>
+                <Text style={[styles.tripDateRange, { color: theme.colors.text.secondary }]}>{trip.dateRange}</Text>
               </View>
-              <BlurView intensity={40} tint="light" style={[styles.iconBadge, glassStyles.blurContentIcon]}>
-                <MaterialIcons name="chevron-right" size={24} color={colors.text.tertiary.light} />
-              </BlurView>
+              <AdaptiveGlassView intensity={40} darkIntensity={10} glassEffectStyle="clear" style={[styles.iconBadge, glassStyles.blurContentIcon, { borderColor: theme.glass.borderStrong, backgroundColor: theme.glass.overlay }]}>
+                <MaterialIcons name="chevron-right" size={24} color={theme.colors.text.tertiary} />
+              </AdaptiveGlassView>
             </View>
           </View>
         </View>
@@ -112,6 +122,7 @@ const TripItem = React.memo(function TripItem({ trip, index, onPress }: TripItem
 type TripSection = { title: string; count: number; data: Trip[] };
 
 export default function TripListScreen() {
+  const theme = useTheme();
   const navigation = useNavigation<NavigationProp>();
   const insets = useSafeAreaInsets();
   const { trips, isLoading } = useTrips();
@@ -140,20 +151,18 @@ export default function TripListScreen() {
     () => navigation.navigate('ScreenshotUpload'),
     [navigation]
   );
-  const backAnim = usePressAnimation();
-  const addAnim = usePressAnimation();
 
   const renderSectionHeader = useCallback(
     ({ section }: { section: TripSection }) => (
       <View style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>{section.title}</Text>
-        <BlurView intensity={24} tint="light" style={[styles.countBadge, glassStyles.blurContentPill]}>
-          <View style={styles.glassOverlay} pointerEvents="none" />
-          <Text style={styles.countText}>{section.count}</Text>
-        </BlurView>
+        <Text style={[styles.sectionTitle, { color: theme.colors.text.primary }]}>{section.title}</Text>
+        <AdaptiveGlassView intensity={24} darkIntensity={10} glassEffectStyle="clear" style={[styles.countBadge, glassStyles.blurContentPill, { borderColor: theme.glass.border }]}>
+          <View style={[styles.glassOverlay, { backgroundColor: theme.glass.overlayStrong }]} pointerEvents="none" />
+          <Text style={[styles.countText, { color: theme.colors.primary }]}>{section.count}</Text>
+        </AdaptiveGlassView>
       </View>
     ),
-    []
+    [theme]
   );
 
   const renderItem = useCallback(
@@ -165,42 +174,29 @@ export default function TripListScreen() {
     [handleTripPress]
   );
 
-  const topOffset = insets.top + 8;
-
   if (isLoading) {
     return (
       <LinearGradient
-        colors={[colors.gradient.start, colors.gradient.middle, colors.gradient.end]}
+        colors={theme.gradient}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={styles.gradientContainer}
       >
         <View style={styles.container}>
-          <View style={[styles.headerContainer, { top: topOffset }]}>
-            <BlurView intensity={24} tint="light" style={[styles.headerBlur, glassStyles.blurContentLarge]}>
-              <View style={styles.glassOverlay} pointerEvents="none" />
-              <View style={styles.headerContent}>
-                <Animated.View style={{ transform: [{ scale: backAnim.scaleAnim }] }}>
-                <Pressable style={styles.backButton} onPress={handleBackPress} onPressIn={backAnim.onPressIn} onPressOut={backAnim.onPressOut}>
-                  <MaterialIcons name="arrow-back" size={22} color={colors.text.primary.light} />
-                </Pressable>
-                </Animated.View>
-                <Text style={styles.headerTitle}>My Trips</Text>
-                <View style={styles.addButton} />
-              </View>
-            </BlurView>
-          </View>
+          <GlassNavHeader title="My Trips" onBackPress={handleBackPress} />
           <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color={colors.primary} />
+            <ActivityIndicator size="large" color={theme.colors.primary} />
           </View>
         </View>
       </LinearGradient>
     );
   }
 
+  const topOffset = insets.top + 8;
+
   return (
     <LinearGradient
-      colors={[colors.gradient.start, colors.gradient.middle, colors.gradient.end]}
+      colors={theme.gradient}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
       style={styles.gradientContainer}
@@ -216,24 +212,11 @@ export default function TripListScreen() {
           stickySectionHeadersEnabled={false}
         />
 
-        <View style={[styles.headerContainer, { top: topOffset }]}>
-          <BlurView intensity={24} tint="light" style={[styles.headerBlur, glassStyles.blurContentLarge]}>
-            <View style={styles.glassOverlay} pointerEvents="none" />
-            <View style={styles.headerContent}>
-              <Animated.View style={{ transform: [{ scale: backAnim.scaleAnim }] }}>
-              <Pressable style={styles.backButton} onPress={handleBackPress} onPressIn={backAnim.onPressIn} onPressOut={backAnim.onPressOut}>
-                <MaterialIcons name="arrow-back" size={22} color={colors.text.primary.light} />
-              </Pressable>
-              </Animated.View>
-              <Text style={styles.headerTitle}>My Trips</Text>
-              <Animated.View style={{ transform: [{ scale: addAnim.scaleAnim }] }}>
-              <Pressable style={styles.addButton} onPress={handleAddTripPress} onPressIn={addAnim.onPressIn} onPressOut={addAnim.onPressOut}>
-                <MaterialIcons name="add" size={22} color={colors.primary} />
-              </Pressable>
-              </Animated.View>
-            </View>
-          </BlurView>
-        </View>
+        <GlassNavHeader
+          title="My Trips"
+          onBackPress={handleBackPress}
+          rightAction={{ icon: 'add', onPress: handleAddTripPress, accessibilityLabel: 'Add trip' }}
+        />
       </View>
     </LinearGradient>
   );
@@ -251,52 +234,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  headerContainer: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    alignItems: 'center',
-    zIndex: 60,
-  },
-  headerBlur: {
-    ...glassStyles.navBarWrapper,
-    width: '90%',
-    maxWidth: 340,
-    position: 'relative',
-    height: 56,
-    justifyContent: 'center',
-  },
-  headerContent: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-  },
   glassOverlay: {
     ...glassStyles.cardOverlay,
-    backgroundColor: glassColors.overlayStrong,
-  },
-  backButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  headerTitle: {
-    flex: 1,
-    textAlign: 'center',
-    fontSize: 16,
-    fontFamily: fontFamilies.semibold,
-    color: colors.text.primary.light,
-    letterSpacing: -0.3,
-  },
-  addButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   listContent: {
     paddingBottom: 100,
@@ -313,7 +252,6 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 20,
     fontFamily: fontFamilies.semibold,
-    color: colors.text.primary.light,
     letterSpacing: -0.3,
   },
   countBadge: {
@@ -321,12 +259,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderWidth: 1.5,
-    borderColor: glassColors.border,
   },
   countText: {
     fontSize: 14,
     fontFamily: fontFamilies.semibold,
-    color: colors.primary,
   },
   tripItemWrapper: {
     paddingHorizontal: spacing.lg,
@@ -345,7 +281,7 @@ const styles = StyleSheet.create({
   imageFrame: {
     height: 140,
     width: '100%',
-    borderRadius: 28,
+    borderRadius: glassConstants.radius.card,
     overflow: 'hidden',
   },
   tripImage: {
@@ -367,8 +303,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: borderRadius.full,
-    borderColor: glassColors.borderStrong,
-    backgroundColor: glassColors.overlay,
   },
   statusDot: {
     width: 8,
@@ -378,7 +312,6 @@ const styles = StyleSheet.create({
   statusText: {
     fontSize: 12,
     fontFamily: fontFamilies.semibold,
-    color: colors.text.primary.light,
   },
   durationBadge: {
     ...glassStyles.pillContainer,
@@ -388,13 +321,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: borderRadius.full,
-    borderColor: glassColors.borderStrong,
-    backgroundColor: glassColors.overlay,
   },
   durationText: {
     fontSize: 12,
     fontFamily: fontFamilies.semibold,
-    color: colors.text.primary.light,
   },
   tripContent: {
     paddingHorizontal: 16,
@@ -412,18 +342,14 @@ const styles = StyleSheet.create({
   tripDestination: {
     fontSize: 18,
     fontFamily: fontFamilies.semibold,
-    color: colors.text.primary.light,
   },
   tripDateRange: {
     fontSize: 14,
     fontFamily: fontFamilies.semibold,
-    color: colors.text.secondary.light,
     marginTop: 4,
   },
   iconBadge: {
     ...glassStyles.iconContainer,
     padding: 10,
-    borderColor: glassColors.borderStrong,
-    backgroundColor: glassColors.overlay,
   },
 });

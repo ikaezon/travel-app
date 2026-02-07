@@ -11,13 +11,3 @@ export const spacing = {
   huge: 40,
   massive: 48,
 } as const;
-
-export const layout = {
-  screenPaddingHorizontal: spacing.lg,
-  sectionPaddingVertical: spacing.xxl,
-  cardPadding: spacing.lg,
-  listGap: spacing.md,
-  cardGap: spacing.lg,
-} as const;
-
-export type SpacingKey = keyof typeof spacing;

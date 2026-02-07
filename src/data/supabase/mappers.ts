@@ -119,7 +119,7 @@ export function mapTimelineItemUpdateToDb(
   if (updates.reservationId !== undefined) mapped.reservation_id = updates.reservationId || null;
   if (updates.type !== undefined) mapped.type = updates.type;
   if (updates.date !== undefined) mapped.date = updates.date;
-  if (updates.time !== undefined) mapped.time = updates.time;
+  if (updates.time !== undefined) mapped.time = updates.time || null;
   if (updates.title !== undefined) mapped.title = updates.title;
   if (updates.subtitle !== undefined) mapped.subtitle = updates.subtitle || null;
   if (updates.metadata !== undefined) mapped.metadata = updates.metadata || null;
@@ -212,7 +212,7 @@ export function mapReservationUpdateToDb(updates: Partial<Reservation>): DbReser
   if (updates.terminal !== undefined) mapped.terminal = updates.terminal || null;
   if (updates.gate !== undefined) mapped.gate = updates.gate || null;
   if (updates.seat !== undefined) mapped.seat = updates.seat || null;
-  if (updates.confirmationCode !== undefined) mapped.confirmation_code = updates.confirmationCode;
+  if (updates.confirmationCode !== undefined) mapped.confirmation_code = updates.confirmationCode ?? '';
   if (updates.statusText !== undefined) mapped.status_text = updates.statusText || null;
   if (updates.vehicleInfo !== undefined) mapped.vehicle_info = updates.vehicleInfo || null;
   if (updates.boardingZone !== undefined) mapped.boarding_zone = updates.boardingZone || null;

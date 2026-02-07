@@ -1,8 +1,9 @@
 import React from 'react';
 import { View, Text, TextInput, StyleSheet, ViewStyle } from 'react-native';
-import { BlurView } from 'expo-blur';
 import { MaterialIcons } from '@expo/vector-icons';
-import { borderRadius, colors, spacing, fontFamilies, glassStyles, glassColors } from '../../theme';
+import { borderRadius, spacing, fontFamilies, glassStyles } from '../../theme';
+import { useTheme } from '../../contexts/ThemeContext';
+import { AdaptiveGlassView } from './AdaptiveGlassView';
 
 interface FormInputProps {
   label: string;
@@ -15,7 +16,6 @@ interface FormInputProps {
   isDashed?: boolean;
   labelRight?: React.ReactNode;
   style?: ViewStyle;
-  /** Use liquid glass card styling */
   variant?: 'default' | 'glass';
 }
 
@@ -26,16 +26,21 @@ export function FormInput({
   placeholder,
   iconName,
   rightIconName,
-  rightIconColor = colors.status.success,
+  rightIconColor,
   isDashed = false,
   labelRight,
   style,
   variant = 'default',
 }: FormInputProps) {
+  const theme = useTheme();
+  const defaultRightIconColor = rightIconColor ?? theme.colors.status.success;
   const content = (
     <>
       <View style={styles.labelContainer}>
-        <Text style={[styles.label, variant === 'glass' && styles.labelGlass]}>{label}</Text>
+        <Text style={[
+          { fontSize: 14, fontFamily: fontFamilies.medium, color: theme.colors.text.secondary },
+          variant === 'glass' && { color: theme.colors.text.primary }
+        ]}>{label}</Text>
         {labelRight}
       </View>
       <View style={styles.inputContainer}>
@@ -43,28 +48,38 @@ export function FormInput({
           <MaterialIcons
             name={iconName}
             size={20}
-            color={colors.text.secondary.light}
+            color={theme.colors.text.secondary}
             style={styles.leftIcon}
           />
         )}
         <TextInput
           style={[
-            styles.input,
+            {
+              width: '100%',
+              height: 56,
+              borderRadius: borderRadius.md,
+              borderWidth: 1,
+              borderColor: variant === 'glass' ? theme.glass.border : theme.colors.border,
+              backgroundColor: variant === 'glass' ? theme.glass.iconBg : theme.colors.surface,
+              paddingHorizontal: spacing.lg,
+              fontSize: 16,
+              fontFamily: fontFamilies.regular,
+              color: theme.colors.text.primary,
+            },
             iconName && styles.inputWithLeftIcon,
             rightIconName && styles.inputWithRightIcon,
-            isDashed && styles.inputDashed,
-            variant === 'glass' && styles.inputGlass,
+            isDashed && { borderStyle: 'dashed' },
           ]}
           value={value}
           onChangeText={onChangeText}
           placeholder={placeholder}
-          placeholderTextColor={colors.text.tertiary.light}
+          placeholderTextColor={theme.colors.text.tertiary}
         />
         {rightIconName && (
           <MaterialIcons
             name={rightIconName}
             size={20}
-            color={rightIconColor}
+            color={defaultRightIconColor}
             style={styles.rightIcon}
           />
         )}
@@ -74,11 +89,11 @@ export function FormInput({
 
   if (variant === 'glass') {
     return (
-      <View style={[styles.glassWrapper, style]}>
-        <BlurView intensity={24} tint="light" style={[styles.glassBlur, glassStyles.blurContent]}>
-          <View style={styles.glassOverlay} pointerEvents="none" />
-          <View style={styles.glassContent}>{content}</View>
-        </BlurView>
+      <View style={[glassStyles.formWrapper, theme.glass.cardWrapperStyle, style]}>
+        <AdaptiveGlassView intensity={24} darkIntensity={10} glassEffectStyle="clear" style={[glassStyles.formBlur, glassStyles.blurContent]}>
+          <View style={[styles.glassOverlay, { backgroundColor: theme.glass.overlayStrong }]} pointerEvents="none" />
+          <View style={glassStyles.formContent}>{content}</View>
+        </AdaptiveGlassView>
       </View>
     );
   }
@@ -90,21 +105,8 @@ const styles = StyleSheet.create({
   container: {
     width: '100%',
   },
-  glassWrapper: {
-    ...glassStyles.cardWrapper,
-    overflow: 'hidden',
-    width: '100%',
-  },
-  glassBlur: {
-    padding: 12,
-    position: 'relative',
-  },
   glassOverlay: {
     ...glassStyles.cardOverlay,
-    backgroundColor: glassColors.overlayStrong,
-  },
-  glassContent: {
-    position: 'relative',
   },
   labelContainer: {
     flexDirection: 'row',
@@ -112,41 +114,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: spacing.sm,
   },
-  label: {
-    fontSize: 14,
-    fontFamily: fontFamilies.medium,
-    color: colors.text.secondary.light,
-  },
-  labelGlass: {
-    color: colors.text.primary.light,
-  },
   inputContainer: {
     position: 'relative',
-  },
-  input: {
-    width: '100%',
-    height: 56,
-    borderRadius: borderRadius.md,
-    borderWidth: 1,
-    borderColor: colors.border.light,
-    backgroundColor: colors.surface.light,
-    paddingHorizontal: spacing.lg,
-    fontSize: 16,
-    fontFamily: fontFamilies.regular,
-    color: colors.text.primary.light,
-  },
-  inputGlass: {
-    backgroundColor: 'rgba(255, 255, 255, 0.5)',
-    borderColor: glassColors.border,
   },
   inputWithLeftIcon: {
     paddingLeft: 48,
   },
   inputWithRightIcon: {
     paddingRight: 48,
-  },
-  inputDashed: {
-    borderStyle: 'dashed',
   },
   leftIcon: {
     position: 'absolute',

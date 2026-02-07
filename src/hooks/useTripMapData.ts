@@ -8,9 +8,6 @@ import {
 } from '../data/services/geocodingService';
 import type { GeocodeResult } from '../data/services/geocodingService';
 
-// ---------------------------------------------------------------------------
-// Types
-// ---------------------------------------------------------------------------
 
 export interface MapMarker {
   id: string;
@@ -37,9 +34,6 @@ export interface UseTripMapDataResult {
   hasData: boolean;
 }
 
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
 
 const MIN_DELTA = 0.02;
 const SINGLE_DELTA = 0.05;
@@ -48,7 +42,6 @@ const PADDING_FACTOR = 1.4;
 function computeRegion(markers: MapMarker[]): MapRegion | null {
   if (markers.length === 0) return null;
 
-  // Always center on the destination (primary trip location) marker
   const destination = markers.find((m) => m.isDestination) ?? markers[0];
 
   return {
@@ -66,9 +59,6 @@ function normalizeAddress(addr: string): string {
   return addr.trim().toLowerCase();
 }
 
-// ---------------------------------------------------------------------------
-// Hook
-// ---------------------------------------------------------------------------
 
 export interface UseTripMapDataOptions {
   /** When true, only the trip destination is shown (e.g. Paris). Used for the inline preview. */
@@ -97,20 +87,14 @@ export function useTripMapData(
   const [isGeocoding, setIsGeocoding] = useState(false);
   const [geocodeError, setGeocodeError] = useState<Error | null>(null);
 
-  // Track the abort controller so we can cancel on unmount or tripId change
   const abortRef = useRef<AbortController | null>(null);
 
-  // Track previous addressEntries to detect changes synchronously during render
-  // and set isGeocoding = true immediately — eliminates the one-render gap between
-  // data loading and the geocoding useEffect firing.
   const prevEntriesRef = useRef<typeof addressEntries | null>(null);
 
-  // Derive unique addresses: destination only (preview) or destination + reservations (expand)
   const addressEntries = useMemo(() => {
     const entries: { address: string; id: string; title: string; isDestination: boolean }[] = [];
     const seen = new Set<string>();
 
-    // Trip destination (primary marker)
     if (trip?.destination) {
       const norm = normalizeAddress(trip.destination);
       if (norm && !seen.has(norm)) {
@@ -124,7 +108,6 @@ export function useTripMapData(
       }
     }
 
-    // Reservation addresses — skip when destinationOnly (preview shows only Paris/destination)
     if (!destinationOnly) {
       for (const res of reservations) {
         const addr = getReservationDisplayAddress(res);
@@ -144,11 +127,6 @@ export function useTripMapData(
     return entries;
   }, [trip, reservations, tripId, destinationOnly]);
 
-  // Synchronously mark geocoding as pending when addressEntries changes.
-  // This eliminates the one-render gap where isLoading would be false
-  // (data hooks finished) but isGeocoding hasn't been set to true yet
-  // (effect hasn't fired). Without this, the MapView could mount with
-  // stale markers during that gap.
   if (prevEntriesRef.current !== null && addressEntries !== prevEntriesRef.current) {
     if (addressEntries.length > 0 && isGeocodingAvailable()) {
       if (!isGeocoding) setIsGeocoding(true);
@@ -156,9 +134,7 @@ export function useTripMapData(
   }
   prevEntriesRef.current = addressEntries;
 
-  // Geocode when addresses change
   useEffect(() => {
-    // Cancel previous geocoding
     abortRef.current?.abort();
 
     if (!isGeocodingAvailable() || addressEntries.length === 0) {

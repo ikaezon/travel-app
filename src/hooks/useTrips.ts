@@ -27,6 +27,14 @@ interface UseTimelineResult {
   refetch: () => void;
 }
 
+interface UseTimelineItemResult {
+  timelineItem: TimelineItem | null;
+  isLoading: boolean;
+  isRefetching: boolean;
+  error: Error | null;
+  refetch: () => void;
+}
+
 interface UseQuickActionsResult {
   quickActions: QuickAction[];
   isLoading: boolean;
@@ -72,6 +80,18 @@ export function useTripTimeline(tripId: string): UseTimelineResult {
   });
 
   return { timeline: data, isLoading, isRefetching, error, refetch };
+}
+
+export function useTimelineItemById(timelineItemId: string): UseTimelineItemResult {
+  const fetchTimelineItem = useCallback(() => {
+    if (!timelineItemId) return Promise.resolve(null);
+    return tripService.getTimelineItemById(timelineItemId);
+  }, [timelineItemId]);
+  const { data, isLoading, isRefetching, error, refetch } = useAsyncData(fetchTimelineItem, {
+    initialData: null,
+  });
+
+  return { timelineItem: data, isLoading, isRefetching, error, refetch };
 }
 
 export function useQuickActions(): UseQuickActionsResult {

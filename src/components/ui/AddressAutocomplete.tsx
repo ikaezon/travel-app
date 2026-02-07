@@ -9,24 +9,30 @@ import {
   ActivityIndicator,
   Keyboard,
 } from 'react-native';
-import { BlurView } from 'expo-blur';
 import { MaterialIcons } from '@expo/vector-icons';
-import { borderRadius, colors, spacing, fontFamilies, glassStyles, glassColors } from '../../theme';
+import { borderRadius, spacing, fontFamilies, glassStyles, glassConstants } from '../../theme';
+import { useTheme } from '../../contexts/ThemeContext';
+import { AdaptiveGlassView } from './AdaptiveGlassView';
 import {
   isPlaceAutocompleteAvailable,
   createAddressAutocompleteService,
+  createPlaceAutocompleteService,
   type AddressSuggestion,
+  type PlaceSuggestion,
 } from '../../data/services/placeAutocompleteService';
+
+type Suggestion = AddressSuggestion | PlaceSuggestion;
 
 interface AddressAutocompleteProps {
   label: string;
   value: string;
   onChangeText: (text: string) => void;
-  onSelectSuggestion?: (suggestion: AddressSuggestion) => void;
+  onSelectSuggestion?: (suggestion: Suggestion) => void;
   placeholder?: string;
   style?: object;
-  /** Use liquid glass card styling */
   variant?: 'default' | 'glass';
+  /** 'address' for street-level, 'place' for city/region. Default: 'address' */
+  type?: 'address' | 'place';
 }
 
 export function AddressAutocomplete({
@@ -37,8 +43,10 @@ export function AddressAutocomplete({
   placeholder = 'Search for an address...',
   style,
   variant = 'default',
+  type = 'address',
 }: AddressAutocompleteProps) {
-  const [suggestions, setSuggestions] = useState<AddressSuggestion[]>([]);
+  const theme = useTheme();
+  const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [loading, setLoading] = useState(false);
   const [dropdownVisible, setDropdownVisible] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
@@ -46,9 +54,10 @@ export function AddressAutocomplete({
   const hasApi = useMemo(() => isPlaceAutocompleteAvailable(), []);
   const lastQueryRef = useRef<string>('');
   const justSelectedRef = useRef<string | null>(null);
-  // Track if user has typed since focus - prevents dropdown on programmatic value changes
   const userHasTypedRef = useRef(false);
-  const autocompleteApi = useRef(createAddressAutocompleteService()).current;
+  const autocompleteApi = useRef(
+    type === 'place' ? createPlaceAutocompleteService() : createAddressAutocompleteService()
+  ).current;
 
   useEffect(() => {
     // Only fetch suggestions if user is focused and has typed
@@ -80,7 +89,6 @@ export function AddressAutocomplete({
 
   const handleChangeText = useCallback(
     (text: string) => {
-      // Mark that user has typed (not just programmatic value change)
       userHasTypedRef.current = true;
       onChangeText(text);
       if (!hasApi) return;
@@ -94,8 +102,6 @@ export function AddressAutocomplete({
 
   const handleFocus = useCallback(() => {
     setIsFocused(true);
-    // Don't show dropdown on focus if user hasn't typed yet
-    // This prevents showing stale suggestions when returning to the field
   }, []);
 
   const handleBlur = useCallback(() => {
@@ -105,7 +111,7 @@ export function AddressAutocomplete({
   }, []);
 
   const handleSelect = useCallback(
-    (item: AddressSuggestion) => {
+    (item: Suggestion) => {
       const displayText = item.formatted;
       justSelectedRef.current = displayText;
       onChangeText(displayText);
@@ -119,14 +125,17 @@ export function AddressAutocomplete({
 );
 
   const renderSuggestion = useCallback(
-    (item: AddressSuggestion) => (
+    (item: Suggestion) => (
       <Pressable
         key={item.placeId}
-        style={({ pressed }) => [styles.suggestionRow, pressed && styles.suggestionRowPressed]}
+        style={({ pressed }) => [
+          styles.suggestionRow,
+          pressed && { backgroundColor: theme.colors.surface },
+        ]}
         onPress={() => handleSelect(item)}
       >
-        <MaterialIcons name="place" size={18} color={colors.text.secondary.light} />
-        <Text style={styles.suggestionText} numberOfLines={2}>
+        <MaterialIcons name="place" size={18} color={theme.colors.text.secondary} />
+        <Text style={[styles.suggestionText, { color: theme.colors.text.primary }]} numberOfLines={2}>
           {item.formatted}
         </Text>
       </Pressable>
@@ -136,12 +145,12 @@ export function AddressAutocomplete({
 
   const inputContent = (
     <>
-      <Text style={[styles.label, variant === 'glass' && styles.labelGlass]}>{label}</Text>
+      <Text style={[styles.label, { color: variant === 'glass' ? theme.colors.text.secondary : theme.colors.text.primary }]}>{label}</Text>
       <View style={styles.inputContainer}>
         <MaterialIcons
           name="location-on"
           size={20}
-          color={colors.text.secondary.light}
+          color={theme.colors.text.secondary}
           style={styles.leftIcon}
         />
         <TextInput
@@ -149,25 +158,30 @@ export function AddressAutocomplete({
           style={[
             styles.input,
             styles.inputWithLeftIcon,
-            variant === 'glass' && styles.inputGlass,
+            variant === 'glass' && { borderColor: theme.glass.border },
+            { color: theme.colors.text.primary, borderColor: theme.colors.border },
           ]}
           value={value}
           onChangeText={handleChangeText}
           placeholder={placeholder}
-          placeholderTextColor={colors.text.tertiary.light}
+          placeholderTextColor={theme.colors.text.tertiary}
           onFocus={handleFocus}
           onBlur={handleBlur}
         />
         {hasApi && loading && (
           <ActivityIndicator
             size="small"
-            color={colors.primary}
+            color={theme.colors.primary}
             style={styles.loader}
           />
         )}
       </View>
       {hasApi && dropdownVisible && suggestions.length > 0 && (
-        <View style={[styles.dropdown, variant === 'glass' && styles.dropdownGlass]}>
+        <View style={[
+          styles.dropdown,
+          variant === 'glass' && { borderColor: theme.glass.border },
+          { borderColor: theme.colors.border },
+        ]}>
           <ScrollView
             style={styles.dropdownList}
             keyboardShouldPersistTaps="handled"
@@ -184,11 +198,11 @@ export function AddressAutocomplete({
   if (variant === 'glass') {
     return (
       <View style={[styles.container, style]}>
-        <View style={styles.glassWrapper}>
-          <BlurView intensity={24} tint="light" style={[styles.glassBlur, glassStyles.blurContent]}>
-            <View style={styles.glassOverlay} pointerEvents="none" />
-            <View style={styles.glassContent}>{inputContent}</View>
-          </BlurView>
+        <View style={[glassStyles.formWrapper, theme.glass.cardWrapperStyle]}>
+          <AdaptiveGlassView intensity={24} darkIntensity={10} glassEffectStyle="clear" style={[glassStyles.formBlur, glassStyles.blurContent]}>
+            <View style={[styles.glassOverlay, { backgroundColor: theme.glass.overlayStrong }]} pointerEvents="none" />
+            <View style={glassStyles.formContent}>{inputContent}</View>
+          </AdaptiveGlassView>
         </View>
       </View>
     );
@@ -205,30 +219,13 @@ const styles = StyleSheet.create({
   container: {
     width: '100%',
   },
-  glassWrapper: {
-    ...glassStyles.cardWrapper,
-    overflow: 'hidden',
-    width: '100%',
-  },
-  glassBlur: {
-    padding: 12,
-    position: 'relative',
-  },
   glassOverlay: {
     ...glassStyles.cardOverlay,
-    backgroundColor: glassColors.overlayStrong,
-  },
-  glassContent: {
-    position: 'relative',
   },
   label: {
     fontSize: 14,
     fontFamily: fontFamilies.medium,
-    color: colors.text.secondary.light,
     marginBottom: spacing.sm,
-  },
-  labelGlass: {
-    color: colors.text.primary.light,
   },
   inputContainer: {
     position: 'relative',
@@ -238,16 +235,10 @@ const styles = StyleSheet.create({
     height: 56,
     borderRadius: borderRadius.md,
     borderWidth: 1,
-    borderColor: colors.border.light,
-    backgroundColor: colors.surface.light,
     paddingHorizontal: spacing.lg,
     fontSize: 16,
     fontFamily: fontFamilies.regular,
-    color: colors.text.primary.light,
-  },
-  inputGlass: {
-    backgroundColor: 'rgba(255, 255, 255, 0.5)',
-    borderColor: glassColors.border,
+    backgroundColor: 'transparent',
   },
   inputWithLeftIcon: {
     paddingLeft: 48,
@@ -265,16 +256,11 @@ const styles = StyleSheet.create({
   },
   dropdown: {
     marginTop: 4,
-    borderRadius: borderRadius.md,
+    borderRadius: glassConstants.radius.card,
     borderWidth: 1,
-    borderColor: colors.border.light,
-    backgroundColor: colors.surface.light,
     maxHeight: 280,
     overflow: 'hidden',
-  },
-  dropdownGlass: {
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-    borderColor: glassColors.border,
+    backgroundColor: 'transparent',
   },
   dropdownList: {
     maxHeight: 276,
@@ -285,15 +271,12 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.md,
     paddingHorizontal: spacing.lg,
     gap: spacing.sm,
-  },
-  suggestionRowPressed: {
-    backgroundColor: colors.background.light,
+    backgroundColor: 'transparent',
   },
   suggestionText: {
     flex: 1,
     fontSize: 14,
     fontFamily: fontFamilies.regular,
-    color: colors.text.primary.light,
     lineHeight: 20,
   },
 });

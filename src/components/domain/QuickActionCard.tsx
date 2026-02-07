@@ -1,6 +1,5 @@
-import React, { useEffect, useRef, useCallback } from 'react';
+import React from 'react';
 import { View, Text, StyleSheet, Pressable, Animated } from 'react-native';
-import { BlurView } from 'expo-blur';
 import {
   MapPinPlus,
   ImagePlus,
@@ -8,7 +7,10 @@ import {
   ChevronRight,
   type LucideIcon,
 } from 'lucide-react-native';
-import { colors, borderRadius, fontFamilies, glassStyles } from '../../theme';
+import { borderRadius, fontFamilies, glassStyles, glassConstants } from '../../theme';
+import { useTheme } from '../../contexts/ThemeContext';
+import { AdaptiveGlassView } from '../ui/AdaptiveGlassView';
+import { usePressAnimation } from '../../hooks/usePressAnimation';
 
 const QUICK_ACTION_ICON_MAP = {
   'map-pin-plus': MapPinPlus,
@@ -28,11 +30,6 @@ interface QuickActionCardProps {
   delay?: number;
 }
 
-// Spring configs matching the nav bar bubble feel
-const PRESS_SPRING = { tension: 280, friction: 14, useNativeDriver: true };
-const RELEASE_SPRING = { tension: 200, friction: 18, useNativeDriver: true };
-const PRESS_SCALE = 1.03;
-
 export function QuickActionCard({
   title,
   subtitle,
@@ -41,52 +38,38 @@ export function QuickActionCard({
   onPress,
   delay = 0,
 }: QuickActionCardProps) {
+  const theme = useTheme();
   const IconComponent = QUICK_ACTION_ICON_MAP[iconKey];
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-  const scaleAnim = useRef(new Animated.Value(1)).current;
-
-  useEffect(() => {
-    Animated.timing(fadeAnim, {
-      toValue: 1,
-      duration: 180,
-      delay,
-      useNativeDriver: true,
-    }).start();
-  }, [fadeAnim, delay]);
-
-  const handlePressIn = useCallback(() => {
-    Animated.spring(scaleAnim, { ...PRESS_SPRING, toValue: PRESS_SCALE }).start();
-  }, [scaleAnim]);
-
-  const handlePressOut = useCallback(() => {
-    Animated.spring(scaleAnim, { ...RELEASE_SPRING, toValue: 1 }).start();
-  }, [scaleAnim]);
+  const { animatedScale, onPressIn, onPressOut } = usePressAnimation(1.03, delay);
 
   return (
-    <Animated.View style={{ opacity: fadeAnim, transform: [{ scale: scaleAnim }] }}>
+    <Animated.View style={{ transform: [{ scale: animatedScale }] }}>
       <Pressable
-        style={styles.cardWrapper}
+        style={[
+          styles.cardWrapper,
+          theme.glass.cardWrapperStyle,
+        ]}
         onPress={onPress}
-        onPressIn={handlePressIn}
-        onPressOut={handlePressOut}
+        onPressIn={onPressIn}
+        onPressOut={onPressOut}
         accessibilityRole="button"
         accessibilityLabel={`${title}. ${subtitle}`}
       >
-        <BlurView intensity={24} tint="light" style={[styles.card, glassStyles.blurContent]}>
-          <View style={styles.cardOverlay} pointerEvents="none" />
+        <AdaptiveGlassView intensity={24} darkIntensity={10} glassEffectStyle="clear" style={[styles.card, glassStyles.blurContent]}>
+          <View style={[styles.cardOverlay, { backgroundColor: theme.glass.overlay }]} pointerEvents="none" />
           <View style={styles.content}>
-            <BlurView intensity={50} tint="light" style={[styles.iconContainer, glassStyles.blurContentIcon]}>
-              {IconComponent && <IconComponent size={26} color={iconColor} strokeWidth={2} />}
-            </BlurView>
+            <View style={[styles.iconContainer, glassStyles.blurContentIcon, theme.glass.iconContainerStyle]}>
+              {IconComponent && <IconComponent size={26} color={theme.isDark ? theme.colors.text.secondary : iconColor} strokeWidth={2} />}
+            </View>
             <View style={styles.textContainer}>
-              <Text style={styles.title}>{title}</Text>
-              <Text style={styles.subtitle}>{subtitle}</Text>
+              <Text style={[styles.title, { color: theme.colors.text.primary }]}>{title}</Text>
+              <Text style={[styles.subtitle, { color: theme.colors.text.tertiary }]}>{subtitle}</Text>
             </View>
           </View>
-          <BlurView intensity={50} tint="light" style={[styles.chevronContainer, glassStyles.blurContentIcon]}>
-            <ChevronRight size={20} color={colors.text.tertiary.light} strokeWidth={2} />
-          </BlurView>
-        </BlurView>
+          <View style={[styles.chevronContainer, glassStyles.blurContentIcon, theme.glass.iconContainerStyle]}>
+            <ChevronRight size={20} color={theme.colors.text.tertiary} strokeWidth={2} />
+          </View>
+        </AdaptiveGlassView>
       </Pressable>
     </Animated.View>
   );
@@ -123,13 +106,11 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 16,
     fontFamily: fontFamilies.semibold,
-    color: colors.text.primary.light,
     lineHeight: 20,
   },
   subtitle: {
     fontSize: 12,
     fontFamily: fontFamilies.semibold,
-    color: colors.text.secondary.light,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
     marginTop: 2,

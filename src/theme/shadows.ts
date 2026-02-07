@@ -1,4 +1,4 @@
-import { Platform, ViewStyle } from 'react-native';
+import { ViewStyle } from 'react-native';
 import { colors } from './colors';
 
 type ShadowStyle = Pick<ViewStyle, 'shadowColor' | 'shadowOffset' | 'shadowOpacity' | 'shadowRadius' | 'elevation'>;
@@ -47,16 +47,3 @@ export const shadows: Record<string, ShadowStyle> = {
     elevation: 4,
   },
 } as const;
-
-export const createShadow = (
-  color: string,
-  opacity: number = 0.1,
-  offsetY: number = 4,
-  radius: number = 12
-): ShadowStyle => ({
-  shadowColor: color,
-  shadowOffset: { width: 0, height: offsetY },
-  shadowOpacity: opacity,
-  shadowRadius: radius,
-  elevation: Math.round(offsetY),
-});

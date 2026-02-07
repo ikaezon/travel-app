@@ -1,7 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import {
   View,
-  StyleSheet,
   ScrollView,
   Keyboard,
   Alert,
@@ -15,15 +14,17 @@ import { DatePickerInput } from '../../components/ui/DatePickerInput';
 import { TimePickerInput } from '../../components/ui/TimePickerInput';
 import { ShimmerButton } from '../../components/ui/ShimmerButton';
 import { GlassNavHeader } from '../../components/navigation/GlassNavHeader';
-import { colors, spacing } from '../../theme';
+import { spacing, glassStyles } from '../../theme';
 import { MainStackParamList } from '../../navigation/types';
 import { createTrainReservation } from '../../data';
 import { useKeyboardHeight } from '../../hooks';
+import { useTheme } from '../../contexts/ThemeContext';
 
 type NavigationProp = NativeStackNavigationProp<MainStackParamList, 'TrainEntry'>;
 type TrainEntryRouteProp = RouteProp<MainStackParamList, 'TrainEntry'>;
 
 export default function TrainEntryScreen() {
+  const theme = useTheme();
   const navigation = useNavigation<NavigationProp>();
   const route = useRoute<TrainEntryRouteProp>();
   const insets = useSafeAreaInsets();
@@ -34,7 +35,6 @@ export default function TrainEntryScreen() {
   const [routeText, setRouteText] = useState('');
   const [date, setDate] = useState('');
   const [time, setTime] = useState('');
-  const [seat, setSeat] = useState('');
   const [confirmationNumber, setConfirmationNumber] = useState('');
   const keyboardHeight = useKeyboardHeight();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -44,7 +44,6 @@ export default function TrainEntryScreen() {
   const handleSave = async () => {
     Keyboard.dismiss();
 
-    // Parse route into departure/arrival stations
     const routeParts = routeText.split(/\s*[→\-–—]\s*|\s+to\s+/i).map((s) => s.trim());
     const departureStation = routeParts[0] || '';
     const arrivalStation = routeParts[1] || '';
@@ -76,16 +75,16 @@ export default function TrainEntryScreen() {
 
   return (
     <LinearGradient
-      colors={[colors.gradient.start, colors.gradient.middle, colors.gradient.end]}
+      colors={theme.gradient}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
-      style={styles.gradientContainer}
+      style={glassStyles.screenGradient}
     >
-      <View style={styles.container}>
+      <View style={glassStyles.screenContainer}>
         <ScrollView
-          style={styles.scrollView}
+          style={glassStyles.screenScrollView}
           contentContainerStyle={[
-            styles.scrollContent,
+            glassStyles.screenScrollContent,
             {
               paddingTop: topOffset + 72,
               paddingBottom: spacing.xxl + keyboardHeight,
@@ -135,14 +134,6 @@ export default function TrainEntryScreen() {
             variant="glass"
           />
           <FormInput
-            label="Seat"
-            value={seat}
-            onChangeText={setSeat}
-            placeholder="e.g. Car 4, 12A"
-            iconName="airline-seat-recline-extra"
-            variant="glass"
-          />
-          <FormInput
             label="Confirmation number"
             value={confirmationNumber}
             onChangeText={setConfirmationNumber}
@@ -170,18 +161,3 @@ export default function TrainEntryScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  gradientContainer: {
-    flex: 1,
-  },
-  container: {
-    flex: 1,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
-    paddingHorizontal: 24,
-    gap: 12,
-  },
-});

@@ -15,12 +15,14 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { GlassNavHeader } from '../../components/navigation/GlassNavHeader';
 import { MainStackParamList } from '../../navigation/types';
 import { useTripMapData } from '../../hooks/useTripMapData';
-import { colors, fontFamilies } from '../../theme';
+import { fontFamilies } from '../../theme';
+import { useTheme } from '../../contexts/ThemeContext';
 
 type NavigationProp = NativeStackNavigationProp<MainStackParamList, 'MapExpand'>;
 type MapExpandRouteProp = RouteProp<MainStackParamList, 'MapExpand'>;
 
 export default function MapExpandScreen() {
+  const theme = useTheme();
   const navigation = useNavigation<NavigationProp>();
   const route = useRoute<MapExpandRouteProp>();
   const tripId = route.params?.tripId || '';
@@ -29,9 +31,6 @@ export default function MapExpandScreen() {
   const { region, markers, isLoading, hasData } = useTripMapData(tripId);
   const mapRef = useRef<MapView>(null);
 
-  // Safety net: when region changes after MapView has mounted (e.g. new
-  // geocoding results arrive), or if initialRegion wasn't applied correctly
-  // during a navigation transition, animateToRegion ensures correct positioning.
   useEffect(() => {
     if (region && mapRef.current) {
       mapRef.current.animateToRegion(region, 0);
@@ -49,7 +48,6 @@ export default function MapExpandScreen() {
   const handleOpenInMaps = useCallback(() => {
     if (markers.length === 0) return;
 
-    // Open the destination marker (or first marker) in native maps app
     const target = markers.find((m) => m.isDestination) || markers[0];
     const encodedAddress = encodeURIComponent(target.title);
 
@@ -70,17 +68,16 @@ export default function MapExpandScreen() {
     });
   }, [markers]);
 
-  // Loading state
   if (isLoading) {
     return (
       <LinearGradient
-        colors={[colors.gradient.start, colors.gradient.middle, colors.gradient.end]}
+        colors={theme.gradient}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={styles.gradientContainer}
       >
         <View style={styles.centeredContainer}>
-          <ActivityIndicator size="large" color={colors.primary} />
+          <ActivityIndicator size="large" color={theme.colors.primary} />
         </View>
         <GlassNavHeader
           title={tripName}
@@ -91,11 +88,10 @@ export default function MapExpandScreen() {
     );
   }
 
-  // No data / error fallback
   if (!hasData || !region) {
     return (
       <LinearGradient
-        colors={[colors.gradient.start, colors.gradient.middle, colors.gradient.end]}
+        colors={theme.gradient}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={styles.gradientContainer}
@@ -104,10 +100,10 @@ export default function MapExpandScreen() {
           <MaterialIcons
             name="location-off"
             size={48}
-            color={colors.text.tertiary.light}
+            color={theme.colors.text.tertiary}
           />
-          <Text style={styles.noDataTitle}>No location data available</Text>
-          <Text style={styles.noDataSubtitle}>
+          <Text style={[styles.noDataTitle, { color: theme.colors.text.primary }]}>No location data available</Text>
+          <Text style={[styles.noDataSubtitle, { color: theme.colors.text.secondary }]}>
             Add reservations with addresses to see them on the map.
           </Text>
         </View>
@@ -120,7 +116,6 @@ export default function MapExpandScreen() {
     );
   }
 
-  // Full-screen interactive map
   return (
     <View style={styles.fullscreen}>
       <MapView
@@ -133,6 +128,7 @@ export default function MapExpandScreen() {
         showsCompass
         toolbarEnabled={false}
         mapType="standard"
+        userInterfaceStyle={theme.isDark ? 'dark' : 'light'}
       >
         {markers.map((marker) => (
           <Marker
@@ -142,12 +138,12 @@ export default function MapExpandScreen() {
               longitude: marker.longitude,
             }}
             pinColor={
-              marker.isDestination ? colors.primary : colors.status.error
+              marker.isDestination ? theme.colors.primary : theme.colors.status.error
             }
           >
             <Callout>
               <View style={styles.callout}>
-                <Text style={styles.calloutTitle}>{marker.title}</Text>
+                <Text style={[styles.calloutTitle, { color: theme.colors.text.primary }]}>{marker.title}</Text>
               </View>
             </Callout>
           </Marker>
@@ -186,13 +182,11 @@ const styles = StyleSheet.create({
   noDataTitle: {
     fontSize: 16,
     fontFamily: fontFamilies.semibold,
-    color: colors.text.primary.light,
     textAlign: 'center',
   },
   noDataSubtitle: {
     fontSize: 14,
     fontFamily: fontFamilies.medium,
-    color: colors.text.secondary.light,
     textAlign: 'center',
   },
   callout: {
@@ -203,6 +197,5 @@ const styles = StyleSheet.create({
   calloutTitle: {
     fontSize: 14,
     fontFamily: fontFamilies.semibold,
-    color: colors.text.primary.light,
   },
 });

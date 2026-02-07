@@ -1,19 +1,7 @@
-/**
- * Geocoding service using Geoapify.
- *
- * Converts text addresses into lat/lon coordinates.
- * Results are cached in-memory with a 24-hour TTL to reduce API usage.
- *
- * Geoapify free tier: 3,000 credits/day, 1 credit per geocode request.
- */
-
 const GEOCODE_API_URL = 'https://api.geoapify.com/v1/geocode/search';
-const CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
+const CACHE_TTL_MS = 24 * 60 * 60 * 1000;
 const MAX_CACHE = 200;
 
-// ---------------------------------------------------------------------------
-// Types
-// ---------------------------------------------------------------------------
 
 export interface GeocodeResult {
   lat: number;
@@ -29,9 +17,6 @@ type ApiResponse = {
   features?: ApiFeature[];
 };
 
-// ---------------------------------------------------------------------------
-// Cache
-// ---------------------------------------------------------------------------
 
 const geocodeCache = new Map<string, { result: GeocodeResult; ts: number }>();
 
@@ -52,16 +37,12 @@ function getCached(address: string): GeocodeResult | null {
 function setCached(address: string, result: GeocodeResult): void {
   const key = cacheKey(address);
   if (geocodeCache.size >= MAX_CACHE) {
-    // Evict oldest entry
     const firstKey = geocodeCache.keys().next().value;
     if (firstKey !== undefined) geocodeCache.delete(firstKey);
   }
   geocodeCache.set(key, { result, ts: Date.now() });
 }
 
-// ---------------------------------------------------------------------------
-// API key
-// ---------------------------------------------------------------------------
 
 function apiKey(): string | undefined {
   return typeof process !== 'undefined'
@@ -77,9 +58,6 @@ export function isGeocodingAvailable(): boolean {
   return Boolean(k?.length && k !== 'your_geoapify_api_key');
 }
 
-// ---------------------------------------------------------------------------
-// Geocode
-// ---------------------------------------------------------------------------
 
 /**
  * Geocode a text address into lat/lon coordinates.
@@ -101,7 +79,6 @@ export async function geocodeAddress(
   const key = apiKey();
   if (!key || key === 'your_geoapify_api_key') return null;
 
-  // Check cache first
   const cached = getCached(trimmed);
   if (cached) return cached;
 
@@ -119,7 +96,6 @@ export async function geocodeAddress(
     const feature = data.features?.[0];
     if (!feature) return null;
 
-    // Prefer properties.lat/lon, fall back to geometry.coordinates
     const props = feature.properties ?? {};
     let lat = props.lat as number | undefined;
     let lon = props.lon as number | undefined;
@@ -138,7 +114,6 @@ export async function geocodeAddress(
     setCached(trimmed, result);
     return result;
   } catch (e) {
-    // Abort errors and network failures are handled gracefully
     if (e instanceof Error && e.name === 'AbortError') return null;
     return null;
   }

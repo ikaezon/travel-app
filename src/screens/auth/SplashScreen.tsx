@@ -10,19 +10,17 @@ import {
   Animated,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { BlurView } from 'expo-blur';
 import { MaterialIcons } from '@expo/vector-icons';
+import { AdaptiveGlassView } from '../../components/ui/AdaptiveGlassView';
 import {
-  colors,
   spacing,
   fontFamilies,
   glassStyles,
   glassConstants,
-  glassColors,
-  glassShadows,
 } from '../../theme';
 import { mockImages } from '../../data/mocks';
 import { usePressAnimation } from '../../hooks';
+import { useTheme } from '../../contexts/ThemeContext';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 const HERO_HEIGHT = Math.max(SCREEN_HEIGHT * 0.45, 360);
@@ -43,6 +41,7 @@ export default function SplashScreen({
   onTermsPress,
   onPrivacyPress,
 }: SplashScreenProps) {
+  const theme = useTheme();
   const scrollRef = useRef<ScrollView>(null);
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const emailAnim = usePressAnimation();
@@ -67,7 +66,7 @@ export default function SplashScreen({
 
   return (
     <LinearGradient
-      colors={[colors.gradient.start, colors.gradient.middle, colors.gradient.end]}
+      colors={theme.gradient}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
       style={styles.gradientContainer}
@@ -87,7 +86,7 @@ export default function SplashScreen({
             >
               <LinearGradient
                 colors={[
-                  colors.gradient.start,
+                  theme.gradient[0],
                   'rgba(241, 245, 249, 0)',
                   'transparent',
                   'rgba(0, 0, 0, 0.55)',
@@ -98,34 +97,38 @@ export default function SplashScreen({
             </ImageBackground>
 
             {/* Logo – liquid glass circle */}
-            <View style={styles.logoOuterContainer}>
-              <BlurView
+            <View style={[styles.logoOuterContainer, theme.glass.cardWrapperStyle]}>
+              <AdaptiveGlassView
                 intensity={glassConstants.blur.card}
-                tint="light"
-                style={[StyleSheet.absoluteFill, glassStyles.blurContentPill]}
+                darkIntensity={10}
+                glassEffectStyle="clear"
+                absoluteFill
+                style={glassStyles.blurContentPill}
               />
-              <View style={styles.glassOverlay} pointerEvents="none" />
-              <View style={styles.logoInnerContainer}>
-                <BlurView
+              <View style={[styles.glassOverlay, { backgroundColor: theme.glass.overlayStrong }]} pointerEvents="none" />
+              <View style={[styles.logoInnerContainer, { borderColor: theme.glass.borderStrong }, theme.isDark && { borderWidth: 1 }]}>
+                <AdaptiveGlassView
                   intensity={glassConstants.blur.icon}
-                  tint="light"
-                  style={[StyleSheet.absoluteFill, glassStyles.blurContentPill]}
+                  darkIntensity={10}
+                  glassEffectStyle="clear"
+                  absoluteFill
+                  style={glassStyles.blurContentPill}
                 />
-                <View style={styles.glassOverlay} pointerEvents="none" />
+                <View style={[styles.glassOverlay, { backgroundColor: theme.glass.overlayStrong }]} pointerEvents="none" />
                 <MaterialIcons
                   name="flight"
                   size={44}
-                  color={colors.primary}
+                  color={theme.colors.primary}
                   style={styles.logoIcon}
                 />
               </View>
             </View>
 
             <View style={styles.headlineContainer}>
-              <Text style={styles.title}>
+              <Text style={[styles.title, { color: theme.colors.text.primary }]}>
                 Your Travel{'\n'}Command Center
               </Text>
-              <Text style={styles.subtitle}>
+              <Text style={[styles.subtitle, { color: theme.colors.text.secondary }]}>
                 Organize your entire journey from takeoff to landing in one minimalist space.
               </Text>
             </View>
@@ -136,48 +139,52 @@ export default function SplashScreen({
             {/* Primary button – boarding pass glass style */}
             <Animated.View style={{ transform: [{ scale: emailAnim.scaleAnim }] }}>
             <Pressable
-              style={styles.primaryButton}
+              style={[styles.primaryButton, theme.glass.cardWrapperStyle, theme.isDark && styles.darkCardBorder]}
               onPress={onEmailPress}
               onPressIn={emailAnim.onPressIn}
               onPressOut={emailAnim.onPressOut}
             >
-              <BlurView
+              <AdaptiveGlassView
                 intensity={glassConstants.blur.card}
-                tint="light"
-                style={[StyleSheet.absoluteFill, glassStyles.blurContent]}
+                darkIntensity={20}
+                glassEffectStyle="clear"
+                absoluteFill
+                style={glassStyles.blurContent}
               />
-              <View style={styles.primaryOverlay} pointerEvents="none" />
+              <View style={[styles.primaryOverlay, { backgroundColor: theme.isDark ? theme.glass.overlay : theme.glass.overlayStrong }]} pointerEvents="none" />
               <View style={styles.primaryContent}>
-                <MaterialIcons name="mail" size={20} color={colors.primary} />
-                <Text style={styles.primaryButtonText}>Continue with Email</Text>
+                <MaterialIcons name="mail" size={20} color={theme.colors.primary} />
+                <Text style={[styles.primaryButtonText, { color: theme.colors.primary }]}>Continue with Email</Text>
               </View>
             </Pressable>
             </Animated.View>
 
             {/* Separator */}
             <View style={styles.separator}>
-              <View style={styles.separatorLine} />
-              <Text style={styles.separatorText}>OR</Text>
-              <View style={styles.separatorLine} />
+              <View style={[styles.separatorLine, { backgroundColor: theme.glass.menuItemBorder }]} />
+              <Text style={[styles.separatorText, { color: theme.colors.text.tertiary }]}>OR</Text>
+              <View style={[styles.separatorLine, { backgroundColor: theme.glass.menuItemBorder }]} />
             </View>
 
             {/* Secondary button – Apple (glass card) */}
             <Animated.View style={{ transform: [{ scale: appleAnim.scaleAnim }] }}>
             <Pressable
-              style={styles.secondaryButton}
+              style={[styles.secondaryButton, theme.glass.cardWrapperStyle, theme.isDark && styles.darkCardBorder]}
               onPress={onApplePress}
               onPressIn={appleAnim.onPressIn}
               onPressOut={appleAnim.onPressOut}
             >
-              <BlurView
+              <AdaptiveGlassView
                 intensity={glassConstants.blur.card}
-                tint="light"
-                style={[StyleSheet.absoluteFill, glassStyles.blurContent]}
+                darkIntensity={20}
+                glassEffectStyle="clear"
+                absoluteFill
+                style={glassStyles.blurContent}
               />
-              <View style={styles.glassOverlay} pointerEvents="none" />
+              <View style={[styles.glassOverlay, { backgroundColor: theme.isDark ? theme.glass.overlay : theme.glass.overlayStrong }]} pointerEvents="none" />
               <View style={styles.secondaryContent}>
-                <MaterialIcons name="smartphone" size={22} color={colors.text.primary.light} />
-                <Text style={styles.secondaryButtonText}>Continue with Apple</Text>
+                <MaterialIcons name="smartphone" size={22} color={theme.colors.text.primary} />
+                <Text style={[styles.secondaryButtonText, { color: theme.colors.text.primary }]}>Continue with Apple</Text>
               </View>
             </Pressable>
             </Animated.View>
@@ -185,33 +192,35 @@ export default function SplashScreen({
             {/* Secondary button – Google (glass card) */}
             <Animated.View style={{ transform: [{ scale: googleAnim.scaleAnim }] }}>
             <Pressable
-              style={styles.secondaryButton}
+              style={[styles.secondaryButton, theme.glass.cardWrapperStyle, theme.isDark && styles.darkCardBorder]}
               onPress={onGooglePress}
               onPressIn={googleAnim.onPressIn}
               onPressOut={googleAnim.onPressOut}
             >
-              <BlurView
+              <AdaptiveGlassView
                 intensity={glassConstants.blur.card}
-                tint="light"
-                style={[StyleSheet.absoluteFill, glassStyles.blurContent]}
+                darkIntensity={20}
+                glassEffectStyle="clear"
+                absoluteFill
+                style={glassStyles.blurContent}
               />
-              <View style={styles.glassOverlay} pointerEvents="none" />
+              <View style={[styles.glassOverlay, { backgroundColor: theme.isDark ? theme.glass.overlay : theme.glass.overlayStrong }]} pointerEvents="none" />
               <View style={styles.secondaryContent}>
-                <MaterialIcons name="language" size={22} color={colors.text.primary.light} />
-                <Text style={styles.secondaryButtonText}>Continue with Google</Text>
+                <MaterialIcons name="language" size={22} color={theme.colors.text.primary} />
+                <Text style={[styles.secondaryButtonText, { color: theme.colors.text.primary }]}>Continue with Google</Text>
               </View>
             </Pressable>
             </Animated.View>
 
             {/* Footer */}
             <View style={styles.footer}>
-              <Text style={styles.footerText}>
+              <Text style={[styles.footerText, { color: theme.colors.text.tertiary }]}>
                 By signing up, you agree to our{' '}
-                <Text style={styles.footerLink} onPress={onTermsPress}>
+                <Text style={[styles.footerLink, { color: theme.colors.primary }]} onPress={onTermsPress}>
                   Terms
                 </Text>
                 {' and '}
-                <Text style={styles.footerLink} onPress={onPrivacyPress}>
+                <Text style={[styles.footerLink, { color: theme.colors.primary }]} onPress={onPrivacyPress}>
                   Privacy Policy
                 </Text>
               </Text>
@@ -235,7 +244,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
 
-  // ── Hero ──────────────────────────────────────
   heroContainer: {
     alignItems: 'center',
     width: '100%',
@@ -249,41 +257,38 @@ const styles = StyleSheet.create({
     width: '100%',
   },
 
-  // ── Shared glass overlay (identical to TripDashboardScreen) ──
   glassOverlay: {
     ...glassStyles.cardOverlay,
   },
+  darkCardBorder: {
+    borderWidth: 1.5,
+    borderColor: 'rgba(255, 255, 255, 0.18)',
+  },
 
-  // ── Logo (liquid glass) ───────────────────────
   logoOuterContainer: {
     marginTop: -56,
     zIndex: 10,
     width: 112,
     height: 112,
-    borderRadius: 56,
+    borderRadius: glassConstants.radius.pill,
     overflow: 'hidden',
     borderWidth: glassConstants.borderWidth.card,
-    borderColor: glassColors.border,
-    boxShadow: glassShadows.elevated,
     justifyContent: 'center',
     alignItems: 'center',
   },
   logoInnerContainer: {
     height: 80,
     width: 80,
-    borderRadius: 40,
+    borderRadius: glassConstants.radius.pill,
     overflow: 'hidden',
     borderWidth: glassConstants.borderWidth.icon,
-    borderColor: glassColors.borderStrong,
     justifyContent: 'center',
     alignItems: 'center',
-    boxShadow: glassShadows.icon,
   },
   logoIcon: {
     transform: [{ rotate: '-45deg' }],
   },
 
-  // ── Headline ──────────────────────────────────
   headlineContainer: {
     width: '100%',
     paddingHorizontal: spacing.xxl,
@@ -294,7 +299,6 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 32,
     fontFamily: fontFamilies.semibold,
-    color: colors.text.primary.light,
     textAlign: 'center',
     lineHeight: 38,
     marginBottom: spacing.md,
@@ -303,12 +307,10 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 16,
     fontFamily: fontFamilies.medium,
-    color: colors.text.secondary.light,
     textAlign: 'center',
     lineHeight: 24,
   },
 
-  // ── Actions (no outer card, directly on gradient) ──
   actionsContainer: {
     paddingHorizontal: spacing.xxl,
     paddingBottom: spacing.huge,
@@ -316,7 +318,6 @@ const styles = StyleSheet.create({
     gap: spacing.md,
   },
 
-  // ── Primary button (matches See All / nav icon style) ──
   primaryButton: {
     ...glassStyles.cardWrapper,
     height: 56,
@@ -335,11 +336,9 @@ const styles = StyleSheet.create({
   primaryButtonText: {
     fontSize: 16,
     fontFamily: fontFamilies.semibold,
-    color: colors.primary,
     letterSpacing: 0.3,
   },
 
-  // ── Secondary buttons (identical glass card pattern) ──
   secondaryButton: {
     ...glassStyles.cardWrapper,
     height: 56,
@@ -355,13 +354,10 @@ const styles = StyleSheet.create({
   secondaryButtonText: {
     fontSize: 16,
     fontFamily: fontFamilies.semibold,
-    color: colors.text.primary.light,
     letterSpacing: 0.24,
   },
 
-  // ── Shared ────────────────────────────────────
 
-  // ── Separator ─────────────────────────────────
   separator: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -371,16 +367,13 @@ const styles = StyleSheet.create({
   separatorLine: {
     flex: 1,
     height: StyleSheet.hairlineWidth,
-    backgroundColor: glassColors.menuItemBorder,
   },
   separatorText: {
     fontSize: 11,
     fontFamily: fontFamilies.semibold,
-    color: colors.text.tertiary.light,
     letterSpacing: 1.5,
   },
 
-  // ── Footer ────────────────────────────────────
   footer: {
     marginTop: spacing.sm,
     alignItems: 'center',
@@ -388,13 +381,11 @@ const styles = StyleSheet.create({
   footerText: {
     fontSize: 12,
     fontFamily: fontFamilies.regular,
-    color: colors.text.tertiary.light,
     textAlign: 'center',
     lineHeight: 18,
   },
   footerLink: {
     fontSize: 12,
     fontFamily: fontFamilies.semibold,
-    color: colors.primary,
   },
 });

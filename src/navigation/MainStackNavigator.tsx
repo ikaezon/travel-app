@@ -17,6 +17,7 @@ import {
   TrainEntryScreen,
 } from '../screens';
 import { MainTabNavigator } from './MainTabNavigator';
+import { useTheme } from '../contexts/ThemeContext';
 
 const Stack = createNativeStackNavigator<MainStackParamList>();
 
@@ -25,12 +26,15 @@ interface MainStackNavigatorProps {
 }
 
 export function MainStackNavigator({ onSignOut }: MainStackNavigatorProps) {
+  const { colors } = useTheme();
+
   return (
     <Stack.Navigator
       id="MainStack"
       screenOptions={{
         headerShown: false,
         animation: 'slide_from_right',
+        contentStyle: { backgroundColor: colors.gradient.start },
       }}
     >
       <Stack.Screen name="Tabs">

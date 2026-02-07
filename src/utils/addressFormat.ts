@@ -93,7 +93,6 @@ export function shortenCountryInAddress(address: string): string {
     return parts.join(', ');
   }
 
-  // Already a 2-letter code (e.g. "US", "FR")
   if (lastPart.length === 2 && /^[A-Za-z]{2}$/.test(lastPart)) {
     return address;
   }

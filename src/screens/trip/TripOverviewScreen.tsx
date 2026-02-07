@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { BlurView } from 'expo-blur';
+import { AdaptiveGlassView } from '../../components/ui/AdaptiveGlassView';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useNavigation, useRoute, useFocusEffect, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -22,8 +22,9 @@ import { GlassDropdownMenu } from '../../components/ui/GlassDropdownMenu';
 import { GlassNavHeader } from '../../components/navigation/GlassNavHeader';
 import { MainStackParamList } from '../../navigation/types';
 import { useTripTimeline, useDeleteTrip, usePressAnimation } from '../../hooks';
-import { colors, spacing, borderRadius, fontFamilies, glassStyles, glassColors, glassShadows, glassConstants } from '../../theme';
+import { spacing, borderRadius, fontFamilies, glassStyles, glassConstants } from '../../theme';
 import { sortTimelineItemsByDateAndTime } from '../../utils/dateFormat';
+import { useTheme } from '../../contexts/ThemeContext';
 
 const TIMELINE_FILTER_OPTIONS = [
   { label: 'All', value: 'all' },
@@ -36,6 +37,7 @@ type NavigationProp = NativeStackNavigationProp<MainStackParamList, 'TripOvervie
 type TripOverviewRouteProp = RouteProp<MainStackParamList, 'TripOverview'>;
 
 export default function TripOverviewScreen() {
+  const theme = useTheme();
   const navigation = useNavigation<NavigationProp>();
   const route = useRoute<TripOverviewRouteProp>();
   const insets = useSafeAreaInsets();
@@ -137,14 +139,14 @@ export default function TripOverviewScreen() {
   if (isLoading) {
     return (
       <LinearGradient
-        colors={[colors.gradient.start, colors.gradient.middle, colors.gradient.end]}
+        colors={theme.gradient}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={styles.gradientContainer}
       >
         <View style={styles.container}>
           <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color={colors.primary} />
+            <ActivityIndicator size="large" color={theme.colors.primary} />
           </View>
         </View>
       </LinearGradient>
@@ -154,16 +156,16 @@ export default function TripOverviewScreen() {
   if (error) {
     return (
       <LinearGradient
-        colors={[colors.gradient.start, colors.gradient.middle, colors.gradient.end]}
+        colors={theme.gradient}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={styles.gradientContainer}
       >
         <View style={styles.container}>
           <View style={styles.errorContainer}>
-            <MaterialIcons name="error-outline" size={32} color={colors.status.error} />
-            <Text style={styles.errorTitle}>Unable to load trip timeline</Text>
-            <Text style={styles.errorSubtitle}>Please try again in a moment.</Text>
+            <MaterialIcons name="error-outline" size={32} color={theme.colors.status.error} />
+            <Text style={[styles.errorTitle, { color: theme.colors.text.primary }]}>Unable to load trip timeline</Text>
+            <Text style={[styles.errorSubtitle, { color: theme.colors.text.secondary }]}>Please try again in a moment.</Text>
           </View>
         </View>
       </LinearGradient>
@@ -172,11 +174,21 @@ export default function TripOverviewScreen() {
 
   return (
     <LinearGradient
-      colors={[colors.gradient.start, colors.gradient.middle, colors.gradient.end]}
+      colors={theme.gradient}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
       style={styles.gradientContainer}
     >
+      <GlassNavHeader
+        title={tripName}
+        label="Trip"
+        onBackPress={handleBackPress}
+        rightAction={{
+          icon: 'more-horiz',
+          onPress: () => setMenuVisible(true),
+          accessibilityLabel: 'Trip options',
+        }}
+      />
       <View style={styles.container}>
         <ScrollView
           style={styles.scrollView}
@@ -188,23 +200,23 @@ export default function TripOverviewScreen() {
           </View>
 
           <View style={styles.filterSection}>
-            <BlurView intensity={24} tint="light" style={[styles.filterContainer, glassStyles.blurContent]}>
-              <View style={styles.glassOverlay} pointerEvents="none" />
+            <AdaptiveGlassView intensity={24} darkIntensity={10} glassEffectStyle="clear" style={[styles.filterContainer, glassStyles.blurContent, theme.glass.cardWrapperStyle]}>
+              <View style={[styles.glassOverlay, { backgroundColor: theme.glass.overlayStrong }]} pointerEvents="none" />
               <SegmentedControl
                 options={TIMELINE_FILTER_OPTIONS}
                 selectedValue={selectedFilter}
                 onValueChange={setSelectedFilter}
               />
-            </BlurView>
+            </AdaptiveGlassView>
           </View>
 
           <View style={styles.timeline}>
             {Object.entries(groupedByDate).map(([date, items], dateIndex) => (
               <View key={date} style={styles.dateGroup}>
                 <View style={styles.dateHeader}>
-                  <View style={styles.dateLine} />
-                  <Text style={styles.dateText}>{date}</Text>
-                  <View style={styles.dateLine} />
+                  <View style={[styles.dateLine, { backgroundColor: theme.isDark ? 'rgba(255, 255, 255, 0.12)' : 'rgba(148, 163, 184, 0.4)' }]} />
+                  <Text style={[styles.dateText, { color: theme.colors.text.secondary }]}>{date}</Text>
+                  <View style={[styles.dateLine, { backgroundColor: theme.isDark ? 'rgba(255, 255, 255, 0.12)' : 'rgba(148, 163, 184, 0.4)' }]} />
                 </View>
 
                 {items.map((item, itemIndex) => {
@@ -232,23 +244,12 @@ export default function TripOverviewScreen() {
 
             {filteredItems.length === 0 && (
               <View style={styles.emptyState}>
-                <MaterialIcons name="event-note" size={48} color={colors.text.tertiary.light} />
-                <Text style={styles.emptyStateText}>No reservations found</Text>
+                <MaterialIcons name="event-note" size={48} color={theme.colors.text.tertiary} />
+                <Text style={[styles.emptyStateText, { color: theme.colors.text.tertiary }]}>No reservations found</Text>
               </View>
             )}
           </View>
         </ScrollView>
-
-        <GlassNavHeader
-          title={tripName}
-          label="Trip"
-          onBackPress={handleBackPress}
-          rightAction={{
-            icon: 'more-horiz',
-            onPress: () => setMenuVisible(true),
-            accessibilityLabel: 'Trip options',
-          }}
-        />
 
         {menuVisible && (
           <>
@@ -286,21 +287,24 @@ export default function TripOverviewScreen() {
               if (index === 2) handleAddTrain();
             }}
             style={styles.addMenuDropdown}
+            hideSeparators
           />
           <Animated.View style={{ transform: [{ scale: fabAnim.scaleAnim }] }}>
           <Pressable
-            style={styles.fabWrapper}
+            style={[styles.fabWrapper, { borderColor: theme.glass.border }]}
             onPress={() => (addMenuVisible ? handleCloseAddMenu() : handleOpenAddMenu())}
             onPressIn={fabAnim.onPressIn}
             onPressOut={fabAnim.onPressOut}
             accessibilityLabel={addMenuVisible ? 'Close add menu' : 'Add reservation'}
           >
-            <BlurView intensity={24} tint="light" style={styles.fabBlur}>
-              <View style={styles.fabGlassOverlay} pointerEvents="none" />
-              <View style={styles.fabContent}>
-                <MaterialIcons name="add" size={28} color={colors.primary} />
-              </View>
-            </BlurView>
+            <View style={styles.fabInner}>
+              <AdaptiveGlassView intensity={24} darkIntensity={10} glassEffectStyle="clear" style={styles.fabBlur}>
+                <View style={[styles.fabGlassOverlay, { backgroundColor: theme.glass.overlayStrong }]} pointerEvents="none" />
+                <View style={styles.fabContent}>
+                  <MaterialIcons name="add" size={28} color={theme.colors.primary} />
+                </View>
+              </AdaptiveGlassView>
+            </View>
           </Pressable>
           </Animated.View>
         </View>
@@ -331,18 +335,15 @@ const styles = StyleSheet.create({
   errorTitle: {
     fontSize: 16,
     fontFamily: fontFamilies.semibold,
-    color: colors.text.primary.light,
     textAlign: 'center',
   },
   errorSubtitle: {
     fontSize: 14,
     fontFamily: fontFamilies.medium,
-    color: colors.text.secondary.light,
     textAlign: 'center',
   },
   glassOverlay: {
     ...glassStyles.cardOverlay,
-    backgroundColor: glassColors.overlayStrong,
   },
   menuScrim: {
     position: 'absolute',
@@ -361,7 +362,6 @@ const styles = StyleSheet.create({
   deleteMenuItemText: {
     fontSize: 15,
     fontFamily: fontFamilies.semibold,
-    color: colors.status.error,
   },
   scrollView: {
     flex: 1,
@@ -379,7 +379,6 @@ const styles = StyleSheet.create({
   filterContainer: {
     ...glassStyles.cardWrapper,
     padding: 4,
-    boxShadow: glassShadows.card,
   },
   timeline: {
     paddingHorizontal: 20,
@@ -405,7 +404,6 @@ const styles = StyleSheet.create({
     fontFamily: fontFamilies.semibold,
     textTransform: 'uppercase',
     letterSpacing: 2,
-    color: colors.text.secondary.light,
   },
   emptyState: {
     alignItems: 'center',
@@ -416,7 +414,6 @@ const styles = StyleSheet.create({
   emptyStateText: {
     fontSize: 16,
     fontFamily: fontFamilies.medium,
-    color: colors.text.tertiary.light,
   },
   addMenuScrim: {
     ...StyleSheet.absoluteFillObject,
@@ -437,25 +434,25 @@ const styles = StyleSheet.create({
   addMenuItemText: {
     fontSize: 15,
     fontFamily: fontFamilies.semibold,
-    color: colors.text.primary.light,
   },
   fabWrapper: {
     width: 56,
     height: 56,
-    borderRadius: 28,
-    overflow: 'hidden',
+    borderRadius: glassConstants.radius.card,
     borderWidth: glassConstants.borderWidth.card,
-    borderColor: glassColors.border,
-    boxShadow: glassShadows.elevated,
+  },
+  fabInner: {
+    flex: 1,
+    borderRadius: glassConstants.radiusInner.card,
+    overflow: 'hidden',
   },
   fabBlur: {
     ...StyleSheet.absoluteFillObject,
-    borderRadius: 26,
+    borderRadius: glassConstants.radiusInner.card,
     overflow: 'hidden',
   },
   fabGlassOverlay: {
     ...glassStyles.cardOverlay,
-    backgroundColor: glassColors.overlayStrong,
   },
   fabContent: {
     flex: 1,

@@ -1,12 +1,14 @@
 import React, { useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, Pressable, Animated, StyleProp, ViewStyle } from 'react-native';
-import { BlurView } from 'expo-blur';
 import { MaterialIcons } from '@expo/vector-icons';
-import { fontFamilies, colors } from '../../theme';
+import { fontFamilies, glassConstants } from '../../theme';
+import { useTheme } from '../../contexts/ThemeContext';
+import { AdaptiveGlassView } from './AdaptiveGlassView';
+
+const SCALE_START = 0.88;
 
 function useMenuAnimation(visible: boolean) {
-  const opacity = useRef(new Animated.Value(0)).current;
-  const scale = useRef(new Animated.Value(0.96)).current;
+  const scale = useRef(new Animated.Value(SCALE_START)).current;
   const hasAnimatedForCurrentVisibility = useRef(false);
 
   useEffect(() => {
@@ -14,43 +16,27 @@ function useMenuAnimation(visible: boolean) {
       if (!hasAnimatedForCurrentVisibility.current) {
         hasAnimatedForCurrentVisibility.current = true;
         requestAnimationFrame(() => {
-          Animated.parallel([
-            Animated.timing(opacity, {
-              toValue: 1,
-              duration: 200,
-              useNativeDriver: true,
-            }),
-            Animated.spring(scale, {
-              toValue: 1,
-              useNativeDriver: true,
-              damping: 14,
-              stiffness: 200,
-            }),
-          ]).start();
+          Animated.spring(scale, {
+            toValue: 1,
+            useNativeDriver: true,
+            damping: 12,
+            stiffness: 180,
+          }).start();
         });
       }
     } else {
       hasAnimatedForCurrentVisibility.current = false;
-      opacity.setValue(0);
-      scale.setValue(0.96);
+      scale.setValue(SCALE_START);
     }
-  }, [visible, opacity, scale]);
+  }, [visible, scale]);
 
-  return { opacity, scale };
+  return { scale };
 }
 
-// Menu styling - kept inline for clarity
 const MENU = {
-  borderRadius: 16,
+  borderRadius: glassConstants.radius.card,
   blurIntensity: 48,
-  overlay: 'rgba(255, 255, 255, 0.28)',
   borderWidth: 1,
-  borderColor: 'rgba(255, 255, 255, 0.8)',
-  itemBorder: 'rgba(148, 163, 184, 0.25)',
-  itemPressed: 'rgba(0, 0, 0, 0.04)',
-  text: colors.text.primary.light,
-  primary: colors.status.info,
-  error: colors.status.error,
   paddingVertical: 12,
   paddingHorizontal: 16,
   iconGap: 8,
@@ -68,8 +54,8 @@ interface GlassDropdownMenuProps {
   actions: GlassDropdownAction[];
   onSelect: (index: number) => void;
   style?: StyleProp<ViewStyle>;
-  /** When true, applies a uniform subtle background to all menu items */
   uniformItemBackground?: boolean;
+  hideSeparators?: boolean;
 }
 
 export function GlassDropdownMenu({
@@ -79,10 +65,16 @@ export function GlassDropdownMenu({
   onSelect,
   style,
   uniformItemBackground,
+  hideSeparators = false,
 }: GlassDropdownMenuProps) {
+  const theme = useTheme();
   const animation = useMenuAnimation(visible);
 
   if (!visible) return null;
+
+  const useGlassAnimation = theme.isDark;
+  const effectiveBorderWidth = useGlassAnimation ? 0 : MENU.borderWidth;
+  const innerRadius = MENU.borderRadius - effectiveBorderWidth;
 
   const handlePress = (index: number) => {
     onSelect(index);
@@ -92,27 +84,57 @@ export function GlassDropdownMenu({
   return (
     <Animated.View
       style={[
-        styles.container,
+        {
+          position: 'absolute',
+          minWidth: 180,
+          borderRadius: MENU.borderRadius,
+          borderWidth: MENU.borderWidth,
+          borderColor: theme.glass.borderStrong,
+        },
+        useGlassAnimation && { borderWidth: 0 },
         style,
         {
-          opacity: animation.opacity,
           transform: [{ scale: animation.scale }],
         },
       ]}
     >
-      <BlurView intensity={MENU.blurIntensity} tint="light" style={[StyleSheet.absoluteFill, styles.blurContent]} />
-      <View style={[StyleSheet.absoluteFillObject, styles.overlay]} pointerEvents="none" />
-      <View style={styles.content}>
+      <View
+        style={{
+          borderRadius: innerRadius,
+          overflow: 'hidden',
+        }}
+        pointerEvents="box-none"
+      >
+        <AdaptiveGlassView intensity={MENU.blurIntensity} darkIntensity={20} glassEffectStyle="clear" absoluteFill style={{
+          borderRadius: innerRadius,
+          overflow: 'hidden',
+        }} />
+        <View style={[StyleSheet.absoluteFillObject, {
+          backgroundColor: theme.glass.menuOverlay,
+        }]} pointerEvents="none" />
+        <View style={{ position: 'relative' }}>
         {actions.map((action, index) => {
           const isLast = index === actions.length - 1;
           return (
             <Pressable
               key={index}
               style={({ pressed }) => [
-                styles.item,
-                !isLast && styles.itemBorder,
-                uniformItemBackground && styles.itemUniformBackground,
-                pressed && styles.itemPressed,
+                {
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  paddingVertical: MENU.paddingVertical,
+                  paddingHorizontal: MENU.paddingHorizontal,
+                },
+                !isLast && !hideSeparators && {
+                  borderBottomWidth: StyleSheet.hairlineWidth,
+                  borderBottomColor: theme.colors.border,
+                },
+                uniformItemBackground && {
+                  backgroundColor: theme.glass.menuItemPressed,
+                },
+                pressed && {
+                  backgroundColor: theme.colors.surface,
+                },
               ]}
               onPress={() => handlePress(index)}
             >
@@ -120,14 +142,20 @@ export function GlassDropdownMenu({
                 <MaterialIcons
                   name={action.icon}
                   size={20}
-                  color={action.destructive ? MENU.error : MENU.primary}
-                  style={styles.icon}
+                  color={action.destructive ? theme.colors.status.error : theme.colors.status.info}
+                  style={{ marginRight: MENU.iconGap }}
                 />
               )}
               <Text
                 style={[
-                  styles.label,
-                  action.destructive && styles.labelDestructive,
+                  {
+                    fontSize: 15,
+                    fontFamily: fontFamilies.medium,
+                    color: theme.colors.text.primary,
+                  },
+                  action.destructive && {
+                    color: theme.colors.status.error,
+                  },
                 ]}
               >
                 {action.label}
@@ -136,54 +164,8 @@ export function GlassDropdownMenu({
           );
         })}
       </View>
+      </View>
     </Animated.View>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    position: 'absolute',
-    minWidth: 180,
-    borderRadius: MENU.borderRadius,
-    overflow: 'hidden',
-    borderWidth: MENU.borderWidth,
-    borderColor: MENU.borderColor,
-  },
-  blurContent: {
-    borderRadius: MENU.borderRadius,
-    overflow: 'hidden',
-  },
-  overlay: {
-    backgroundColor: MENU.overlay,
-  },
-  content: {
-    position: 'relative',
-  },
-  item: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: MENU.paddingVertical,
-    paddingHorizontal: MENU.paddingHorizontal,
-  },
-  itemBorder: {
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: MENU.itemBorder,
-  },
-  itemPressed: {
-    backgroundColor: MENU.itemPressed,
-  },
-  itemUniformBackground: {
-    backgroundColor: 'rgba(255, 255, 255, 0.12)',
-  },
-  icon: {
-    marginRight: MENU.iconGap,
-  },
-  label: {
-    fontSize: 15,
-    fontFamily: fontFamilies.medium,
-    color: MENU.text,
-  },
-  labelDestructive: {
-    color: MENU.error,
-  },
-});

@@ -9,10 +9,12 @@ import {
   Dimensions,
   ViewStyle,
 } from 'react-native';
-import { BlurView } from 'expo-blur';
 import { MaterialIcons } from '@expo/vector-icons';
 import { Calendar } from 'react-native-calendars';
-import { colors, spacing, borderRadius, shadows, fontFamilies, glassStyles, glassColors } from '../../theme';
+import { spacing, borderRadius, shadows, fontFamilies, glassStyles, glassConstants } from '../../theme';
+import { useTheme } from '../../contexts/ThemeContext';
+import { AdaptiveGlassView } from './AdaptiveGlassView';
+import { buildCalendarTheme } from './DatePickerInput';
 import { formatCalendarDateToDisplay } from '../../utils/dateFormat';
 
 const POPUP_FADE_DURATION = 150;
@@ -30,7 +32,6 @@ export interface DateRangePickerInputProps {
   style?: ViewStyle;
   onOpen?: () => void;
   onClose?: () => void;
-  /** Use liquid glass card styling */
   variant?: 'default' | 'glass';
 }
 
@@ -44,7 +45,9 @@ function formatDateRangeDisplay(startDate: string | null, endDate: string | null
 
 function buildMarkedDates(
   tempStart: string | null,
-  tempEnd: string | null
+  tempEnd: string | null,
+  primaryColor: string,
+  whiteColor: string
 ): { [key: string]: object } {
   if (!tempStart) return {};
   if (!tempEnd || tempStart === tempEnd) {
@@ -52,8 +55,8 @@ function buildMarkedDates(
       [tempStart]: {
         startingDay: true,
         endingDay: true,
-        color: colors.primary,
-        textColor: colors.white,
+        color: primaryColor,
+        textColor: whiteColor,
       },
     };
   }
@@ -71,8 +74,8 @@ function buildMarkedDates(
     marked[key] = {
       startingDay: key === actualStart,
       endingDay: key === actualEnd,
-      color: colors.primary,
-      textColor: colors.white,
+      color: primaryColor,
+      textColor: whiteColor,
     };
     d.setDate(d.getDate() + 1);
   }
@@ -90,6 +93,7 @@ export function DateRangePickerInput({
   onClose,
   variant = 'default',
 }: DateRangePickerInputProps) {
+  const theme = useTheme();
   const [visible, setVisible] = useState(false);
   const [inputLayout, setInputLayout] = useState<InputLayout | null>(null);
   const [tempRange, setTempRange] = useState<{ start: string | null; end: string | null }>({
@@ -179,7 +183,7 @@ export function DateRangePickerInput({
   }, []);
 
   const displayText = formatDateRangeDisplay(startDate, endDate);
-  const markedDates = buildMarkedDates(tempStart, tempEnd);
+  const markedDates = buildMarkedDates(tempStart, tempEnd, theme.colors.primary, theme.colors.white);
 
   const popupLeft = inputLayout
     ? Math.max(spacing.sm, Math.min(inputLayout.x + inputLayout.width / 2 - POPUP_WIDTH / 2, SCREEN_WIDTH - POPUP_WIDTH - spacing.sm))
@@ -189,15 +193,15 @@ export function DateRangePickerInput({
   return (
     <View ref={containerRef} style={[styles.container, style]} collapsable={false}>
       {variant === 'glass' ? (
-        <View style={styles.glassWrapper}>
-          <BlurView intensity={24} tint="light" style={[styles.glassBlur, glassStyles.blurContent]}>
-            <View style={styles.glassOverlay} pointerEvents="none" />
-            <View style={styles.glassContent}>
+        <View style={[glassStyles.formWrapper, theme.glass.cardWrapperStyle]}>
+          <AdaptiveGlassView intensity={24} darkIntensity={10} glassEffectStyle="clear" style={[glassStyles.formBlur, glassStyles.blurContent]}>
+            <View style={[styles.glassOverlay, { backgroundColor: theme.glass.overlayStrong }]} pointerEvents="none" />
+            <View style={glassStyles.formContent}>
               <View style={styles.labelRow}>
-                <Text style={[styles.label, styles.labelGlass]}>{label}</Text>
+                <Text style={[styles.label, { color: theme.colors.text.primary }]}>{label}</Text>
               </View>
               <Pressable
-                style={[styles.valueRow, styles.valueRowGlass]}
+                style={[styles.valueRow, { backgroundColor: theme.glass.fill, borderColor: theme.glass.border }]}
                 onPress={openPopup}
                 accessibilityLabel={label}
                 accessibilityRole="button"
@@ -205,24 +209,24 @@ export function DateRangePickerInput({
                 <MaterialIcons
                   name="event"
                   size={20}
-                  color={colors.text.secondary.light}
+                  color={theme.colors.text.secondary}
                   style={styles.icon}
                 />
-                <Text style={[styles.value, !displayText && styles.placeholder]}>
+                <Text style={[styles.value, { color: theme.colors.text.primary }, !displayText && { color: theme.colors.text.tertiary }]}>
                   {displayText || placeholder}
                 </Text>
-                <MaterialIcons name="chevron-right" size={24} color={colors.text.tertiary.light} />
+                <MaterialIcons name="chevron-right" size={24} color={theme.colors.text.tertiary} />
               </Pressable>
             </View>
-          </BlurView>
+          </AdaptiveGlassView>
         </View>
       ) : (
         <>
           <View style={styles.labelRow}>
-            <Text style={styles.label}>{label}</Text>
+            <Text style={[styles.label, { color: theme.colors.text.secondary }]}>{label}</Text>
           </View>
           <Pressable
-            style={styles.valueRow}
+            style={[styles.valueRow, { borderColor: theme.colors.border, backgroundColor: theme.colors.surface }]}
             onPress={openPopup}
             accessibilityLabel={label}
             accessibilityRole="button"
@@ -230,13 +234,13 @@ export function DateRangePickerInput({
             <MaterialIcons
               name="event"
               size={20}
-              color={colors.text.secondary.light}
+              color={theme.colors.text.secondary}
               style={styles.icon}
             />
-            <Text style={[styles.value, !displayText && styles.placeholder]}>
+            <Text style={[styles.value, { color: theme.colors.text.primary }, !displayText && { color: theme.colors.text.tertiary }]}>
               {displayText || placeholder}
             </Text>
-            <MaterialIcons name="chevron-right" size={24} color={colors.text.tertiary.light} />
+            <MaterialIcons name="chevron-right" size={24} color={theme.colors.text.tertiary} />
           </Pressable>
         </>
       )}
@@ -263,17 +267,18 @@ export function DateRangePickerInput({
                   top: popupTop,
                   width: POPUP_WIDTH,
                   opacity: popupOpacity,
+                  backgroundColor: theme.colors.surface,
                 },
                 shadows.lg,
               ]}
               pointerEvents="box-none"
             >
-              <View style={styles.topBar}>
+              <View style={[styles.topBar, { borderBottomColor: theme.colors.border }]}>
                 <Pressable style={styles.cancelButton} onPress={closeModal} hitSlop={12}>
-                  <Text style={styles.cancelText}>Cancel</Text>
+                  <Text style={[styles.cancelText, { color: theme.colors.text.secondary }]}>Cancel</Text>
                 </Pressable>
                 <Pressable style={styles.doneButton} onPress={handleDone} hitSlop={12}>
-                  <Text style={styles.doneText}>Done</Text>
+                  <Text style={[styles.doneText, { color: theme.colors.primary }]}>Done</Text>
                 </Pressable>
               </View>
               <View style={styles.calendarContainer}>
@@ -283,26 +288,12 @@ export function DateRangePickerInput({
                   markedDates={markedDates}
                   markingType="period"
                   enableSwipeMonths
-                  theme={{
-                    backgroundColor: colors.surface.light,
-                    calendarBackground: colors.surface.light,
-                    textSectionTitleColor: colors.text.secondary.light,
-                    selectedDayBackgroundColor: colors.primary,
-                    selectedDayTextColor: colors.white,
-                    todayTextColor: colors.primary,
-                    dayTextColor: colors.text.primary.light,
-                    textDisabledColor: colors.text.tertiary.light,
-                    arrowColor: colors.primary,
-                    monthTextColor: colors.text.primary.light,
-                    textDayFontSize: 14,
-                    textMonthFontSize: 14,
-                    textDayHeaderFontSize: 11,
-                  }}
+                  theme={buildCalendarTheme(theme)}
                   renderArrow={(direction) => (
                     <MaterialIcons
                       name={direction === 'left' ? 'chevron-left' : 'chevron-right'}
                       size={24}
-                      color={colors.primary}
+                      color={theme.colors.primary}
                     />
                   )}
                 />
@@ -319,21 +310,8 @@ const styles = StyleSheet.create({
   container: {
     width: '100%',
   },
-  glassWrapper: {
-    ...glassStyles.cardWrapper,
-    overflow: 'hidden',
-    width: '100%',
-  },
-  glassBlur: {
-    padding: 12,
-    position: 'relative',
-  },
   glassOverlay: {
     ...glassStyles.cardOverlay,
-    backgroundColor: glassColors.overlayStrong,
-  },
-  glassContent: {
-    position: 'relative',
   },
   labelRow: {
     marginBottom: spacing.sm,
@@ -341,10 +319,6 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 14,
     fontFamily: fontFamilies.medium,
-    color: colors.text.secondary.light,
-  },
-  labelGlass: {
-    color: colors.text.primary.light,
   },
   valueRow: {
     flexDirection: 'row',
@@ -352,13 +326,7 @@ const styles = StyleSheet.create({
     height: 56,
     borderRadius: borderRadius.md,
     borderWidth: 1,
-    borderColor: colors.border.light,
-    backgroundColor: colors.surface.light,
     paddingHorizontal: spacing.lg,
-  },
-  valueRowGlass: {
-    backgroundColor: 'rgba(255, 255, 255, 0.5)',
-    borderColor: glassColors.border,
   },
   icon: {
     marginRight: spacing.sm,
@@ -367,10 +335,6 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 16,
     fontFamily: fontFamilies.regular,
-    color: colors.text.primary.light,
-  },
-  placeholder: {
-    color: colors.text.tertiary.light,
   },
   overlay: {
     flex: 1,
@@ -381,8 +345,7 @@ const styles = StyleSheet.create({
   },
   popup: {
     position: 'absolute',
-    backgroundColor: colors.surface.light,
-    borderRadius: borderRadius.lg,
+    borderRadius: glassConstants.radius.card,
     overflow: 'hidden',
   },
   topBar: {
@@ -392,7 +355,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs,
     borderBottomWidth: 1,
-    borderBottomColor: colors.border.light,
   },
   cancelButton: {
     padding: spacing.xs,
@@ -401,7 +363,6 @@ const styles = StyleSheet.create({
   cancelText: {
     fontSize: 15,
     fontFamily: fontFamilies.semibold,
-    color: colors.text.secondary.light,
   },
   doneButton: {
     padding: spacing.xs,
@@ -411,7 +372,6 @@ const styles = StyleSheet.create({
   doneText: {
     fontSize: 15,
     fontFamily: fontFamilies.semibold,
-    color: colors.primary,
   },
   calendarContainer: {
     paddingHorizontal: spacing.sm,

@@ -1,36 +1,27 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   View,
-  Text,
-  StyleSheet,
   ScrollView,
-  Pressable,
   Platform,
   Keyboard,
   Alert,
-  Animated,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { BlurView } from 'expo-blur';
-import { MaterialIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { DestinationAutocomplete } from '../../components/ui/DestinationAutocomplete';
+import { AddressAutocomplete } from '../../components/ui/AddressAutocomplete';
 import { FormInput } from '../../components/ui/FormInput';
 import { DateRangePickerInput } from '../../components/ui/DateRangePickerInput';
 import { ShimmerButton } from '../../components/ui/ShimmerButton';
-import {
-  colors,
-  spacing,
-  fontFamilies,
-  glassStyles,
-  glassColors,
-} from '../../theme';
+import { GlassNavHeader } from '../../components/navigation/GlassNavHeader';
+import { spacing, glassStyles } from '../../theme';
 import { MainStackParamList } from '../../navigation/types';
-import { useCreateTrip, usePressAnimation } from '../../hooks';
+import { useCreateTrip } from '../../hooks';
 import { formatCalendarDateToDisplay, daysBetween } from '../../utils/dateFormat';
+import { fetchCoverImageForDestination, isCoverImageAvailable } from '../../data/services';
 import type { Trip } from '../../types';
+import { useTheme } from '../../contexts/ThemeContext';
 
 const DEFAULT_IMAGE_URL =
   'https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=800';
@@ -44,6 +35,7 @@ function formatDateRangeDisplay(startDate: string, endDate: string): string {
 type NavigationProp = NativeStackNavigationProp<MainStackParamList, 'CreateTrip'>;
 
 export default function CreateTripScreen() {
+  const theme = useTheme();
   const navigation = useNavigation<NavigationProp>();
   const insets = useSafeAreaInsets();
   const { createTrip, isSubmitting } = useCreateTrip();
@@ -54,7 +46,6 @@ export default function CreateTripScreen() {
   const [keyboardHeight, setKeyboardHeight] = useState(0);
 
   const topOffset = insets.top + 8;
-  const backAnim = usePressAnimation();
 
   const dateRangeDisplay = useMemo(() => {
     if (!startDate) return '';
@@ -98,11 +89,19 @@ export default function CreateTripScreen() {
       const dateRangeValue = dateRangeDisplay?.trim() || 'TBD';
       const durationLabelValue = durationLabel?.trim() || 'TBD';
 
+      let finalImageUrl = imageUrl.trim();
+      if (!finalImageUrl && isCoverImageAvailable()) {
+        const coverUrl = await fetchCoverImageForDestination(trimmedDestination);
+        finalImageUrl = coverUrl || DEFAULT_IMAGE_URL;
+      } else if (!finalImageUrl) {
+        finalImageUrl = DEFAULT_IMAGE_URL;
+      }
+
       const tripData: Omit<Trip, 'id'> = {
         destination: trimmedDestination,
         dateRange: dateRangeValue,
         durationLabel: durationLabelValue,
-        imageUrl: imageUrl.trim() || DEFAULT_IMAGE_URL,
+        imageUrl: finalImageUrl,
         status: 'upcoming',
         iconName: 'airplane-ticket',
       };
@@ -120,33 +119,34 @@ export default function CreateTripScreen() {
     }
   };
 
-  const handleBackPress = () => {
+  const handleBackPress = useCallback(() => {
     if (!isSubmitting) navigation.goBack();
-  };
+  }, [isSubmitting, navigation]);
 
   return (
     <LinearGradient
-      colors={[colors.gradient.start, colors.gradient.middle, colors.gradient.end]}
+      colors={theme.gradient}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
-      style={styles.gradientContainer}
+      style={glassStyles.screenGradient}
     >
-      <View style={styles.container}>
+      <View style={glassStyles.screenContainer}>
         <ScrollView
-          style={styles.scrollView}
+          style={glassStyles.screenScrollView}
           contentContainerStyle={[
-            styles.scrollContent,
+            glassStyles.screenScrollContent,
             { paddingTop: topOffset + 72, paddingBottom: spacing.xxl + keyboardHeight },
           ]}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-          <DestinationAutocomplete
+          <AddressAutocomplete
             label="Destination"
             value={destination}
             onChangeText={setDestination}
             placeholder="e.g. Paris, France or Tokyo, Japan"
             variant="glass"
+            type="place"
           />
 
           <DateRangePickerInput
@@ -180,88 +180,12 @@ export default function CreateTripScreen() {
           />
         </ScrollView>
 
-        <View style={[styles.headerContainer, { top: topOffset }]}>
-          <BlurView intensity={24} tint="light" style={[styles.headerBlur, glassStyles.blurContentLarge]}>
-            <View style={styles.glassOverlay} pointerEvents="none" />
-            <View style={styles.headerContent}>
-              <Animated.View style={{ transform: [{ scale: backAnim.scaleAnim }] }}>
-              <Pressable
-                style={styles.backButton}
-                onPress={handleBackPress}
-                onPressIn={backAnim.onPressIn}
-                onPressOut={backAnim.onPressOut}
-                accessibilityLabel="Go back"
-                disabled={isSubmitting}
-              >
-                <MaterialIcons
-                  name="arrow-back"
-                  size={22}
-                  color={colors.text.primary.light}
-                />
-              </Pressable>
-              </Animated.View>
-              <Text style={styles.headerTitle}>New Trip</Text>
-              <View style={styles.headerSpacer} />
-            </View>
-          </BlurView>
-        </View>
+        <GlassNavHeader
+          title="New Trip"
+          onBackPress={handleBackPress}
+        />
       </View>
     </LinearGradient>
   );
 }
 
-const styles = StyleSheet.create({
-  gradientContainer: {
-    flex: 1,
-  },
-  container: {
-    flex: 1,
-  },
-  headerContainer: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    alignItems: 'center',
-    zIndex: 60,
-  },
-  headerBlur: {
-    ...glassStyles.navBarWrapper,
-    width: '90%',
-    maxWidth: 340,
-    position: 'relative',
-    height: 56,
-    justifyContent: 'center',
-  },
-  headerContent: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-  },
-  glassOverlay: {
-    ...glassStyles.cardOverlay,
-    backgroundColor: glassColors.overlayStrong,
-  },
-  backButton: {
-    width: 36,
-    height: 36,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  headerTitle: {
-    fontSize: 16,
-    fontFamily: fontFamilies.semibold,
-    color: colors.text.primary.light,
-    letterSpacing: -0.3,
-  },
-  headerSpacer: {
-    width: 36,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
-    paddingHorizontal: 24,
-    gap: 12,
-  },
-});

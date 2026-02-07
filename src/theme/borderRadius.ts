@@ -9,5 +9,3 @@ export const borderRadius = {
   xxxl: 40,
   full: 9999,
 } as const;
-
-export type BorderRadiusKey = keyof typeof borderRadius;
