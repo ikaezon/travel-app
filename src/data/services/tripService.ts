@@ -92,6 +92,23 @@ export const tripService = {
     return (response.data as DbTimelineItem[]).map(mapTimelineItemFromDb);
   },
 
+  async getTimelineItemById(timelineItemId: string): Promise<TimelineItem | null> {
+    const response = await supabase
+      .from('timeline_items')
+      .select('*')
+      .eq('id', timelineItemId)
+      .single();
+
+    if (response.error) {
+      if (response.error.code === 'Error parsing value for type "timeline_items"') {
+        return null;
+      }
+      throw wrapDatabaseError(response.error, 'getTimelineItemById');
+    }
+
+    return mapTimelineItemFromDb(response.data as DbTimelineItem);
+  },
+
   async createTimelineItem(
     tripId: string,
     item: Omit<TimelineItem, 'id' | 'tripId'> & { reservationId?: string }

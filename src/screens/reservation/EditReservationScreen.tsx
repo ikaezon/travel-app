@@ -21,6 +21,7 @@ import { AddressAutocomplete } from '../../components/ui/AddressAutocomplete';
 import { DualAirportInput } from '../../components/ui/DualAirportInput';
 import { DatePickerInput } from '../../components/ui/DatePickerInput';
 import { DateRangePickerInput } from '../../components/ui/DateRangePickerInput';
+import { TimePickerInput } from '../../components/ui/TimePickerInput';
 import { ShimmerButton } from '../../components/ui/ShimmerButton';
 import { GlassNavHeader } from '../../components/navigation/GlassNavHeader';
 import { AdaptiveGlassView } from '../../components/ui/AdaptiveGlassView';
@@ -33,9 +34,64 @@ import {
 } from '../../theme';
 import { useTheme } from '../../contexts/ThemeContext';
 import { MainStackParamList } from '../../navigation/types';
-import { useReservationByTimelineId, useUpdateReservation } from '../../hooks';
+import { useReservationByTimelineId, useUpdateReservation, useTimelineItemById } from '../../hooks';
 import { tripService } from '../../data';
 import { formatCalendarDateToLongDisplay, parseToCalendarDate } from '../../utils/dateFormat';
+
+/**
+ * Parses the timeline title to extract provider name and flight/train number.
+ * The title format is typically "ProviderName Number" (e.g., "Delta 123" or "SNCF TGV 6789")
+ * Returns { providerName, number } where number may be empty if not present.
+ */
+function parseTimelineTitle(title: string, reservationProviderName: string): { providerName: string; number: string } {
+  const trimmedTitle = title.trim();
+  const trimmedProvider = reservationProviderName.trim();
+  
+  // If the title starts with the provider name, extract the rest as the number
+  if (trimmedTitle.toLowerCase().startsWith(trimmedProvider.toLowerCase())) {
+    const remainder = trimmedTitle.slice(trimmedProvider.length).trim();
+    return { providerName: trimmedProvider, number: remainder };
+  }
+  
+  // Fallback: try to split on the last space to separate name from number
+  const lastSpaceIndex = trimmedTitle.lastIndexOf(' ');
+  if (lastSpaceIndex > 0) {
+    const possibleNumber = trimmedTitle.slice(lastSpaceIndex + 1);
+    // Check if the remainder looks like a flight/train number (contains digits)
+    if (/\d/.test(possibleNumber)) {
+      return { providerName: trimmedTitle.slice(0, lastSpaceIndex), number: possibleNumber };
+    }
+  }
+  
+  // No number found, use the full title as provider name
+  return { providerName: trimmedTitle, number: '' };
+}
+
+/**
+ * Converts 12-hour time format (e.g., "2:30 PM") to 24-hour format (e.g., "14:30")
+ * for the TimePickerInput which uses 24-hour format internally.
+ */
+function parse12HourTo24Hour(time12h: string): string {
+  if (!time12h) return '';
+  
+  // If already in 24-hour format (no AM/PM), return as is
+  if (!/[ap]m/i.test(time12h)) return time12h;
+  
+  const match = time12h.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+  if (!match) return time12h;
+  
+  let hours = parseInt(match[1], 10);
+  const minutes = match[2];
+  const period = match[3].toUpperCase();
+  
+  if (period === 'PM' && hours !== 12) {
+    hours += 12;
+  } else if (period === 'AM' && hours === 12) {
+    hours = 0;
+  }
+  
+  return `${hours.toString().padStart(2, '0')}:${minutes}`;
+}
 
 type NavigationProp = NativeStackNavigationProp<MainStackParamList, 'EditReservation'>;
 type EditReservationRouteProp = RouteProp<MainStackParamList, 'EditReservation'>;
@@ -48,12 +104,15 @@ export default function EditReservationScreen() {
   const timelineItemId = route.params?.timelineItemId ?? '';
 
   const { reservation, isLoading } = useReservationByTimelineId(timelineItemId);
+  const { timelineItem, isLoading: isLoadingTimeline } = useTimelineItemById(timelineItemId);
   const { updateReservation, isUpdating } = useUpdateReservation();
   const [providerName, setProviderName] = useState('');
+  const [flightOrTrainNumber, setFlightOrTrainNumber] = useState('');
   const [routeText, setRouteText] = useState('');
   const [departureAirport, setDepartureAirport] = useState('');
   const [arrivalAirport, setArrivalAirport] = useState('');
   const [date, setDate] = useState('');
+  const [departureTime, setDepartureTime] = useState('');
   const [checkInDate, setCheckInDate] = useState<string | null>(null);
   const [checkOutDate, setCheckOutDate] = useState<string | null>(null);
   const [confirmationCode, setConfirmationCode] = useState('');
@@ -111,8 +170,23 @@ export default function EditReservationScreen() {
         if (parsedStart) setCheckInDate(parsedStart);
         if (parsedEnd) setCheckOutDate(parsedEnd);
       }
+
+      // Parse flight/train number from timeline item title and time
+      if (timelineItem) {
+        // Extract flight/train number from the title (e.g., "Delta 123" -> "123")
+        if (reservation.type === 'flight' || reservation.type === 'train') {
+          const parsed = parseTimelineTitle(timelineItem.title, reservation.providerName);
+          setFlightOrTrainNumber(parsed.number);
+        }
+        
+        // Set departure time from timeline item (convert 12h to 24h if needed)
+        if (timelineItem.time) {
+          const time24h = parse12HourTo24Hour(timelineItem.time);
+          setDepartureTime(time24h);
+        }
+      }
     }
-  }, [reservation]);
+  }, [reservation, timelineItem]);
 
   useEffect(() => {
     const showSub = Keyboard.addListener(
@@ -163,10 +237,21 @@ export default function EditReservationScreen() {
         address: address.trim() || undefined,
       });
       if (updated) {
+        // Construct the title including flight/train number if present
+        // Format: "ProviderName Number" (e.g., "Delta 123" or "SNCF TGV 6789")
+        const trimmedNumber = flightOrTrainNumber.trim();
+        const finalTitle = trimmedNumber ? `${providerName} ${trimmedNumber}` : providerName;
+
+        // Update timeline item with all relevant fields, including metadata (confirmation code)
+        // Pass empty string when fields are cleared - the mapper converts '' to null in DB
+        const trimmedCode = confirmationCode.trim();
+        const trimmedTime = departureTime.trim();
         await tripService.updateTimelineItem(timelineItemId, {
-          title: providerName,
+          title: finalTitle,
           date: finalDate,
           subtitle: finalRoute || routeText,
+          metadata: trimmedCode ? `Conf: #${trimmedCode}` : '',
+          time: trimmedTime || '',
           reservationId: reservation.id,
         });
         navigation.goBack();
@@ -188,7 +273,7 @@ export default function EditReservationScreen() {
 
   const handleBackPress = useCallback(() => navigation.goBack(), [navigation]);
 
-  if (isLoading || !reservation) {
+  if (isLoading || isLoadingTimeline || !reservation) {
     return (
       <LinearGradient
         colors={theme.gradient}
@@ -208,6 +293,7 @@ export default function EditReservationScreen() {
 
   const isFlight = reservation.type === 'flight';
   const isHotel = reservation.type === 'hotel';
+  const isTrain = reservation.type === 'train';
 
   return (
     <LinearGradient
@@ -283,6 +369,25 @@ export default function EditReservationScreen() {
               iconName="event"
               variant="glass"
             />
+          )}
+          {(isFlight || isTrain) && (
+            <>
+              <FormInput
+                label={isFlight ? 'Flight number' : 'Train number'}
+                value={flightOrTrainNumber}
+                onChangeText={setFlightOrTrainNumber}
+                placeholder={isFlight ? 'e.g. 123' : 'e.g. TGV 6789'}
+                iconName={isFlight ? 'flight' : 'train'}
+                variant="glass"
+              />
+              <TimePickerInput
+                label="Departure time"
+                value={departureTime}
+                onChange={setDepartureTime}
+                placeholder="Tap to select time"
+                variant="glass"
+              />
+            </>
           )}
           {isFlight ? (
             <View style={[styles.flightDetailsCard, !theme.isDark && { borderColor: theme.glassColors.border }, theme.isDark && { borderWidth: 0 }]}>
