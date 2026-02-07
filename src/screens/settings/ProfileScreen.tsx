@@ -78,13 +78,13 @@ export default function ProfileScreen({
       >
         <View style={styles.container}>
           <View style={[styles.topNavContainer, { top: topOffset }]}>
-            <View style={[styles.topNavBarWrapper, theme.glass.navWrapperStyle]}>
+            <View style={styles.topNavBarWrapper}>
               <AdaptiveGlassView
                 intensity={24}
                 useGlassInLightMode
-                style={styles.topNavBlur}
+                style={[styles.topNavBlur, glassStyles.blurContentLarge, theme.glass.navWrapperStyle]}
               >
-                {!theme.isDark && <View style={[styles.glassOverlay, { backgroundColor: theme.glass.overlayStrong }]} pointerEvents="none" />}
+                {!theme.isDark && <View style={[styles.glassOverlay, { backgroundColor: theme.glass.overlay }]} pointerEvents="none" />}
               </AdaptiveGlassView>
               <View style={styles.topNavContent}>
                 <View style={styles.navButton} />
@@ -230,13 +230,13 @@ export default function ProfileScreen({
         </ScrollView>
 
         <View style={[styles.topNavContainer, { top: topOffset }]}>
-          <View style={[styles.topNavBarWrapper, theme.glass.navWrapperStyle]}>
+          <View style={styles.topNavBarWrapper}>
             <AdaptiveGlassView
               intensity={24}
               useGlassInLightMode
-              style={styles.topNavBlur}
+              style={[styles.topNavBlur, glassStyles.blurContentLarge, theme.glass.navWrapperStyle]}
             >
-              {!theme.isDark && <View style={[styles.glassOverlay, { backgroundColor: theme.glass.overlayStrong }]} pointerEvents="none" />}
+              {!theme.isDark && <View style={[styles.glassOverlay, { backgroundColor: theme.glass.overlay }]} pointerEvents="none" />}
             </AdaptiveGlassView>
             <View style={styles.topNavContent}>
               <View style={styles.navButton} />
@@ -277,15 +277,15 @@ const styles = StyleSheet.create({
     zIndex: 60,
   },
   topNavBarWrapper: {
-    ...glassStyles.navBarWrapper,
     width: '90%',
     maxWidth: 340,
     height: 56,
     position: 'relative',
+    overflow: 'visible',
   },
   topNavBlur: {
     ...StyleSheet.absoluteFillObject,
-    ...glassStyles.blurContentLarge,
+    ...glassStyles.navBarWrapper,
     zIndex: 0,
   },
   topNavContent: {
