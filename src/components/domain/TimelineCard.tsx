@@ -4,7 +4,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { spacing, borderRadius, fontFamilies, glassStyles, glassConstants } from '../../theme';
 import { ReservationType } from '../../types';
 import { useTheme } from '../../contexts/ThemeContext';
-import { AdaptiveGlassView } from '../ui/AdaptiveGlassView';
+import { AdaptiveGlassView, isNativeGlassActive } from '../ui/AdaptiveGlassView';
 
 function getTimelineIconConfig(type: ReservationType, theme: ReturnType<typeof useTheme>) {
   const TIMELINE_ICON_CONFIG: Record<ReservationType, { name: keyof typeof MaterialIcons.glyphMap; iconColor: string }> = {
@@ -76,18 +76,35 @@ export const TimelineCard = React.memo(function TimelineCard({
   delay = 0,
 }: TimelineCardProps) {
   const theme = useTheme();
-  const fadeAnim = useRef(new Animated.Value(0)).current;
+  
+  // Native GlassView doesn't initialize properly when container starts at opacity 0.
+  // Use scale animation instead of opacity when native glass is active.
+  const useGlassAnimation = isNativeGlassActive(theme.isDark);
+  
+  const fadeAnim = useRef(new Animated.Value(useGlassAnimation ? 1 : 0)).current;
+  const entranceScaleAnim = useRef(new Animated.Value(useGlassAnimation ? 0.95 : 1)).current;
   const scaleAnim = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
-    Animated.timing(fadeAnim, {
-      toValue: 1,
-      duration: 180,
-      delay,
-      useNativeDriver: true,
-    }).start();
-    // Note: fadeAnim is a stable ref
-  }, [delay]);
+    if (useGlassAnimation) {
+      // Scale up animation for native glass - keeps opacity at 1
+      Animated.spring(entranceScaleAnim, {
+        toValue: 1,
+        tension: 100,
+        friction: 12,
+        delay,
+        useNativeDriver: true,
+      }).start();
+    } else {
+      // Standard fade animation for BlurView
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 180,
+        delay,
+        useNativeDriver: true,
+      }).start();
+    }
+  }, [delay, useGlassAnimation]);
 
   const handlePressIn = useCallback(() => {
     Animated.spring(scaleAnim, { ...PRESS_SPRING, toValue: PRESS_SCALE }).start();
@@ -100,8 +117,13 @@ export const TimelineCard = React.memo(function TimelineCard({
   const iconConfig = getTimelineIconConfig(type, theme);
   const actionType = getActionType(actionLabel);
 
+  // Combine entrance animation with wrapper style
+  const wrapperAnimStyle = useGlassAnimation
+    ? { opacity: 1, transform: [{ scale: entranceScaleAnim }] }
+    : { opacity: fadeAnim };
+
   return (
-    <Animated.View style={[styles.wrapper, { opacity: fadeAnim }]}>
+    <Animated.View style={[styles.wrapper, wrapperAnimStyle]}>
       <View style={styles.container}>
         <View style={styles.timelineColumn}>
           <AdaptiveGlassView intensity={24} darkIntensity={10} glassEffectStyle="clear" style={[styles.iconContainer, glassStyles.blurContentIcon, !theme.isDark && { borderColor: theme.glassColors.border, boxShadow: theme.glassShadows.icon }, theme.isDark && { borderWidth: 1, borderColor: theme.glassColors.borderStrong }, { backgroundColor: theme.isDark ? 'rgba(255, 255, 255, 0.06)' : undefined }]}>

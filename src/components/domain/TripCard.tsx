@@ -4,7 +4,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { spacing, borderRadius, fontFamilies, glassStyles, glassConstants } from '../../theme';
 import { TripIconType } from '../../types';
 import { useTheme } from '../../contexts/ThemeContext';
-import { AdaptiveGlassView } from '../ui/AdaptiveGlassView';
+import { AdaptiveGlassView, isNativeGlassActive } from '../ui/AdaptiveGlassView';
 
 interface TripCardProps {
   destination: string;

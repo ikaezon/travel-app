@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import {
   NavigationContainer,
@@ -29,7 +29,7 @@ SplashScreen.preventAutoHideAsync();
  * transitions before the React gradient content renders on top.
  */
 function ThemedNavigation() {
-  const { isDark, colors } = useTheme();
+  const { isDark, isHydrated, colors } = useTheme();
 
   const navigationTheme: Theme = useMemo(() => {
     const base = isDark ? DarkTheme : DefaultTheme;
@@ -42,6 +42,12 @@ function ThemedNavigation() {
       },
     };
   }, [isDark, colors.gradient.start]);
+
+  // Don't render navigation until theme is hydrated to prevent
+  // components from rendering with incorrect isDark state
+  if (!isHydrated) {
+    return null;
+  }
 
   return (
     <NavigationContainer theme={navigationTheme}>
@@ -58,16 +64,20 @@ export default function App() {
     Outfit_600SemiBold,
     Outfit_700Bold,
   });
+  const [themeHydrated, setThemeHydrated] = useState(false);
 
-  const onLayoutRootView = useCallback(async () => {
-    if (fontsLoaded) {
-      await SplashScreen.hideAsync();
-    }
-  }, [fontsLoaded]);
+  // Track when both fonts and theme are ready
+  const appReady = fontsLoaded && themeHydrated;
+
+  const handleThemeHydrated = useCallback(() => {
+    setThemeHydrated(true);
+  }, []);
 
   useEffect(() => {
-    onLayoutRootView();
-  }, [onLayoutRootView]);
+    if (appReady) {
+      SplashScreen.hideAsync();
+    }
+  }, [appReady]);
 
   if (!fontsLoaded) {
     return null;
@@ -75,8 +85,8 @@ export default function App() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <SafeAreaProvider onLayout={onLayoutRootView}>
-        <ThemeProvider>
+      <SafeAreaProvider>
+        <ThemeProvider onHydrated={handleThemeHydrated}>
           <AuthProvider>
             <ThemedNavigation />
           </AuthProvider>
