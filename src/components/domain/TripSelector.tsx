@@ -85,7 +85,7 @@ function TripRow({ trip, isSelected, onSelect, variant }: TripRowProps) {
   const borderColor = borderAnim.interpolate({
     inputRange: [0, 1],
     outputRange: [
-      variant === 'glass' ? theme.glassColors.border : theme.colors.border,
+      variant === 'glass' ? theme.glass.border : theme.colors.border,
       theme.colors.primary,
     ],
   });
@@ -93,7 +93,7 @@ function TripRow({ trip, isSelected, onSelect, variant }: TripRowProps) {
   const backgroundColor = borderAnim.interpolate({
     inputRange: [0, 1],
     outputRange: [
-      variant === 'glass' ? (theme.isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(255, 255, 255, 0.5)') : theme.colors.surface,
+      variant === 'glass' ? theme.glass.iconBg : theme.colors.surface,
       theme.colors.primaryLight,
     ],
   });
@@ -170,7 +170,7 @@ export function TripSelector({
       return (
         <>
           <Text style={[styles.label, variant === 'glass' && styles.labelGlass, { color: theme.colors.text.primary }]}>Add to trip</Text>
-          <View style={[styles.loadingRow, variant === 'glass' && styles.loadingRowGlass, variant === 'glass' && { backgroundColor: theme.isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(255, 255, 255, 0.5)', borderColor: theme.glassColors.border }, !variant && { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}>
+          <View style={[styles.loadingRow, variant === 'glass' && styles.loadingRowGlass, variant === 'glass' && { backgroundColor: theme.glass.iconBg, borderColor: theme.glass.border }, !variant && { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}>
             <ActivityIndicator size="small" color={theme.colors.primary} />
             <Text style={[styles.loadingText, { color: theme.colors.text.secondary }]}>Loading trips…</Text>
           </View>
@@ -219,9 +219,9 @@ export function TripSelector({
 
   if (variant === 'glass') {
     return (
-      <View style={[styles.glassWrapper, !theme.isDark && { borderColor: theme.glassColors.border }, theme.isDark && { borderWidth: 0 }]}>
+      <View style={[styles.glassWrapper, theme.glass.cardWrapperStyle]}>
         <AdaptiveGlassView intensity={24} darkIntensity={10} glassEffectStyle="clear" style={[styles.glassBlur, glassStyles.blurContent]}>
-          <View style={[styles.glassOverlay, { backgroundColor: theme.isDark ? 'rgba(40, 40, 45, 0.35)' : theme.glassColors.overlayStrong }]} pointerEvents="none" />
+          <View style={[styles.glassOverlay, { backgroundColor: theme.glass.overlayStrong }]} pointerEvents="none" />
           <View style={styles.glassContent}>{content}</View>
         </AdaptiveGlassView>
       </View>

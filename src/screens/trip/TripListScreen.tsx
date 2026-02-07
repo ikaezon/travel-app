@@ -91,15 +91,14 @@ const TripItem = React.memo(function TripItem({ trip, index, onPress }: TripItem
       <Pressable
         style={[
           styles.tripCard,
-          !theme.isDark && { borderColor: theme.glassColors.border },
-          theme.isDark && { borderWidth: 0 },
+          theme.glass.cardWrapperStyle,
         ]}
         onPress={() => onPress(trip.id, tripName)}
         onPressIn={onPressIn}
         onPressOut={onPressOut}
       >
         <AdaptiveGlassView intensity={24} darkIntensity={10} glassEffectStyle="clear" absoluteFill style={glassStyles.blurContentXLarge} />
-        <View style={[styles.cardOverlay, { backgroundColor: theme.isDark ? 'rgba(40, 40, 45, 0.35)' : theme.glassColors.overlayStrong }]} pointerEvents="none" />
+        <View style={[styles.cardOverlay, { backgroundColor: theme.glass.overlayStrong }]} pointerEvents="none" />
 
         <View style={styles.innerContainer}>
           <View style={styles.imageFrame}>
@@ -109,12 +108,12 @@ const TripItem = React.memo(function TripItem({ trip, index, onPress }: TripItem
               resizeMode="cover"
             >
               <View style={styles.tripBadgeContainer}>
-                <AdaptiveGlassView intensity={40} darkIntensity={10} glassEffectStyle="clear" style={[styles.statusBadge, glassStyles.blurContentPill, { borderColor: theme.glassColors.borderStrong, backgroundColor: theme.glassColors.overlay }]}>
+                <AdaptiveGlassView intensity={40} darkIntensity={10} glassEffectStyle="clear" style={[styles.statusBadge, glassStyles.blurContentPill, { borderColor: theme.glass.borderStrong, backgroundColor: theme.glass.overlay }]}>
                   <View style={[styles.statusDot, statusDotStyle]} />
                   <Text style={[styles.statusText, { color: theme.colors.text.primary }]}>{statusLabel}</Text>
                 </AdaptiveGlassView>
                 
-                <AdaptiveGlassView intensity={40} darkIntensity={10} glassEffectStyle="clear" style={[styles.durationBadge, glassStyles.blurContentPill, { borderColor: theme.glassColors.borderStrong, backgroundColor: theme.glassColors.overlay }]}>
+                <AdaptiveGlassView intensity={40} darkIntensity={10} glassEffectStyle="clear" style={[styles.durationBadge, glassStyles.blurContentPill, { borderColor: theme.glass.borderStrong, backgroundColor: theme.glass.overlay }]}>
                   <MaterialIcons name="schedule" size={14} color={theme.colors.text.primary} />
                   <Text style={[styles.durationText, { color: theme.colors.text.primary }]}>{trip.durationLabel}</Text>
                 </AdaptiveGlassView>
@@ -130,7 +129,7 @@ const TripItem = React.memo(function TripItem({ trip, index, onPress }: TripItem
                 </Text>
                 <Text style={[styles.tripDateRange, { color: theme.colors.text.secondary }]}>{trip.dateRange}</Text>
               </View>
-              <AdaptiveGlassView intensity={40} darkIntensity={10} glassEffectStyle="clear" style={[styles.iconBadge, glassStyles.blurContentIcon, { borderColor: theme.glassColors.borderStrong, backgroundColor: theme.glassColors.overlay }]}>
+              <AdaptiveGlassView intensity={40} darkIntensity={10} glassEffectStyle="clear" style={[styles.iconBadge, glassStyles.blurContentIcon, { borderColor: theme.glass.borderStrong, backgroundColor: theme.glass.overlay }]}>
                 <MaterialIcons name="chevron-right" size={24} color={theme.colors.text.tertiary} />
               </AdaptiveGlassView>
             </View>
@@ -178,8 +177,8 @@ export default function TripListScreen() {
     ({ section }: { section: TripSection }) => (
       <View style={styles.sectionHeader}>
         <Text style={[styles.sectionTitle, { color: theme.colors.text.primary }]}>{section.title}</Text>
-        <AdaptiveGlassView intensity={24} darkIntensity={10} glassEffectStyle="clear" style={[styles.countBadge, glassStyles.blurContentPill, { borderColor: theme.glassColors.border }]}>
-          <View style={[styles.glassOverlay, { backgroundColor: theme.glassColors.overlayStrong }]} pointerEvents="none" />
+        <AdaptiveGlassView intensity={24} darkIntensity={10} glassEffectStyle="clear" style={[styles.countBadge, glassStyles.blurContentPill, { borderColor: theme.glass.border }]}>
+          <View style={[styles.glassOverlay, { backgroundColor: theme.glass.overlayStrong }]} pointerEvents="none" />
           <Text style={[styles.countText, { color: theme.colors.primary }]}>{section.count}</Text>
         </AdaptiveGlassView>
       </View>

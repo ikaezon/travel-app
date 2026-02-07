@@ -106,9 +106,7 @@ export const TripCard = React.memo(function TripCard({
       <Pressable
         style={[
           styles.cardWrapper,
-          !theme.isDark && { borderColor: theme.glassColors.border },
-          theme.isDark && { borderWidth: 0 },
-          !theme.isDark && { boxShadow: theme.glassShadows.card },
+          theme.glass.cardWrapperStyle,
         ]}
         onPress={onPress}
         onPressIn={handlePressIn}
@@ -117,7 +115,7 @@ export const TripCard = React.memo(function TripCard({
         accessibilityLabel={`${destination}. ${dateRange}. ${durationLabel}`}
       >
         <AdaptiveGlassView intensity={24} darkIntensity={10} glassEffectStyle="clear" style={[styles.card, glassStyles.blurContent]}>
-          <View style={[styles.cardOverlay, { backgroundColor: theme.isDark ? 'rgba(40, 40, 45, 0.35)' : theme.glassColors.overlay }]} pointerEvents="none" />
+          <View style={[styles.cardOverlay, { backgroundColor: theme.glass.overlay }]} pointerEvents="none" />
           
           {/* Inner border overlay - creates anti-aliased edge effect for larger cards */}
           {theme.isDark && (
@@ -139,8 +137,8 @@ export const TripCard = React.memo(function TripCard({
                 style={styles.image}
                 resizeMode="cover"
               >
-                <AdaptiveGlassView intensity={24} darkIntensity={10} glassEffectStyle="clear" style={[styles.durationBadge, glassStyles.blurContentPill, !theme.isDark && { borderColor: theme.glassColors.border }, theme.isDark && { borderWidth: 0 }]}>
-                  <View style={[styles.durationOverlay, { backgroundColor: theme.isDark ? 'rgba(0, 0, 0, 0.35)' : theme.colors.glass.iconInset }]} pointerEvents="none" />
+                <AdaptiveGlassView intensity={24} darkIntensity={10} glassEffectStyle="clear" style={[styles.durationBadge, glassStyles.blurContentPill, theme.glass.pillContainerStyle]}>
+                  <View style={[styles.durationOverlay, { backgroundColor: theme.glass.badgeOverlay }]} pointerEvents="none" />
                   <MaterialIcons name="flight-takeoff" size={14} color={theme.colors.text.primary} />
                   <Text style={[styles.durationText, { color: theme.colors.text.primary }]}>{durationLabel}</Text>
                 </AdaptiveGlassView>
@@ -155,7 +153,7 @@ export const TripCard = React.memo(function TripCard({
                   {dateRange}
                 </Text>
               </View>
-              <View style={[styles.iconBadge, glassStyles.blurContentIcon, !theme.isDark && { borderColor: theme.glassColors.border }, theme.isDark && { borderWidth: 0 }, { backgroundColor: theme.isDark ? 'rgba(255, 255, 255, 0.06)' : theme.colors.glass.iconInset }]}>
+              <View style={[styles.iconBadge, glassStyles.blurContentIcon, theme.glass.iconContainerStyle]}>
                 <MaterialIcons name={getIconName()} size={24} color={theme.isDark ? theme.colors.text.secondary : accentColor} />
               </View>
             </View>

@@ -126,7 +126,7 @@ export const TimelineCard = React.memo(function TimelineCard({
     <Animated.View style={[styles.wrapper, wrapperAnimStyle]}>
       <View style={styles.container}>
         <View style={styles.timelineColumn}>
-          <AdaptiveGlassView intensity={24} darkIntensity={10} glassEffectStyle="clear" style={[styles.iconContainer, glassStyles.blurContentIcon, !theme.isDark && { borderColor: theme.glassColors.border, boxShadow: theme.glassShadows.icon }, theme.isDark && { borderWidth: 1, borderColor: theme.glassColors.borderStrong }, { backgroundColor: theme.isDark ? 'rgba(255, 255, 255, 0.06)' : undefined }]}>
+          <AdaptiveGlassView intensity={24} darkIntensity={10} glassEffectStyle="clear" style={[styles.iconContainer, glassStyles.blurContentIcon, !theme.isDark && { borderColor: theme.glass.border }, theme.isDark && { borderWidth: 1, borderColor: theme.glass.borderStrong }, { backgroundColor: theme.isDark ? theme.glass.iconBg : undefined }]}>
             {!theme.isDark && <View style={[styles.glassOverlay, { backgroundColor: 'rgba(255, 255, 255, 0.4)' }]} pointerEvents="none" />}
             <MaterialIcons
               name={iconConfig.name}
@@ -138,13 +138,13 @@ export const TimelineCard = React.memo(function TimelineCard({
 
         <Animated.View style={[styles.cardAnimWrapper, { transform: [{ scale: scaleAnim }] }]}>
         <Pressable
-          style={[styles.card, !theme.isDark && { borderColor: theme.glassColors.border }, theme.isDark && { borderWidth: 0 }]}
+          style={[styles.card, theme.glass.cardWrapperStyle]}
           onPress={onPress}
           onPressIn={handlePressIn}
           onPressOut={handlePressOut}
         >
           <AdaptiveGlassView intensity={24} darkIntensity={10} glassEffectStyle="clear" absoluteFill style={glassStyles.blurContent} />
-          <View style={[styles.cardOverlay, { backgroundColor: theme.isDark ? 'rgba(40, 40, 45, 0.35)' : undefined }]} pointerEvents="none" />
+          <View style={[styles.cardOverlay, { backgroundColor: theme.glass.overlay }]} pointerEvents="none" />
           
           <View style={styles.cardContent}>
             <View style={styles.cardHeaderRow}>
@@ -177,11 +177,11 @@ export const TimelineCard = React.memo(function TimelineCard({
             <Pressable
               style={({ pressed }) => [
                 styles.actionButton,
-                actionType === 'boardingPass' && [styles.actionButtonBlue, { borderColor: theme.glassColors.borderShimmerBlue }],
-                actionType === 'directions' && [styles.actionButtonOrange, { borderColor: theme.glassColors.borderShimmerOrange }],
+                actionType === 'boardingPass' && [styles.actionButtonBlue, { borderColor: theme.glass.borderShimmerBlue }],
+                actionType === 'directions' && [styles.actionButtonOrange, { borderColor: theme.glass.borderShimmerOrange }],
                 actionType === 'default' && { borderColor: iconConfig.iconColor },
                 pressed && styles.actionButtonPressed,
-                !theme.isDark && { boxShadow: theme.glassShadows.icon },
+                !theme.isDark && { boxShadow: '0 1px 3px rgba(0, 0, 0, 0.12)' },
               ]}
               onPress={onActionPress}
             >
@@ -189,9 +189,9 @@ export const TimelineCard = React.memo(function TimelineCard({
               <View
                 style={[
                   StyleSheet.absoluteFill,
-                  actionType === 'boardingPass' && { backgroundColor: theme.glassColors.overlayBlue },
-                  actionType === 'directions' && { backgroundColor: theme.glassColors.overlayOrange },
-                  actionType === 'default' && { backgroundColor: theme.glassColors.overlay },
+                  actionType === 'boardingPass' && { backgroundColor: theme.glass.overlayBlue },
+                  actionType === 'directions' && { backgroundColor: theme.glass.overlayOrange },
+                  actionType === 'default' && { backgroundColor: theme.glass.overlay },
                 ]}
                 pointerEvents="none"
               />

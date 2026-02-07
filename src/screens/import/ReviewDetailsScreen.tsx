@@ -110,15 +110,14 @@ export default function ReviewDetailsScreen({
             <Pressable 
               style={[
                 styles.sourceCard,
-                !theme.isDark && { borderColor: theme.glassColors.border },
-                theme.isDark && { borderWidth: 0 }
+                theme.glass.cardWrapperStyle
               ]} 
               onPressIn={sourceAnim.onPressIn} 
               onPressOut={sourceAnim.onPressOut}
             >
               <AdaptiveGlassView intensity={24} darkIntensity={10} glassEffectStyle="clear" absoluteFill style={glassStyles.blurContent} />
               <View style={styles.sourceCardInner}>
-                <View style={[styles.glassOverlay, { backgroundColor: theme.isDark ? 'rgba(40, 40, 45, 0.35)' : theme.glassColors.overlayStrong }]} pointerEvents="none" />
+                <View style={[styles.glassOverlay, { backgroundColor: theme.glass.overlayStrong }]} pointerEvents="none" />
                 <View style={styles.sourceContent}>
                 <View style={styles.sourceInfo}>
                   <View style={styles.sourceHeader}>
@@ -130,7 +129,7 @@ export default function ReviewDetailsScreen({
                     Tap to expand and verify details
                   </Text>
                 </View>
-                <Pressable style={[styles.thumbnailContainer, { borderColor: theme.glassColors.border }]}>
+                <Pressable style={[styles.thumbnailContainer, { borderColor: theme.glass.border }]}>
                   <ImageBackground
                     source={{ uri: sourceImageUrl }}
                     style={styles.thumbnail}

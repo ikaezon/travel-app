@@ -13,7 +13,6 @@ export type {
   CreateTrainInput,
 } from './reservationWorkflows';
 export {
-  fetchPlaceSuggestions,
   isPlaceAutocompleteAvailable,
   createPlaceAutocompleteService,
 } from './placeAutocompleteService';

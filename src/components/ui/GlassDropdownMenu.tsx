@@ -114,7 +114,7 @@ export function GlassDropdownMenu({
           minWidth: 180,
           borderRadius: MENU.borderRadius,
           borderWidth: MENU.borderWidth,
-          borderColor: theme.glassColors.borderStrong,
+          borderColor: theme.glass.borderStrong,
         },
         useGlassAnimation && { borderWidth: 0 },
         style,
@@ -136,7 +136,7 @@ export function GlassDropdownMenu({
           overflow: 'hidden',
         }} />
         <View style={[StyleSheet.absoluteFillObject, {
-          backgroundColor: theme.isDark ? 'rgba(40, 40, 45, 0.60)' : theme.glassColors.overlay,
+          backgroundColor: theme.glass.menuOverlay,
         }]} pointerEvents="none" />
         <View style={{ position: 'relative' }}>
         {actions.map((action, index) => {
@@ -156,7 +156,7 @@ export function GlassDropdownMenu({
                   borderBottomColor: theme.colors.border,
                 },
                 uniformItemBackground && {
-                  backgroundColor: theme.glassColors.menuItemPressed,
+                  backgroundColor: theme.glass.menuItemPressed,
                 },
                 pressed && {
                   backgroundColor: theme.colors.surface,

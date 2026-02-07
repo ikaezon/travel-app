@@ -236,8 +236,8 @@ export default function ScreenshotUploadScreen() {
         </View>
 
         <View style={[styles.headerContainer, { top: topOffset }]}>
-          <AdaptiveGlassView intensity={24} style={[styles.headerBlur, glassStyles.blurContentLarge, { borderColor: theme.glassColors.border, boxShadow: theme.glassShadows.nav }]}>
-            {!theme.isDark && <View style={[styles.glassOverlay, { backgroundColor: theme.glassColors.overlayStrong }]} pointerEvents="none" />}
+          <AdaptiveGlassView intensity={24} style={[styles.headerBlur, glassStyles.blurContentLarge, theme.glass.navWrapperStyle]}>
+            {!theme.isDark && <View style={[styles.glassOverlay, { backgroundColor: theme.glass.overlayStrong }]} pointerEvents="none" />}
             <View style={styles.headerContent}>
               <Animated.View style={{ transform: [{ scale: backAnim.scaleAnim }] }}>
               <Pressable style={styles.backButton} onPress={handleBackPress} onPressIn={backAnim.onPressIn} onPressOut={backAnim.onPressOut}>
@@ -257,9 +257,9 @@ export default function ScreenshotUploadScreen() {
 
         {isParsing && (
           <View style={[styles.parsingOverlay, { bottom: insets.bottom + 120 }]}>
-            <Pressable style={({ pressed }) => [styles.parsingCard, !theme.isDark && { borderColor: theme.glassColors.border }, theme.isDark && { borderWidth: 0 }, pressed && styles.parsingCardPressed]}>
+            <Pressable style={({ pressed }) => [styles.parsingCard, theme.glass.cardWrapperStyle, pressed && styles.parsingCardPressed]}>
               <AdaptiveGlassView intensity={24} darkIntensity={10} glassEffectStyle="clear" absoluteFill style={glassStyles.blurContent} />
-              <View style={[styles.glassOverlay, { backgroundColor: theme.isDark ? 'rgba(40, 40, 45, 0.35)' : theme.glassColors.overlayStrong }]} pointerEvents="none" />
+              <View style={[styles.glassOverlay, { backgroundColor: theme.glass.overlayStrong }]} pointerEvents="none" />
               <View style={styles.parsingContent}>
             <View style={styles.parsingHeader}>
               <View style={[styles.parsingIconContainer, { backgroundColor: theme.colors.primaryLight }]}>
@@ -375,8 +375,6 @@ const styles = StyleSheet.create({
   },
   photoSelected: {
     borderWidth: 4,
-    borderColor: '#0ea5e9', // theme.colors.primary - will be set inline
-    shadowColor: '#0ea5e9', // theme.colors.primary - will be set inline
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,

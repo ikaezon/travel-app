@@ -60,8 +60,8 @@ export function FormInput({
               height: 56,
               borderRadius: borderRadius.md,
               borderWidth: 1,
-              borderColor: variant === 'glass' ? theme.glassColors.border : theme.colors.border,
-              backgroundColor: variant === 'glass' ? (theme.isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(255, 255, 255, 0.5)') : theme.colors.surface,
+              borderColor: variant === 'glass' ? theme.glass.border : theme.colors.border,
+              backgroundColor: variant === 'glass' ? theme.glass.iconBg : theme.colors.surface,
               paddingHorizontal: spacing.lg,
               fontSize: 16,
               fontFamily: fontFamilies.regular,
@@ -90,9 +90,9 @@ export function FormInput({
 
   if (variant === 'glass') {
     return (
-      <View style={[styles.glassWrapper, !theme.isDark && { borderColor: theme.glassColors.border }, theme.isDark && { borderWidth: 0 }, style]}>
+      <View style={[styles.glassWrapper, theme.glass.cardWrapperStyle, style]}>
         <AdaptiveGlassView intensity={24} darkIntensity={10} glassEffectStyle="clear" style={[styles.glassBlur, glassStyles.blurContent]}>
-          <View style={[styles.glassOverlay, { backgroundColor: theme.isDark ? 'rgba(40, 40, 45, 0.35)' : theme.glassColors.overlayStrong }]} pointerEvents="none" />
+          <View style={[styles.glassOverlay, { backgroundColor: theme.glass.overlayStrong }]} pointerEvents="none" />
           <View style={styles.glassContent}>{content}</View>
         </AdaptiveGlassView>
       </View>

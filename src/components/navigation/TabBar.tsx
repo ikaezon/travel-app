@@ -244,7 +244,7 @@ export function TabBar({ state, descriptors, navigation }: BottomTabBarProps) {
           style={[styles.pill, pillAnimatedStyle]}
           pointerEvents="none"
         >
-          <AdaptiveGlassView intensity={45} glassEffectStyle="clear" style={[styles.pillBlur, { borderColor: theme.glassColors.borderStrong }]}>
+          <AdaptiveGlassView intensity={45} glassEffectStyle="clear" style={[styles.pillBlur, { borderColor: theme.glass.borderStrong }]}>
             {!theme.isDark && <View style={[styles.pillOverlay, { backgroundColor: 'rgba(255, 255, 255, 0.55)' }]} />}
           </AdaptiveGlassView>
         </Animated.View>
@@ -252,9 +252,9 @@ export function TabBar({ state, descriptors, navigation }: BottomTabBarProps) {
         {/* Glass bar background */}
         <AdaptiveGlassView
           intensity={24}
-          style={[styles.blurContainer, glassStyles.blurContentLarge, { borderColor: theme.glassColors.border, boxShadow: theme.glassShadows.nav }]}
+          style={[styles.blurContainer, glassStyles.blurContentLarge, theme.glass.navWrapperStyle]}
         >
-          {!theme.isDark && <View style={[styles.glassOverlay, { backgroundColor: theme.glassColors.overlay }]} pointerEvents="none" />}
+          {!theme.isDark && <View style={[styles.glassOverlay, { backgroundColor: theme.glass.overlay }]} pointerEvents="none" />}
         </AdaptiveGlassView>
 
         {/* Tab items with pan responder on container */}

@@ -31,7 +31,7 @@ export function SettingsListItem({
     <View style={variant === 'glass' ? styles.glassContainer : styles.container}>
       <View style={styles.leftContent}>
         {variant === 'glass' ? (
-          <AdaptiveGlassView intensity={50} darkIntensity={10} glassEffectStyle="clear" style={[styles.glassIconContainer, glassStyles.blurContentIcon, theme.isDark && { borderWidth: 1, borderColor: theme.glassColors.borderStrong }, { backgroundColor: theme.isDark ? 'rgba(255, 255, 255, 0.06)' : undefined }]}>
+          <AdaptiveGlassView intensity={50} darkIntensity={10} glassEffectStyle="clear" style={[styles.glassIconContainer, glassStyles.blurContentIcon, theme.glass.iconContainerStyle]}>
             <MaterialIcons name={iconName} size={20} color={theme.colors.primary} />
           </AdaptiveGlassView>
         ) : (
@@ -57,7 +57,7 @@ export function SettingsListItem({
   if (variant === 'glass') {
     const wrapper = (
       <AdaptiveGlassView intensity={24} darkIntensity={10} glassEffectStyle="clear" style={[styles.glassBlur, glassStyles.blurContent]}>
-        <View style={[styles.glassOverlay, { backgroundColor: theme.isDark ? 'rgba(40, 40, 45, 0.35)' : undefined }]} pointerEvents="none" />
+        <View style={[styles.glassOverlay, { backgroundColor: theme.glass.overlay }]} pointerEvents="none" />
         {content}
       </AdaptiveGlassView>
     );
@@ -65,7 +65,7 @@ export function SettingsListItem({
       return (
         <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
         <Pressable
-          style={[styles.glassPressable, !theme.isDark && { borderColor: theme.glassColors.border }, theme.isDark && { borderWidth: 0 }]}
+          style={[styles.glassPressable, theme.glass.cardWrapperStyle]}
           onPress={onPress}
           onPressIn={onPressIn}
           onPressOut={onPressOut}
@@ -75,7 +75,7 @@ export function SettingsListItem({
         </Animated.View>
       );
     }
-    return <View style={[styles.glassPressable, !theme.isDark && { borderColor: theme.glassColors.border }, theme.isDark && { borderWidth: 0 }]}>{wrapper}</View>;
+    return <View style={[styles.glassPressable, theme.glass.cardWrapperStyle]}>{wrapper}</View>;
   }
 
   if (onPress) {

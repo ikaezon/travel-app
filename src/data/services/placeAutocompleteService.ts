@@ -63,9 +63,6 @@ export function createPlaceAutocompleteService(): PlaceAutocompleteService {
   };
 }
 
-let debounceTimer: ReturnType<typeof setTimeout> | null = null;
-let lastAbort: AbortController | null = null;
-
 function apiKey(): string | undefined {
   return typeof process !== 'undefined' ? process.env?.EXPO_PUBLIC_GEOAPIFY_API_KEY : undefined;
 }
@@ -163,37 +160,6 @@ export async function fetchPlaceSuggestions(query: string, signal?: AbortSignal)
     if (e instanceof Error && e.name === 'AbortError') return [];
     return [];
   }
-}
-
-export function debouncedFetchSuggestions(query: string, onResult: (suggestions: PlaceSuggestion[]) => void): void {
-  const q = query.trim();
-  if (debounceTimer) clearTimeout(debounceTimer);
-  debounceTimer = null;
-
-  if (q.length < MIN_LEN) {
-    onResult([]);
-    return;
-  }
-
-  debounceTimer = setTimeout(async () => {
-    debounceTimer = null;
-    lastAbort?.abort();
-    const ac = new AbortController();
-    lastAbort = ac;
-
-    const cached = getCached(q);
-    if (cached) onResult(cached);
-
-    const list = await fetchPlaceSuggestions(q, ac.signal);
-    if (!ac.signal.aborted) onResult(list);
-  }, DEBOUNCE_MS);
-}
-
-export function cancelDebounce(): void {
-  if (debounceTimer) clearTimeout(debounceTimer);
-  debounceTimer = null;
-  lastAbort?.abort();
-  lastAbort = null;
 }
 
 // Address autocomplete types and functions

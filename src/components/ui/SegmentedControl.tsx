@@ -194,8 +194,8 @@ export function SegmentedControl({
             top: 3,
             height: 30,
             borderRadius: glassConstants.radius.icon,
-            backgroundColor: theme.glassColors.borderStrong,
-            boxShadow: theme.glassShadows.icon,
+            backgroundColor: theme.glass.borderStrong,
+            boxShadow: theme.glass.cardBoxShadow,
             zIndex: 1,
           },
           {

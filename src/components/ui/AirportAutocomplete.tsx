@@ -132,12 +132,12 @@ export function AirportAutocomplete({
         key={airport.iata}
         style={({ pressed }) => [
           styles.suggestionRow,
-          pressed && { backgroundColor: theme.glassColors.menuItemPressed },
-          !isLast && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: theme.glassColors.menuItemBorder },
+          pressed && { backgroundColor: theme.glass.menuItemPressed },
+          !isLast && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: theme.glass.menuItemBorder },
         ]}
         onPress={() => handleSelect(airport)}
       >
-        <AdaptiveGlassView intensity={40} darkIntensity={10} glassEffectStyle="clear" style={[styles.iataTag, { borderColor: theme.glassColors.borderBlue, backgroundColor: theme.glassColors.overlayBlue }]}>
+        <AdaptiveGlassView intensity={40} darkIntensity={10} glassEffectStyle="clear" style={[styles.iataTag, { borderColor: theme.glass.borderBlue, backgroundColor: theme.glass.overlayBlue }]}>
           <Text style={[styles.iataText, { color: theme.colors.text.primary }]}>{airport.iata}</Text>
         </AdaptiveGlassView>
         <View style={styles.suggestionInfo}>
@@ -181,7 +181,7 @@ export function AirportAutocomplete({
           style={[
             styles.input,
             iconName && styles.inputWithLeftIcon,
-            variant === 'glass' && { backgroundColor: theme.isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(255, 255, 255, 0.5)', borderColor: theme.glassColors.border },
+            variant === 'glass' && { backgroundColor: theme.glass.fill, borderColor: theme.glass.border },
             !variant && { borderColor: theme.colors.border, backgroundColor: theme.colors.surface },
             { color: theme.colors.text.primary },
           ]}
@@ -201,23 +201,23 @@ export function AirportAutocomplete({
   if (variant === 'glass') {
     return (
       <View style={styles.container}>
-        <View style={[styles.glassWrapper, !theme.isDark && { borderColor: theme.glassColors.border }, theme.isDark && { borderWidth: 0 }]} onLayout={handleCardLayout}>
+        <View style={[styles.glassWrapper, theme.glass.cardWrapperStyle]} onLayout={handleCardLayout}>
           <AdaptiveGlassView
             intensity={24}
             darkIntensity={10}
             glassEffectStyle="clear"
             style={[styles.glassBlur, glassStyles.blurContent]}
           >
-            <View style={[styles.glassOverlay, { backgroundColor: theme.isDark ? 'rgba(40, 40, 45, 0.35)' : theme.glassColors.overlayStrong }]} pointerEvents="none" />
+            <View style={[styles.glassOverlay, { backgroundColor: theme.glass.overlayStrong }]} pointerEvents="none" />
             <View style={styles.glassContent}>{inputContent}</View>
           </AdaptiveGlassView>
         </View>
 
         {/* Glass dropdown */}
         {showDropdown && (
-          <View style={[styles.dropdownContainer, { top: cardHeight + 8, borderColor: theme.glassColors.borderStrong, boxShadow: theme.glassShadows.elevated }]}>
+          <View style={[styles.dropdownContainer, { top: cardHeight + 8, borderColor: theme.glass.borderStrong, boxShadow: theme.glass.elevatedBoxShadow }]}>
             <AdaptiveGlassView intensity={48} darkIntensity={10} glassEffectStyle="clear" style={styles.dropdownBlur}>
-              <View style={[styles.dropdownOverlay, { backgroundColor: theme.isDark ? 'rgba(40, 40, 45, 0.35)' : 'rgba(255, 255, 255, 0.15)' }]} pointerEvents="none" />
+              <View style={[styles.dropdownOverlay, { backgroundColor: theme.glass.overlay }]} pointerEvents="none" />
               <ScrollView
                 style={styles.dropdownList}
                 keyboardShouldPersistTaps="handled"

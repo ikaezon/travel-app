@@ -390,12 +390,12 @@ export default function EditReservationScreen() {
             </>
           )}
           {isFlight ? (
-            <View style={[styles.flightDetailsCard, !theme.isDark && { borderColor: theme.glassColors.border }, theme.isDark && { borderWidth: 0 }]}>
+            <View style={[styles.flightDetailsCard, theme.glass.cardWrapperStyle]}>
               <AdaptiveGlassView intensity={24} darkIntensity={10} glassEffectStyle="clear" style={[styles.flightDetailsBlur, glassStyles.blurContent]}>
-                <View style={[styles.glassOverlay, { backgroundColor: theme.isDark ? 'rgba(40, 40, 45, 0.35)' : theme.glassColors.overlayStrong }]} pointerEvents="none" />
+                <View style={[styles.glassOverlay, { backgroundColor: theme.glass.overlayStrong }]} pointerEvents="none" />
                 <View style={styles.flightDetailsContent}>
                   <Text style={[styles.flightDetailsLabel, { color: theme.colors.text.primary }]}>Flight details</Text>
-                  <View style={[styles.flightDetailsGrid, { backgroundColor: theme.isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(255, 255, 255, 0.5)', borderColor: theme.glassColors.border }]}>
+                  <View style={[styles.flightDetailsGrid, { backgroundColor: theme.isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(255, 255, 255, 0.5)', borderColor: theme.glass.border }]}>
                     <View style={styles.flightDetailsInputRow}>
                       <View style={styles.flightDetailsInputCol}>
                         <MaterialIcons name="confirmation-number" size={16} color={theme.colors.text.secondary} style={styles.flightDetailsIcon} />
@@ -407,7 +407,7 @@ export default function EditReservationScreen() {
                           placeholderTextColor={theme.colors.text.tertiary}
                         />
                       </View>
-                      <View style={[styles.flightDetailsDivider, { backgroundColor: theme.glassColors.border }]} />
+                      <View style={[styles.flightDetailsDivider, { backgroundColor: theme.glass.border }]} />
                       <View style={styles.flightDetailsInputCol}>
                         <MaterialIcons name="meeting-room" size={16} color={theme.colors.text.secondary} style={styles.flightDetailsIcon} />
                         <TextInput
@@ -419,7 +419,7 @@ export default function EditReservationScreen() {
                         />
                       </View>
                     </View>
-                    <View style={[styles.flightDetailsRowDivider, { backgroundColor: theme.glassColors.border }]} />
+                    <View style={[styles.flightDetailsRowDivider, { backgroundColor: theme.glass.border }]} />
                     <View style={styles.flightDetailsInputRow}>
                       <View style={styles.flightDetailsInputCol}>
                         <MaterialIcons name="door-sliding" size={16} color={theme.colors.text.secondary} style={styles.flightDetailsIcon} />
@@ -431,7 +431,7 @@ export default function EditReservationScreen() {
                           placeholderTextColor={theme.colors.text.tertiary}
                         />
                       </View>
-                      <View style={[styles.flightDetailsDivider, { backgroundColor: theme.glassColors.border }]} />
+                      <View style={[styles.flightDetailsDivider, { backgroundColor: theme.glass.border }]} />
                       <View style={styles.flightDetailsInputCol}>
                         <MaterialIcons name="airline-seat-recline-extra" size={16} color={theme.colors.text.secondary} style={styles.flightDetailsIcon} />
                         <TextInput

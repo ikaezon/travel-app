@@ -63,16 +63,6 @@ export const colors = {
     },
   },
 
-  glass: {
-    background: 'rgba(255, 255, 255, 0.55)',
-    backgroundStrong: 'rgba(255, 255, 255, 0.65)',
-    border: 'rgba(255, 255, 255, 0.65)',
-    borderStrong: 'rgba(255, 255, 255, 0.85)',
-    shadow: 'rgba(31, 38, 135, 0.07)',
-    iconInset: 'rgba(255, 255, 255, 0.5)',
-    progressBg: 'rgba(255, 255, 255, 0.3)',
-  },
-
   gradient: {
     start: '#e2e8f0',
     middle: '#f1f5f9',
@@ -91,10 +81,8 @@ export const colors = {
   transparent: 'transparent',
 } as const;
 
-export type ColorKey = keyof typeof colors;
-
 // ============================================
-// RESOLVED COLORS (theme-aware, no .light/.dark)
+// RESOLVED COLORS (theme-aware)
 // ============================================
 
 export interface ResolvedColors {
@@ -125,15 +113,6 @@ export interface ResolvedColors {
     train: { bg: string; icon: string };
     car: { bg: string; icon: string };
   };
-  glass: {
-    background: string;
-    backgroundStrong: string;
-    border: string;
-    borderStrong: string;
-    shadow: string;
-    iconInset: string;
-    progressBg: string;
-  };
   gradient: {
     start: string;
     middle: string;
@@ -153,7 +132,6 @@ export interface ResolvedColors {
 export function getThemeColors(isDark: boolean): ResolvedColors {
   if (isDark) {
     return {
-      // Obsidian Liquid Glass dark palette
       primary: colors.primary,
       primaryLight: 'rgba(14, 165, 233, 0.12)',
       primaryDark: colors.primaryDark,
@@ -180,15 +158,6 @@ export function getThemeColors(isDark: boolean): ResolvedColors {
         hotel: { bg: 'rgba(251, 146, 60, 0.10)', icon: '#fb923c' },
         train: { bg: 'rgba(52, 211, 153, 0.10)', icon: '#34d399' },
         car: { bg: 'rgba(168, 85, 247, 0.10)', icon: '#a855f7' },
-      },
-      glass: {
-        background: 'rgba(80, 80, 85, 0.15)',
-        backgroundStrong: 'rgba(40, 40, 45, 0.40)',
-        border: 'rgba(255, 255, 255, 0.12)',
-        borderStrong: 'rgba(255, 255, 255, 0.20)',
-        shadow: 'rgba(0, 0, 0, 0.50)',
-        iconInset: 'rgba(255, 255, 255, 0.05)',
-        progressBg: 'rgba(39, 39, 42, 0.50)',
       },
       gradient: {
         start: '#18181b',
@@ -221,7 +190,6 @@ export function getThemeColors(isDark: boolean): ResolvedColors {
     border: colors.border.light,
     status: colors.status,
     reservation: colors.reservation,
-    glass: colors.glass,
     gradient: colors.gradient,
     accent: colors.accent,
     white: colors.white,

@@ -192,15 +192,15 @@ export function TimePickerInput({
   return (
     <View style={[styles.container, style]}>
       {variant === 'glass' ? (
-        <View style={[styles.glassWrapper, !theme.isDark && { borderColor: theme.glassColors.border }, theme.isDark && { borderWidth: 0 }]}>
+        <View style={[styles.glassWrapper, theme.glass.cardWrapperStyle]}>
           <AdaptiveGlassView intensity={24} darkIntensity={10} glassEffectStyle="clear" style={[styles.glassBlur, glassStyles.blurContent]}>
-            <View style={[styles.glassOverlay, { backgroundColor: theme.isDark ? 'rgba(40, 40, 45, 0.35)' : theme.glassColors.overlayStrong }]} pointerEvents="none" />
+            <View style={[styles.glassOverlay, { backgroundColor: theme.glass.overlayStrong }]} pointerEvents="none" />
             <View style={styles.glassContent}>
               <View style={styles.labelRow}>
                 <Text style={[styles.label, { color: theme.colors.text.secondary }]}>{label}</Text>
               </View>
               <Pressable
-                style={[styles.valueRow, { borderColor: theme.glassColors.border }]}
+                style={[styles.valueRow, { borderColor: theme.glass.border }]}
                 onPress={openPicker}
                 accessibilityLabel={label}
                 accessibilityRole="button"
@@ -262,7 +262,7 @@ export function TimePickerInput({
             <Animated.View
               style={[
                 styles.pickerSheetWrapper,
-                { transform: [{ translateY: slideAnim }], borderColor: theme.glassColors.borderStrong },
+                { transform: [{ translateY: slideAnim }], borderColor: theme.glass.borderStrong },
               ]}
               onStartShouldSetResponder={() => true}
             >
@@ -272,7 +272,7 @@ export function TimePickerInput({
                 glassEffectStyle="clear"
                 style={styles.pickerSheetBlur}
               >
-                <View style={[styles.pickerSheetOverlay, { backgroundColor: theme.isDark ? 'rgba(40, 40, 45, 0.35)' : theme.glassColors.menuOverlay }]} pointerEvents="none" />
+                <View style={[styles.pickerSheetOverlay, { backgroundColor: theme.glass.menuOverlay }]} pointerEvents="none" />
                 
                 {/* Header */}
                 <View style={styles.pickerHeader}>
@@ -280,7 +280,7 @@ export function TimePickerInput({
                     onPress={closePicker} 
                     style={({ pressed }) => [
                       styles.headerButton,
-                      pressed && { backgroundColor: theme.glassColors.menuItemPressed },
+                      pressed && { backgroundColor: theme.glass.menuItemPressed },
                     ]}
                   >
                     <Text style={[styles.cancelText, { color: theme.colors.text.secondary }]}>Cancel</Text>
@@ -300,14 +300,14 @@ export function TimePickerInput({
                     onPress={handleConfirm} 
                     style={({ pressed }) => [
                       styles.headerButton,
-                      pressed && { backgroundColor: theme.glassColors.menuItemPressed },
+                      pressed && { backgroundColor: theme.glass.menuItemPressed },
                     ]}
                   >
                     <Text style={[styles.confirmText, { color: theme.colors.primary }]}>Done</Text>
                   </Pressable>
                 </View>
 
-                <View style={[styles.divider, { backgroundColor: theme.glassColors.menuItemBorder }]} />
+                <View style={[styles.divider, { backgroundColor: theme.glass.menuItemBorder }]} />
 
                 {/* Picker - only render after animation */}
                 <View style={styles.pickerContainer}>

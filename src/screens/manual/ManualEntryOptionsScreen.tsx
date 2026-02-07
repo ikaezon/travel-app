@@ -38,13 +38,13 @@ function OptionCard({ option, onPress, theme }: OptionCardProps) {
   return (
     <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
       <Pressable
-        style={[styles.optionCardWrapper, !theme.isDark && { borderColor: theme.glassColors.border }, theme.isDark && { borderWidth: 0 }]}
+        style={[styles.optionCardWrapper, theme.glass.cardWrapperStyle]}
         onPress={onPress}
         onPressIn={onPressIn}
         onPressOut={onPressOut}
       >
         <AdaptiveGlassView intensity={24} darkIntensity={10} glassEffectStyle="clear" style={[styles.optionCardBlur, glassStyles.blurContent]}>
-          <View style={[styles.glassOverlay, { backgroundColor: theme.isDark ? 'rgba(40, 40, 45, 0.35)' : theme.glassColors.overlayStrong }]} pointerEvents="none" />
+          <View style={[styles.glassOverlay, { backgroundColor: theme.glass.overlayStrong }]} pointerEvents="none" />
           <View style={styles.optionCardContent}>
             <View style={[styles.optionIconContainer, { backgroundColor: option.iconBgColor }]}>
               <MaterialIcons name={option.iconName} size={28} color={option.iconColor} />

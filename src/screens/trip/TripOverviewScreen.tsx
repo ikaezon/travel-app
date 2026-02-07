@@ -200,8 +200,8 @@ export default function TripOverviewScreen() {
           </View>
 
           <View style={styles.filterSection}>
-            <AdaptiveGlassView intensity={24} darkIntensity={10} glassEffectStyle="clear" style={[styles.filterContainer, glassStyles.blurContent, !theme.isDark && { boxShadow: theme.glassShadows.card }, !theme.isDark && { borderColor: theme.glassColors.border }, theme.isDark && { borderWidth: 0 }]}>
-              <View style={[styles.glassOverlay, { backgroundColor: theme.isDark ? 'rgba(40, 40, 45, 0.35)' : theme.glassColors.overlayStrong }]} pointerEvents="none" />
+            <AdaptiveGlassView intensity={24} darkIntensity={10} glassEffectStyle="clear" style={[styles.filterContainer, glassStyles.blurContent, theme.glass.cardWrapperStyle]}>
+              <View style={[styles.glassOverlay, { backgroundColor: theme.glass.overlayStrong }]} pointerEvents="none" />
               <SegmentedControl
                 options={TIMELINE_FILTER_OPTIONS}
                 selectedValue={selectedFilter}
@@ -291,7 +291,7 @@ export default function TripOverviewScreen() {
           />
           <Animated.View style={{ transform: [{ scale: fabAnim.scaleAnim }] }}>
           <Pressable
-            style={[styles.fabWrapper, { borderColor: theme.glassColors.border }]}
+            style={[styles.fabWrapper, { borderColor: theme.glass.border }]}
             onPress={() => (addMenuVisible ? handleCloseAddMenu() : handleOpenAddMenu())}
             onPressIn={fabAnim.onPressIn}
             onPressOut={fabAnim.onPressOut}
@@ -299,7 +299,7 @@ export default function TripOverviewScreen() {
           >
             <View style={styles.fabInner}>
               <AdaptiveGlassView intensity={24} darkIntensity={10} glassEffectStyle="clear" style={styles.fabBlur}>
-                <View style={[styles.fabGlassOverlay, { backgroundColor: theme.isDark ? 'rgba(40, 40, 45, 0.35)' : theme.glassColors.overlayStrong }]} pointerEvents="none" />
+                <View style={[styles.fabGlassOverlay, { backgroundColor: theme.glass.overlayStrong }]} pointerEvents="none" />
                 <View style={styles.fabContent}>
                   <MaterialIcons name="add" size={28} color={theme.colors.primary} />
                 </View>

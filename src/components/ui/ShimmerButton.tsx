@@ -36,8 +36,8 @@ export function ShimmerButton({
         style={[
           styles.boardingPassWrapper,
           {
-            borderColor: theme.glassColors.borderShimmerBlue,
-            boxShadow: theme.glassShadows.icon,
+            borderColor: theme.glass.borderShimmerBlue,
+            boxShadow: theme.glass.cardBoxShadow,
           },
           isDisabled && styles.buttonDisabled,
         ]}
@@ -47,7 +47,7 @@ export function ShimmerButton({
         disabled={isDisabled}
       >
         <AdaptiveGlassView intensity={24} darkIntensity={10} glassEffectStyle="clear" absoluteFill style={glassStyles.blurContent} />
-        <View style={[styles.boardingPassOverlay, { backgroundColor: theme.glassColors.overlayBlue }]} pointerEvents="none" />
+        <View style={[styles.boardingPassOverlay, { backgroundColor: theme.glass.overlayBlue }]} pointerEvents="none" />
         <View style={styles.content}>
           {loading ? (
             <ActivityIndicator size="small" color={theme.colors.reservation.flight.icon} />

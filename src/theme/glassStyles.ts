@@ -1,133 +1,63 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet, ViewStyle } from 'react-native';
 
 /**
  * Liquid Glass Design System
- * 
- * Centralized styling for the liquid glass effect used throughout the app.
- * Based on QuickActionCard styling for consistency.
+ *
+ * Static structural styles (borderRadius, overflow) live here.
+ * Theme-dependent values (colors, borders, shadows) live in ResolvedGlass,
+ * accessed via `useTheme().glass`.
  */
 
 // ============================================
-// CONSTANTS
+// CONSTANTS (static, never change per theme)
 // ============================================
 
 export const glassConstants = {
-  // Blur intensity levels
   blur: {
-    card: 24,        // Main card blur
-    icon: 50,        // Icon container blur (stronger)
-    nav: 24,         // Navigation bar blur
-    menu: 48,        // Dropdown menus (stronger blur)
+    card: 24,
+    icon: 50,
+    nav: 24,
+    menu: 48,
   },
-
-  // Border radius values
   radius: {
-    card: 28,        // Main card (1.75rem)
-    cardLarge: 32,   // Large card/nav bar (2rem)
-    cardXLarge: 40,  // Extra large (2.5rem) - TripCard
-    icon: 16,        // Icon containers (1rem)
-    pill: 9999,      // Full pill shape
+    card: 28,
+    cardLarge: 32,
+    cardXLarge: 40,
+    icon: 16,
+    pill: 9999,
   },
-  // Inner radius - matches outer radius so light/dark mode have identical corner radii.
-  // The wrapper's overflow:'hidden' handles clipping inside borders automatically.
   radiusInner: {
-    card: 28,        // matches radius.card
-    cardLarge: 32,   // matches radius.cardLarge
-    cardXLarge: 40,  // matches radius.cardXLarge
-    icon: 16,        // matches radius.icon
+    card: 28,
+    cardLarge: 32,
+    cardXLarge: 40,
+    icon: 16,
   },
-
-  // Border widths
   borderWidth: {
-    card: 2,         // Standard card border
-    cardThin: 1,     // Thin variant
-    icon: 1.5,       // Icon container border
-    iconThin: 0.5,   // Thin icon border
+    card: 2,
+    cardThin: 1,
+    icon: 1.5,
+    iconThin: 0.5,
   },
 } as const;
 
 // ============================================
-// COLORS
-// ============================================
-
-export const glassColors = {
-  // Card overlay (white tint on top of blur)
-  overlay: 'rgba(255, 255, 255, 0.35)',
-  overlayStrong: 'rgba(255, 255, 255, 0.25)',
-  
-  // Tinted overlays for action buttons
-  overlayBlue: 'rgba(147, 197, 253, 0.25)',   // Blue tint - Boarding Pass
-  overlayOrange: 'rgba(253, 186, 116, 0.15)', // Orange tint - Get Directions
-  borderBlue: 'rgba(59, 130, 246, 0.5)',
-  borderOrange: 'rgba(234, 88, 12, 0.5)',
-  // Shimmer borders (white glossy edge effect, tinted) - matches glass cards' borderStrong
-  borderShimmerBlue: 'rgba(180, 210, 255, 0.85)',
-  borderShimmerOrange: 'rgba(255, 220, 180, 0.85)',
-  
-  // Borders
-  border: 'rgba(255, 255, 255, 0.6)',
-  borderStrong: 'rgba(255, 255, 255, 0.8)',
-  menuItemBorder: 'rgba(148, 163, 184, 0.3)',
-  
-  // Menu-specific
-  menuOverlay: 'rgba(255, 255, 255, 0.28)',  // Less transparent for clearer background
-  menuItemPressed: 'rgba(255, 255, 255, 0.15)',
-  
-  // Shadows
-  shadow: 'rgba(0, 0, 0, 0.02)',
-  shadowMedium: 'rgba(0, 0, 0, 0.06)',
-} as const;
-
-// ============================================
-// BOX SHADOWS
-// ============================================
-
-export const glassShadows = {
-  // Card shadow - subtle depth
-  card: '0 2px 5px 2px rgba(0, 0, 0, 0.02)',
-  
-  // Nav bar shadow
-  nav: '0 6px 24px 4px rgba(0, 0, 0, 0.08)',
-  
-  // Icon container shadow
-  icon: '0 2px 8px 0 rgba(0, 0, 0, 0.04)',
-  
-  // Elevated elements (FAB, menus)
-  elevated: '0 8px 24px 4px rgba(0, 0, 0, 0.12)',
-} as const;
-
-// ============================================
-// REUSABLE STYLE OBJECTS
+// STRUCTURAL STYLES (layout only, no colors)
 // ============================================
 
 export const glassStyles = StyleSheet.create({
-  /**
-   * Card wrapper - the outer container with border and shadow
-   * Use on the Pressable/View that wraps the BlurView
-   */
+  /** Card wrapper — structural only. Apply theme.glass.cardWrapperStyle for colors/borders. */
   cardWrapper: {
     borderRadius: glassConstants.radius.card,
     overflow: 'hidden',
-    borderWidth: glassConstants.borderWidth.card,
-    borderColor: glassColors.border,
-    boxShadow: glassShadows.card,
   },
 
-  /**
-   * Large card wrapper (for TripCard)
-   */
+  /** Large card wrapper (TripCard) */
   cardWrapperLarge: {
     borderRadius: glassConstants.radius.cardXLarge,
     overflow: 'hidden',
-    borderWidth: glassConstants.borderWidth.card,
-    borderColor: glassColors.border,
-    boxShadow: glassShadows.card,
   },
 
-  /**
-   * BlurView content - borderRadius + overflow: 'hidden' clips the blur to rounded corners.
-   * Required to prevent rectangular blur from showing through with thin borders.
-   */
+  /** BlurView clipping — clips blur to rounded corners */
   blurContent: {
     borderRadius: glassConstants.radiusInner.card,
     overflow: 'hidden',
@@ -149,61 +79,37 @@ export const glassStyles = StyleSheet.create({
     overflow: 'hidden',
   },
 
-  /**
-   * Card overlay - the white tint layer inside BlurView
-   * Apply with absoluteFillObject
-   */
+  /** Card overlay — absolute fill, backgroundColor comes from theme.glass.overlay */
   cardOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: glassColors.overlay,
   },
 
-  /**
-   * Icon container styling
-   */
+  /** Icon container — structural only. Apply theme.glass.iconContainerStyle for colors/borders. */
   iconContainer: {
     borderRadius: glassConstants.radius.icon,
     overflow: 'hidden',
-    borderWidth: glassConstants.borderWidth.icon,
-    borderColor: glassColors.borderStrong,
   },
 
-  /**
-   * Pill button/badge container
-   */
+  /** Pill container — structural only */
   pillContainer: {
     borderRadius: glassConstants.radius.pill,
     overflow: 'hidden',
-    borderWidth: glassConstants.borderWidth.cardThin,
-    borderColor: glassColors.border,
   },
 
-  /**
-   * Nav bar wrapper
-   */
+  /** Nav bar wrapper — structural only. Apply theme.glass.navWrapperStyle for colors/borders. */
   navBarWrapper: {
     borderRadius: glassConstants.radius.cardLarge,
     overflow: 'hidden',
-    borderWidth: glassConstants.borderWidth.card,
-    borderColor: glassColors.border,
-    boxShadow: glassShadows.nav,
   },
 
-  /**
-   * Dropdown menu - shared base for Add/Delete menus
-   */
+  /** Dropdown menu — structural only */
   menuDropdown: {
     borderRadius: glassConstants.radius.card,
     overflow: 'hidden',
-    borderWidth: glassConstants.borderWidth.card,
-    borderColor: glassColors.border,
-    boxShadow: glassShadows.elevated,
     minWidth: 160,
   },
 
-  /**
-   * Blur fill layer for dropdown menus (absolutely positioned)
-   */
+  /** Blur fill layer for dropdown menus */
   menuBlurFill: {
     position: 'absolute',
     top: 0,
@@ -213,17 +119,12 @@ export const glassStyles = StyleSheet.create({
     overflow: 'hidden',
   },
 
-  /**
-   * Overlay fill layer for dropdown menus (absolutely positioned)
-   */
+  /** Overlay fill layer for dropdown menus */
   menuOverlayFill: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: glassColors.menuOverlay,
   },
 
-  /**
-   * Menu item row - shared layout for Add/Delete menu items
-   */
+  /** Menu item row */
   menuItem: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -232,105 +133,17 @@ export const glassStyles = StyleSheet.create({
     paddingHorizontal: 16,
   },
 
-  /**
-   * Menu item pressed state
-   */
-  menuItemPressed: {
-    backgroundColor: glassColors.menuItemPressed,
-  },
+  /** Menu item pressed state — backgroundColor comes from theme.glass.menuItemPressed */
+  menuItemPressed: {},
 
-  /**
-   * Border between menu items (for multi-item menus)
-   */
+  /** Menu item border */
   menuItemBorder: {
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: glassColors.menuItemBorder,
   },
 });
 
 // ============================================
-// HELPER: Thin border variant (for dashboard)
-// ============================================
-
-export const glassThinBorderStyles = StyleSheet.create({
-  cardWrapper: {
-    ...glassStyles.cardWrapper,
-    borderWidth: glassConstants.borderWidth.cardThin,
-  },
-  iconContainer: {
-    ...glassStyles.iconContainer,
-    borderWidth: glassConstants.borderWidth.iconThin,
-  },
-});
-
-// ============================================
-// THEME-AWARE GLASS COLORS
-// ============================================
-
-export interface ResolvedGlassColors {
-  overlay: string;
-  overlayStrong: string;
-  overlayBlue: string;
-  overlayOrange: string;
-  borderBlue: string;
-  borderOrange: string;
-  borderShimmerBlue: string;
-  borderShimmerOrange: string;
-  border: string;
-  borderStrong: string;
-  menuItemBorder: string;
-  menuOverlay: string;
-  menuItemPressed: string;
-  shadow: string;
-  shadowMedium: string;
-  /** Top-edge highlight for liquid glass cards */
-  cardHighlightTop?: string;
-}
-
-export function getGlassColors(isDark: boolean): ResolvedGlassColors {
-  if (isDark) {
-    // Obsidian Liquid Glass palette
-    return {
-      overlay: 'rgba(80, 80, 85, 0.15)',
-      overlayStrong: 'rgba(40, 40, 45, 0.40)',
-      overlayBlue: 'rgba(96, 165, 250, 0.15)',
-      overlayOrange: 'rgba(251, 146, 60, 0.12)',
-      borderBlue: 'rgba(96, 165, 250, 0.30)',
-      borderOrange: 'rgba(251, 146, 60, 0.30)',
-      borderShimmerBlue: 'rgba(96, 165, 250, 0.40)',
-      borderShimmerOrange: 'rgba(251, 146, 60, 0.40)',
-      border: 'rgba(255, 255, 255, 0.18)',
-      borderStrong: 'rgba(255, 255, 255, 0.22)',
-      menuItemBorder: 'rgba(255, 255, 255, 0.08)',
-      menuOverlay: 'rgba(30, 30, 35, 0.60)',
-      menuItemPressed: 'rgba(255, 255, 255, 0.05)',
-      shadow: 'rgba(0, 0, 0, 0.50)',
-      shadowMedium: 'rgba(0, 0, 0, 0.60)',
-      cardHighlightTop: 'rgba(255, 255, 255, 0.10)',
-    };
-  }
-
-  return {
-    overlay: glassColors.overlay,
-    overlayStrong: glassColors.overlayStrong,
-    overlayBlue: glassColors.overlayBlue,
-    overlayOrange: glassColors.overlayOrange,
-    borderBlue: glassColors.borderBlue,
-    borderOrange: glassColors.borderOrange,
-    borderShimmerBlue: glassColors.borderShimmerBlue,
-    borderShimmerOrange: glassColors.borderShimmerOrange,
-    border: glassColors.border,
-    borderStrong: glassColors.borderStrong,
-    menuItemBorder: glassColors.menuItemBorder,
-    menuOverlay: glassColors.menuOverlay,
-    menuItemPressed: glassColors.menuItemPressed,
-    shadow: glassColors.shadow,
-    shadowMedium: glassColors.shadowMedium,
-  };
-}
-
-// ============================================
-// THEME-AWARE GLASS SHADOWS
+// RESOLVED GLASS (theme-aware)
 // ============================================
 
 export interface CardShadowNative {
@@ -341,21 +154,96 @@ export interface CardShadowNative {
   elevation: number;
 }
 
-export interface ResolvedGlassShadows {
-  card: string;
-  nav: string;
-  icon: string;
-  elevated: string;
+export interface ResolvedGlass {
+  // ── Overlay colors ──
+  overlay: string;
+  overlayStrong: string;
+  overlayBlue: string;
+  overlayOrange: string;
+
+  // ── Border colors ──
+  border: string;
+  borderStrong: string;
+  borderBlue: string;
+  borderOrange: string;
+  borderShimmerBlue: string;
+  borderShimmerOrange: string;
+
+  // ── Menu ──
+  menuItemBorder: string;
+  menuOverlay: string;
+  menuItemPressed: string;
+
+  // ── Shadow colors ──
+  shadow: string;
+  shadowMedium: string;
+
+  // ── Card semantics ──
+  cardBorderWidth: number;
+  cardBoxShadow: string;
+  cardHighlight?: string;
+
+  // ── Icon semantics ──
+  iconBg: string;
+  badgeOverlay: string;
+
+  // ── Glass fill (solid background) ──
+  fill: string;
+
+  // ── Box shadow strings ──
+  navBoxShadow: string;
+  elevatedBoxShadow: string;
   cardShadowNative?: CardShadowNative;
+
+  // ── Pre-computed style objects (eliminates isDark conditionals in components) ──
+  cardWrapperStyle: ViewStyle;
+  iconContainerStyle: ViewStyle;
+  navWrapperStyle: ViewStyle;
+  menuDropdownStyle: ViewStyle;
+  pillContainerStyle: ViewStyle;
 }
 
-export function getGlassShadows(isDark: boolean): ResolvedGlassShadows {
+export function getResolvedGlass(isDark: boolean): ResolvedGlass {
   if (isDark) {
     return {
-      card: '0 20px 40px -10px rgba(0, 0, 0, 0.50), inset 0 1px 0 rgba(255, 255, 255, 0.10)',
-      nav: '0 -10px 40px -5px rgba(0, 0, 0, 0.60)',
-      icon: 'inset 0 0 15px rgba(255, 255, 255, 0.05)',
-      elevated: '0 20px 40px -10px rgba(0, 0, 0, 0.50), inset 0 1px 0 rgba(255, 255, 255, 0.10)',
+      // Overlays
+      overlay: 'rgba(40, 40, 45, 0.35)',
+      overlayStrong: 'rgba(40, 40, 45, 0.40)',
+      overlayBlue: 'rgba(96, 165, 250, 0.15)',
+      overlayOrange: 'rgba(251, 146, 60, 0.12)',
+
+      // Borders
+      border: 'rgba(255, 255, 255, 0.18)',
+      borderStrong: 'rgba(255, 255, 255, 0.22)',
+      borderBlue: 'rgba(96, 165, 250, 0.30)',
+      borderOrange: 'rgba(251, 146, 60, 0.30)',
+      borderShimmerBlue: 'rgba(96, 165, 250, 0.40)',
+      borderShimmerOrange: 'rgba(251, 146, 60, 0.40)',
+
+      // Menu
+      menuItemBorder: 'rgba(255, 255, 255, 0.08)',
+      menuOverlay: 'rgba(30, 30, 35, 0.60)',
+      menuItemPressed: 'rgba(255, 255, 255, 0.05)',
+
+      // Shadow colors
+      shadow: 'rgba(0, 0, 0, 0.50)',
+      shadowMedium: 'rgba(0, 0, 0, 0.60)',
+
+      // Card
+      cardBorderWidth: 0,
+      cardBoxShadow: '0 0 0 0 transparent',
+      cardHighlight: 'rgba(255, 255, 255, 0.10)',
+
+      // Icon
+      iconBg: 'rgba(255, 255, 255, 0.06)',
+      badgeOverlay: 'rgba(0, 0, 0, 0.35)',
+
+      // Fill
+      fill: 'rgba(80, 80, 85, 0.15)',
+
+      // Box shadows
+      navBoxShadow: '0 -10px 40px -5px rgba(0, 0, 0, 0.60)',
+      elevatedBoxShadow: '0 20px 40px -10px rgba(0, 0, 0, 0.50), inset 0 1px 0 rgba(255, 255, 255, 0.10)',
       cardShadowNative: {
         shadowColor: '#000000',
         shadowOffset: { width: 0, height: 20 },
@@ -363,13 +251,94 @@ export function getGlassShadows(isDark: boolean): ResolvedGlassShadows {
         shadowRadius: 40,
         elevation: 24,
       },
+
+      // Pre-computed styles
+      cardWrapperStyle: {
+        borderWidth: 0,
+      },
+      iconContainerStyle: {
+        borderWidth: 1,
+        borderColor: 'rgba(255, 255, 255, 0.22)',
+        backgroundColor: 'rgba(255, 255, 255, 0.06)',
+      },
+      navWrapperStyle: {
+        borderWidth: 0,
+        boxShadow: '0 -10px 40px -5px rgba(0, 0, 0, 0.60)',
+      },
+      menuDropdownStyle: {
+        borderWidth: 0,
+        boxShadow: '0 20px 40px -10px rgba(0, 0, 0, 0.50), inset 0 1px 0 rgba(255, 255, 255, 0.10)',
+      },
+      pillContainerStyle: {
+        borderWidth: 0,
+      },
     };
   }
 
   return {
-    card: glassShadows.card,
-    nav: glassShadows.nav,
-    icon: glassShadows.icon,
-    elevated: glassShadows.elevated,
+    // Overlays
+    overlay: 'rgba(255, 255, 255, 0.35)',
+    overlayStrong: 'rgba(255, 255, 255, 0.25)',
+    overlayBlue: 'rgba(147, 197, 253, 0.25)',
+    overlayOrange: 'rgba(253, 186, 116, 0.15)',
+
+    // Borders
+    border: 'rgba(255, 255, 255, 0.6)',
+    borderStrong: 'rgba(255, 255, 255, 0.8)',
+    borderBlue: 'rgba(59, 130, 246, 0.5)',
+    borderOrange: 'rgba(234, 88, 12, 0.5)',
+    borderShimmerBlue: 'rgba(180, 210, 255, 0.85)',
+    borderShimmerOrange: 'rgba(255, 220, 180, 0.85)',
+
+    // Menu
+    menuItemBorder: 'rgba(148, 163, 184, 0.3)',
+    menuOverlay: 'rgba(255, 255, 255, 0.28)',
+    menuItemPressed: 'rgba(255, 255, 255, 0.15)',
+
+    // Shadow colors
+    shadow: 'rgba(0, 0, 0, 0.02)',
+    shadowMedium: 'rgba(0, 0, 0, 0.06)',
+
+    // Card
+    cardBorderWidth: 2,
+    cardBoxShadow: '0 2px 5px 2px rgba(0, 0, 0, 0.02)',
+    cardHighlight: undefined,
+
+    // Icon
+    iconBg: 'rgba(255, 255, 255, 0.5)',
+    badgeOverlay: 'rgba(255, 255, 255, 0.5)',
+
+    // Fill
+    fill: 'rgba(255, 255, 255, 0.55)',
+
+    // Box shadows
+    navBoxShadow: '0 6px 24px 4px rgba(0, 0, 0, 0.08)',
+    elevatedBoxShadow: '0 8px 24px 4px rgba(0, 0, 0, 0.12)',
+
+    // Pre-computed styles
+    cardWrapperStyle: {
+      borderWidth: 2,
+      borderColor: 'rgba(255, 255, 255, 0.6)',
+      boxShadow: '0 2px 5px 2px rgba(0, 0, 0, 0.02)',
+    },
+    iconContainerStyle: {
+      borderWidth: 1.5,
+      borderColor: 'rgba(255, 255, 255, 0.8)',
+      backgroundColor: 'rgba(255, 255, 255, 0.5)',
+    },
+    navWrapperStyle: {
+      borderWidth: 2,
+      borderColor: 'rgba(255, 255, 255, 0.6)',
+      boxShadow: '0 6px 24px 4px rgba(0, 0, 0, 0.08)',
+    },
+    menuDropdownStyle: {
+      borderWidth: 2,
+      borderColor: 'rgba(255, 255, 255, 0.6)',
+      boxShadow: '0 8px 24px 4px rgba(0, 0, 0, 0.12)',
+    },
+    pillContainerStyle: {
+      borderWidth: 1,
+      borderColor: 'rgba(255, 255, 255, 0.6)',
+    },
   };
 }

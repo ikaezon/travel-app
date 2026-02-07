@@ -92,9 +92,7 @@ export function QuickActionCard({
       <Pressable
         style={[
           styles.cardWrapper,
-          !theme.isDark && { borderColor: theme.glassColors.border },
-          theme.isDark && { borderWidth: 0 },
-          !theme.isDark && { boxShadow: theme.glassShadows.card },
+          theme.glass.cardWrapperStyle,
         ]}
         onPress={onPress}
         onPressIn={handlePressIn}
@@ -103,9 +101,9 @@ export function QuickActionCard({
         accessibilityLabel={`${title}. ${subtitle}`}
       >
         <AdaptiveGlassView intensity={24} darkIntensity={10} glassEffectStyle="clear" style={[styles.card, glassStyles.blurContent]}>
-          <View style={[styles.cardOverlay, { backgroundColor: theme.isDark ? 'rgba(40, 40, 45, 0.35)' : theme.glassColors.overlay }]} pointerEvents="none" />
+          <View style={[styles.cardOverlay, { backgroundColor: theme.glass.overlay }]} pointerEvents="none" />
           <View style={styles.content}>
-            <View style={[styles.iconContainer, glassStyles.blurContentIcon, theme.isDark && { borderWidth: 1, borderColor: theme.glassColors.borderStrong }, { backgroundColor: theme.isDark ? 'rgba(255, 255, 255, 0.06)' : theme.colors.glass.iconInset }]}>
+            <View style={[styles.iconContainer, glassStyles.blurContentIcon, theme.glass.iconContainerStyle]}>
               {IconComponent && <IconComponent size={26} color={theme.isDark ? theme.colors.text.secondary : iconColor} strokeWidth={2} />}
             </View>
             <View style={styles.textContainer}>
@@ -113,7 +111,7 @@ export function QuickActionCard({
               <Text style={[styles.subtitle, { color: theme.colors.text.tertiary }]}>{subtitle}</Text>
             </View>
           </View>
-          <View style={[styles.chevronContainer, glassStyles.blurContentIcon, theme.isDark && { borderWidth: 1, borderColor: theme.glassColors.borderStrong }, { backgroundColor: theme.isDark ? 'rgba(255, 255, 255, 0.06)' : theme.colors.glass.iconInset }]}>
+          <View style={[styles.chevronContainer, glassStyles.blurContentIcon, theme.glass.iconContainerStyle]}>
             <ChevronRight size={20} color={theme.colors.text.tertiary} strokeWidth={2} />
           </View>
         </AdaptiveGlassView>

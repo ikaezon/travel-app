@@ -97,7 +97,7 @@ export default function SplashScreen({
             </ImageBackground>
 
             {/* Logo – liquid glass circle */}
-            <View style={[styles.logoOuterContainer, !theme.isDark && { borderColor: theme.glassColors.border }, theme.isDark && { borderWidth: 0 }]}>
+            <View style={[styles.logoOuterContainer, theme.glass.cardWrapperStyle]}>
               <AdaptiveGlassView
                 intensity={glassConstants.blur.card}
                 darkIntensity={10}
@@ -105,8 +105,8 @@ export default function SplashScreen({
                 absoluteFill
                 style={glassStyles.blurContentPill}
               />
-              <View style={[styles.glassOverlay, { backgroundColor: theme.isDark ? 'rgba(40, 40, 45, 0.35)' : theme.glassColors.overlayStrong }]} pointerEvents="none" />
-              <View style={[styles.logoInnerContainer, !theme.isDark && { borderColor: theme.glassColors.borderStrong }, theme.isDark && { borderWidth: 1, borderColor: theme.glassColors.borderStrong }]}>
+              <View style={[styles.glassOverlay, { backgroundColor: theme.glass.overlayStrong }]} pointerEvents="none" />
+              <View style={[styles.logoInnerContainer, { borderColor: theme.glass.borderStrong }, theme.isDark && { borderWidth: 1 }]}>
                 <AdaptiveGlassView
                   intensity={glassConstants.blur.icon}
                   darkIntensity={10}
@@ -114,7 +114,7 @@ export default function SplashScreen({
                   absoluteFill
                   style={glassStyles.blurContentPill}
                 />
-                {!theme.isDark && <View style={[styles.glassOverlay, { backgroundColor: theme.glassColors.overlayStrong }]} pointerEvents="none" />}
+                <View style={[styles.glassOverlay, { backgroundColor: theme.glass.overlayStrong }]} pointerEvents="none" />
                 <MaterialIcons
                   name="flight"
                   size={44}
@@ -139,7 +139,7 @@ export default function SplashScreen({
             {/* Primary button – boarding pass glass style */}
             <Animated.View style={{ transform: [{ scale: emailAnim.scaleAnim }] }}>
             <Pressable
-              style={[styles.primaryButton, !theme.isDark && { borderColor: theme.glassColors.border }, theme.isDark && { borderWidth: 0 }]}
+              style={[styles.primaryButton, theme.glass.cardWrapperStyle]}
               onPress={onEmailPress}
               onPressIn={emailAnim.onPressIn}
               onPressOut={emailAnim.onPressOut}
@@ -151,7 +151,7 @@ export default function SplashScreen({
                 absoluteFill
                 style={glassStyles.blurContent}
               />
-              <View style={[styles.primaryOverlay, { backgroundColor: theme.isDark ? 'rgba(40, 40, 45, 0.35)' : theme.glassColors.overlayStrong }]} pointerEvents="none" />
+              <View style={[styles.primaryOverlay, { backgroundColor: theme.glass.overlayStrong }]} pointerEvents="none" />
               <View style={styles.primaryContent}>
                 <MaterialIcons name="mail" size={20} color={theme.colors.primary} />
                 <Text style={[styles.primaryButtonText, { color: theme.colors.primary }]}>Continue with Email</Text>
@@ -161,15 +161,15 @@ export default function SplashScreen({
 
             {/* Separator */}
             <View style={styles.separator}>
-              <View style={[styles.separatorLine, { backgroundColor: theme.glassColors.menuItemBorder }]} />
+              <View style={[styles.separatorLine, { backgroundColor: theme.glass.menuItemBorder }]} />
               <Text style={[styles.separatorText, { color: theme.colors.text.tertiary }]}>OR</Text>
-              <View style={[styles.separatorLine, { backgroundColor: theme.glassColors.menuItemBorder }]} />
+              <View style={[styles.separatorLine, { backgroundColor: theme.glass.menuItemBorder }]} />
             </View>
 
             {/* Secondary button – Apple (glass card) */}
             <Animated.View style={{ transform: [{ scale: appleAnim.scaleAnim }] }}>
             <Pressable
-              style={[styles.secondaryButton, !theme.isDark && { borderColor: theme.glassColors.border }, theme.isDark && { borderWidth: 0 }]}
+              style={[styles.secondaryButton, theme.glass.cardWrapperStyle]}
               onPress={onApplePress}
               onPressIn={appleAnim.onPressIn}
               onPressOut={appleAnim.onPressOut}
@@ -181,7 +181,7 @@ export default function SplashScreen({
                 absoluteFill
                 style={glassStyles.blurContent}
               />
-              <View style={[styles.glassOverlay, { backgroundColor: theme.isDark ? 'rgba(40, 40, 45, 0.35)' : theme.glassColors.overlayStrong }]} pointerEvents="none" />
+              <View style={[styles.glassOverlay, { backgroundColor: theme.glass.overlayStrong }]} pointerEvents="none" />
               <View style={styles.secondaryContent}>
                 <MaterialIcons name="smartphone" size={22} color={theme.colors.text.primary} />
                 <Text style={[styles.secondaryButtonText, { color: theme.colors.text.primary }]}>Continue with Apple</Text>
@@ -192,7 +192,7 @@ export default function SplashScreen({
             {/* Secondary button – Google (glass card) */}
             <Animated.View style={{ transform: [{ scale: googleAnim.scaleAnim }] }}>
             <Pressable
-              style={[styles.secondaryButton, !theme.isDark && { borderColor: theme.glassColors.border }, theme.isDark && { borderWidth: 0 }]}
+              style={[styles.secondaryButton, theme.glass.cardWrapperStyle]}
               onPress={onGooglePress}
               onPressIn={googleAnim.onPressIn}
               onPressOut={googleAnim.onPressOut}
@@ -204,7 +204,7 @@ export default function SplashScreen({
                 absoluteFill
                 style={glassStyles.blurContent}
               />
-              <View style={[styles.glassOverlay, { backgroundColor: theme.isDark ? 'rgba(40, 40, 45, 0.35)' : theme.glassColors.overlayStrong }]} pointerEvents="none" />
+              <View style={[styles.glassOverlay, { backgroundColor: theme.glass.overlayStrong }]} pointerEvents="none" />
               <View style={styles.secondaryContent}>
                 <MaterialIcons name="language" size={22} color={theme.colors.text.primary} />
                 <Text style={[styles.secondaryButtonText, { color: theme.colors.text.primary }]}>Continue with Google</Text>

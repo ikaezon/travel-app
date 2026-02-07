@@ -20,4 +20,3 @@ export const layout = {
   cardGap: spacing.lg,
 } as const;
 
-export type SpacingKey = keyof typeof spacing;

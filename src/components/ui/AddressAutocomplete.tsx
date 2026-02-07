@@ -154,7 +154,7 @@ export function AddressAutocomplete({
           style={[
             styles.input,
             styles.inputWithLeftIcon,
-            variant === 'glass' && { borderColor: theme.glassColors.border },
+            variant === 'glass' && { borderColor: theme.glass.border },
             { color: theme.colors.text.primary, borderColor: theme.colors.border },
           ]}
           value={value}
@@ -175,7 +175,7 @@ export function AddressAutocomplete({
       {hasApi && dropdownVisible && suggestions.length > 0 && (
         <View style={[
           styles.dropdown,
-          variant === 'glass' && { borderColor: theme.glassColors.border },
+          variant === 'glass' && { borderColor: theme.glass.border },
           { borderColor: theme.colors.border },
         ]}>
           <ScrollView
@@ -194,9 +194,9 @@ export function AddressAutocomplete({
   if (variant === 'glass') {
     return (
       <View style={[styles.container, style]}>
-        <View style={[styles.glassWrapper, !theme.isDark && { borderColor: theme.glassColors.border }, theme.isDark && { borderWidth: 0 }]}>
+        <View style={[styles.glassWrapper, theme.glass.cardWrapperStyle]}>
           <AdaptiveGlassView intensity={24} darkIntensity={10} glassEffectStyle="clear" style={[styles.glassBlur, glassStyles.blurContent]}>
-            <View style={[styles.glassOverlay, { backgroundColor: theme.isDark ? 'rgba(40, 40, 45, 0.35)' : theme.glassColors.overlayStrong }]} pointerEvents="none" />
+            <View style={[styles.glassOverlay, { backgroundColor: theme.glass.overlayStrong }]} pointerEvents="none" />
             <View style={styles.glassContent}>{inputContent}</View>
           </AdaptiveGlassView>
         </View>

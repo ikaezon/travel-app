@@ -1,14 +1,13 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { getThemeColors, ResolvedColors } from '../theme/colors';
-import { getGlassColors, getGlassShadows, ResolvedGlassColors, ResolvedGlassShadows } from '../theme/glassStyles';
+import { getResolvedGlass, ResolvedGlass } from '../theme/glassStyles';
 import { userService } from '../data';
 
 interface ThemeContextValue {
   isDark: boolean;
   isHydrated: boolean;
   colors: ResolvedColors;
-  glassColors: ResolvedGlassColors;
-  glassShadows: ResolvedGlassShadows;
+  glass: ResolvedGlass;
   gradient: [string, string, string];
   blurTint: 'light' | 'dark';
   setDarkMode: (value: boolean) => Promise<void>;
@@ -55,8 +54,7 @@ export function ThemeProvider({ children, onHydrated }: ThemeProviderProps) {
   }, []);
 
   const themeColors = useMemo(() => getThemeColors(isDark), [isDark]);
-  const themeGlassColors = useMemo(() => getGlassColors(isDark), [isDark]);
-  const themeGlassShadows = useMemo(() => getGlassShadows(isDark), [isDark]);
+  const themeGlass = useMemo(() => getResolvedGlass(isDark), [isDark]);
 
   const gradient = useMemo<[string, string, string]>(
     () => [themeColors.gradient.start, themeColors.gradient.middle, themeColors.gradient.end],
@@ -70,13 +68,12 @@ export function ThemeProvider({ children, onHydrated }: ThemeProviderProps) {
       isDark,
       isHydrated,
       colors: themeColors,
-      glassColors: themeGlassColors,
-      glassShadows: themeGlassShadows,
+      glass: themeGlass,
       gradient,
       blurTint,
       setDarkMode,
     }),
-    [isDark, isHydrated, themeColors, themeGlassColors, themeGlassShadows, gradient, blurTint, setDarkMode]
+    [isDark, isHydrated, themeColors, themeGlass, gradient, blurTint, setDarkMode]
   );
 
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;

@@ -154,8 +154,8 @@ export function DualAirportInput({
         key={airport.iata}
         style={({ pressed }) => [
           styles.suggestionRow,
-          pressed && { backgroundColor: theme.glassColors.menuItemPressed },
-          !isLast && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: theme.glassColors.menuItemBorder },
+          pressed && { backgroundColor: theme.glass.menuItemPressed },
+          !isLast && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: theme.glass.menuItemBorder },
         ]}
         onPress={() => onSelect(airport)}
       >
@@ -165,7 +165,7 @@ export function DualAirportInput({
           glassEffectStyle="clear"
           style={[
             styles.iataTag,
-            { borderColor: theme.glassColors.borderBlue, backgroundColor: theme.glassColors.overlayBlue }
+            { borderColor: theme.glass.borderBlue, backgroundColor: theme.glass.overlayBlue }
           ]}
         >
           <Text style={[styles.iataText, { color: theme.colors.text.primary }]}>{airport.iata}</Text>
@@ -194,14 +194,14 @@ export function DualAirportInput({
   return (
     <View style={styles.container}>
       {/* Main card */}
-      <View style={[styles.glassWrapper, !theme.isDark && { borderColor: theme.glassColors.border }, theme.isDark && { borderWidth: 0 }]} onLayout={handleCardLayout}>
+      <View style={[styles.glassWrapper, theme.glass.cardWrapperStyle]} onLayout={handleCardLayout}>
         <AdaptiveGlassView
           intensity={24}
           darkIntensity={10}
           glassEffectStyle="clear"
           style={[styles.glassBlur, glassStyles.blurContent]}
         >
-          <View style={[styles.glassOverlay, { backgroundColor: theme.isDark ? 'rgba(40, 40, 45, 0.35)' : theme.glassColors.overlayStrong }]} pointerEvents="none" />
+          <View style={[styles.glassOverlay, { backgroundColor: theme.glass.overlayStrong }]} pointerEvents="none" />
           <View style={styles.glassContent}>
             {/* Labels row */}
             <View style={styles.labelsRow}>
@@ -221,7 +221,7 @@ export function DualAirportInput({
                   style={styles.inputIcon}
                 />
                 <TextInput
-                  style={[styles.input, { borderColor: theme.glassColors.border, backgroundColor: theme.isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(255, 255, 255, 0.5)', color: theme.colors.text.primary }]}
+                  style={[styles.input, { borderColor: theme.glass.border, backgroundColor: theme.glass.fill, color: theme.colors.text.primary }]}
                   value={departureValue}
                   onChangeText={handleDepartureChange}
                   placeholder={departurePlaceholder}
@@ -251,7 +251,7 @@ export function DualAirportInput({
                   style={styles.inputIcon}
                 />
                 <TextInput
-                  style={[styles.input, { borderColor: theme.glassColors.border, backgroundColor: theme.isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(255, 255, 255, 0.5)', color: theme.colors.text.primary }]}
+                  style={[styles.input, { borderColor: theme.glass.border, backgroundColor: theme.glass.fill, color: theme.colors.text.primary }]}
                   value={arrivalValue}
                   onChangeText={handleArrivalChange}
                   placeholder={arrivalPlaceholder}
@@ -272,7 +272,7 @@ export function DualAirportInput({
         <View
           style={[
             styles.dropdownContainer,
-            { top: cardHeight + 8, borderColor: theme.glassColors.borderStrong },
+            { top: cardHeight + 8, borderColor: theme.glass.borderStrong },
             showArrivalSuggestions && styles.dropdownRight,
           ]}
         >
@@ -282,7 +282,7 @@ export function DualAirportInput({
             glassEffectStyle="clear"
             style={styles.dropdownBlur}
           >
-            <View style={[styles.dropdownOverlay, { backgroundColor: theme.isDark ? 'rgba(40, 40, 45, 0.35)' : 'rgba(255, 255, 255, 0.15)' }]} pointerEvents="none" />
+            <View style={[styles.dropdownOverlay, { backgroundColor: theme.glass.overlay }]} pointerEvents="none" />
             <ScrollView
               style={styles.dropdownList}
               keyboardShouldPersistTaps="handled"

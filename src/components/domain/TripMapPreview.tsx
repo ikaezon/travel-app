@@ -45,7 +45,7 @@ export function TripMapPreview({ tripId, onExpandPress }: TripMapPreviewProps) {
   }, [onExpandPress]);
 
   return (
-    <View style={[styles.container, !theme.isDark && { boxShadow: theme.glassShadows.elevated, borderColor: theme.glassColors.border }, theme.isDark && { borderWidth: 0 }]}>
+    <View style={[styles.container, theme.glass.cardWrapperStyle, { boxShadow: theme.glass.elevatedBoxShadow }]}>
       <AdaptiveGlassView
         intensity={24}
         darkIntensity={10}
@@ -53,7 +53,7 @@ export function TripMapPreview({ tripId, onExpandPress }: TripMapPreviewProps) {
         absoluteFill
         style={glassStyles.blurContent}
       />
-      <View style={[styles.glassOverlay, { backgroundColor: theme.isDark ? 'rgba(40, 40, 45, 0.35)' : theme.glassColors.overlayStrong }]} pointerEvents="none" />
+      <View style={[styles.glassOverlay, { backgroundColor: theme.glass.overlayStrong }]} pointerEvents="none" />
 
       {isLoading && (
         <View style={styles.centeredContent}>
@@ -121,7 +121,7 @@ export function TripMapPreview({ tripId, onExpandPress }: TripMapPreviewProps) {
           intensity={40}
           darkIntensity={10}
           glassEffectStyle="clear"
-          style={[styles.expandBadgeBlur, glassStyles.blurContentPill, !theme.isDark && { borderColor: theme.glassColors.borderStrong }]}
+          style={[styles.expandBadgeBlur, glassStyles.blurContentPill, theme.glass.pillContainerStyle]}
         >
           <MaterialIcons name="map" size={14} color={theme.colors.primary} />
           <Text style={[styles.expandBadgeText, { color: theme.colors.text.primary }]}>Expand View</Text>

@@ -185,8 +185,8 @@ export default function ReservationDetailScreen() {
         removeClippedSubviews={Platform.OS === 'android'}
       >
         <View style={styles.heroSection}>
-          <View style={[styles.heroCard, { boxShadow: theme.glassShadows.elevated }, !theme.isDark && { borderColor: theme.glassColors.border }, theme.isDark && { borderWidth: 0 }]}>
-            <View style={[StyleSheet.absoluteFill, styles.heroCardBg, { backgroundColor: theme.colors.glass.background, borderRadius: glassConstants.radiusInner.cardXLarge }]} pointerEvents="none" />
+          <View style={[styles.heroCard, { boxShadow: theme.glass.elevatedBoxShadow }, theme.glass.cardWrapperStyle]}>
+            <View style={[StyleSheet.absoluteFill, styles.heroCardBg, { backgroundColor: theme.glass.fill, borderRadius: glassConstants.radiusInner.cardXLarge }]} pointerEvents="none" />
             <ImageBackground
               source={{ uri: reservation.headerImageUrl }}
               style={styles.heroImage}
@@ -216,7 +216,7 @@ export default function ReservationDetailScreen() {
               <Text style={[styles.dateInfo, { color: theme.colors.text.secondary }]}>{dateDisplayText}</Text>
             </View>
             {statusConfig && (
-              <View style={[styles.statusBadge, styles.statusBadgeSolid, { backgroundColor: statusConfig.bgColor }, !theme.isDark && { borderColor: theme.glassColors.border }, theme.isDark && { borderWidth: 0 }]}>
+              <View style={[styles.statusBadge, styles.statusBadgeSolid, { backgroundColor: statusConfig.bgColor }, theme.glass.cardWrapperStyle]}>
                 <Text style={[styles.statusText, { color: statusConfig.textColor }]}>
                   {statusConfig.label}
                 </Text>
@@ -234,8 +234,8 @@ export default function ReservationDetailScreen() {
         )}
 
         <View style={styles.detailsSection}>
-          <View style={[styles.detailsCard, !theme.isDark && { borderColor: theme.glassColors.border }, theme.isDark && { borderWidth: 0 }]}>
-            <View style={[StyleSheet.absoluteFill, styles.cardSolidBg, { backgroundColor: theme.colors.glass.background, borderRadius: glassConstants.radiusInner.card }]} pointerEvents="none" />
+          <View style={[styles.detailsCard, theme.glass.cardWrapperStyle]}>
+            <View style={[StyleSheet.absoluteFill, styles.cardSolidBg, { backgroundColor: theme.glass.fill, borderRadius: glassConstants.radiusInner.card }]} pointerEvents="none" />
             <View style={styles.detailsList}>
               <DetailRow
                 label="Confirmation"
@@ -288,12 +288,11 @@ export default function ReservationDetailScreen() {
                 key={attachment.id}
                 style={({ pressed }) => [
                   styles.attachmentCard,
-                  !theme.isDark && { borderColor: theme.glassColors.border },
-                  theme.isDark && { borderWidth: 0 },
+                  theme.glass.cardWrapperStyle,
                   pressed && styles.attachmentCardPressed,
                 ]}
               >
-                <View style={[StyleSheet.absoluteFill, styles.cardSolidBg, { backgroundColor: theme.colors.glass.background, borderRadius: glassConstants.radiusInner.card }]} pointerEvents="none" />
+                <View style={[StyleSheet.absoluteFill, styles.cardSolidBg, { backgroundColor: theme.glass.fill, borderRadius: glassConstants.radiusInner.card }]} pointerEvents="none" />
                 {attachment.thumbnailUrl && (
                   <Image
                     source={{ uri: attachment.thumbnailUrl }}
@@ -317,17 +316,17 @@ export default function ReservationDetailScreen() {
         )}
 
         <View style={styles.bottomActions}>
-          <Pressable style={({ pressed }) => [styles.actionButton, !theme.isDark && { borderColor: theme.glassColors.border }, theme.isDark && { borderWidth: 0 }, pressed && styles.actionButtonPressed]}>
-            <View style={[StyleSheet.absoluteFill, styles.actionButtonBg, { backgroundColor: theme.colors.glass.background, borderRadius: glassConstants.radius.pill }]} pointerEvents="none" />
+          <Pressable style={({ pressed }) => [styles.actionButton, theme.glass.cardWrapperStyle, pressed && styles.actionButtonPressed]}>
+            <View style={[StyleSheet.absoluteFill, styles.actionButtonBg, { backgroundColor: theme.glass.fill, borderRadius: glassConstants.radius.pill }]} pointerEvents="none" />
             <MaterialIcons name="calendar-today" size={20} color={theme.colors.text.primary} />
             <Text style={[styles.actionButtonText, { color: theme.colors.text.primary }]}>Calendar</Text>
           </Pressable>
           {directionsAddress && (
             <Pressable 
-              style={({ pressed }) => [styles.actionButton, styles.actionButtonPrimary, !theme.isDark && { borderColor: theme.glassColors.borderBlue }, theme.isDark && { borderWidth: 0 }, pressed && styles.actionButtonPressed]}
+              style={({ pressed }) => [styles.actionButton, styles.actionButtonPrimary, { borderColor: theme.glass.borderBlue }, theme.isDark && { borderWidth: 0 }, pressed && styles.actionButtonPressed]}
               onPress={handleOpenDirections}
             >
-              <View style={[StyleSheet.absoluteFill, styles.actionButtonBg, styles.actionButtonBgPrimary, { backgroundColor: theme.glassColors.overlayBlue, borderRadius: glassConstants.radius.pill }]} pointerEvents="none" />
+              <View style={[StyleSheet.absoluteFill, styles.actionButtonBg, styles.actionButtonBgPrimary, { backgroundColor: theme.glass.overlayBlue, borderRadius: glassConstants.radius.pill }]} pointerEvents="none" />
               <MaterialIcons name="directions" size={20} color={theme.colors.primary} />
               <Text style={[styles.actionButtonText, styles.actionButtonTextPrimary, { color: theme.colors.primary }]}>Directions</Text>
             </Pressable>

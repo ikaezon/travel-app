@@ -77,8 +77,8 @@ export default function ProfileScreen({
       >
         <View style={styles.container}>
           <View style={[styles.topNavContainer, { top: topOffset }]}>
-            <AdaptiveGlassView intensity={24} style={[styles.topNavBlur, glassStyles.blurContentLarge, { borderColor: theme.glassColors.border, boxShadow: theme.glassShadows.nav }]}>
-              {!theme.isDark && <View style={[styles.glassOverlay, { backgroundColor: theme.glassColors.overlayStrong }]} pointerEvents="none" />}
+            <AdaptiveGlassView intensity={24} style={[styles.topNavBlur, glassStyles.blurContentLarge, theme.glass.navWrapperStyle]}>
+              {!theme.isDark && <View style={[styles.glassOverlay, { backgroundColor: theme.glass.overlayStrong }]} pointerEvents="none" />}
               <View style={styles.topNavContent}>
                 <View style={styles.navButton} />
                 <View style={styles.headerCenter}>
@@ -113,13 +113,13 @@ export default function ProfileScreen({
           <View style={styles.section}>
             <Animated.View style={{ transform: [{ scale: profileAnim.scaleAnim }] }}>
             <Pressable
-              style={[styles.profileCardWrapper, !theme.isDark && { borderColor: theme.glassColors.border }, theme.isDark && { borderWidth: 0 }]}
+              style={[styles.profileCardWrapper, theme.glass.cardWrapperStyle]}
               onPress={onEditPress}
               onPressIn={profileAnim.onPressIn}
               onPressOut={profileAnim.onPressOut}
             >
               <AdaptiveGlassView intensity={24} darkIntensity={10} glassEffectStyle="clear" style={[styles.profileCardBlur, glassStyles.blurContent]}>
-                <View style={[styles.glassOverlay, { backgroundColor: theme.isDark ? 'rgba(40, 40, 45, 0.35)' : theme.glassColors.overlayStrong }]} pointerEvents="none" />
+                <View style={[styles.glassOverlay, { backgroundColor: theme.glass.overlayStrong }]} pointerEvents="none" />
                 <View style={styles.profileContent}>
                   <View style={styles.profileImageContainer}>
                     <Image source={{ uri: user?.photoUrl }} style={[styles.profileImage, { borderColor: theme.colors.white, shadowColor: theme.colors.black }]} />
@@ -223,8 +223,8 @@ export default function ProfileScreen({
         </ScrollView>
 
         <View style={[styles.topNavContainer, { top: topOffset }]}>
-          <AdaptiveGlassView intensity={24} style={[styles.topNavBlur, glassStyles.blurContentLarge, { borderColor: theme.glassColors.border, boxShadow: theme.glassShadows.nav }]}>
-            {!theme.isDark && <View style={[styles.glassOverlay, { backgroundColor: theme.glassColors.overlayStrong }]} pointerEvents="none" />}
+          <AdaptiveGlassView intensity={24} style={[styles.topNavBlur, glassStyles.blurContentLarge, theme.glass.navWrapperStyle]}>
+            {!theme.isDark && <View style={[styles.glassOverlay, { backgroundColor: theme.glass.overlayStrong }]} pointerEvents="none" />}
             <View style={styles.topNavContent}>
               <View style={styles.navButton} />
               <View style={styles.headerCenter}>

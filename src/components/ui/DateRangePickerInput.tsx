@@ -193,15 +193,15 @@ export function DateRangePickerInput({
   return (
     <View ref={containerRef} style={[styles.container, style]} collapsable={false}>
       {variant === 'glass' ? (
-        <View style={[styles.glassWrapper, !theme.isDark && { borderColor: theme.glassColors.border }, theme.isDark && { borderWidth: 0 }]}>
+        <View style={[styles.glassWrapper, theme.glass.cardWrapperStyle]}>
           <AdaptiveGlassView intensity={24} darkIntensity={10} glassEffectStyle="clear" style={[styles.glassBlur, glassStyles.blurContent]}>
-            <View style={[styles.glassOverlay, { backgroundColor: theme.isDark ? 'rgba(40, 40, 45, 0.35)' : theme.glassColors.overlayStrong }]} pointerEvents="none" />
+            <View style={[styles.glassOverlay, { backgroundColor: theme.glass.overlayStrong }]} pointerEvents="none" />
             <View style={styles.glassContent}>
               <View style={styles.labelRow}>
                 <Text style={[styles.label, { color: theme.colors.text.primary }]}>{label}</Text>
               </View>
               <Pressable
-                style={[styles.valueRow, { backgroundColor: theme.isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(255, 255, 255, 0.5)', borderColor: theme.glassColors.border }]}
+                style={[styles.valueRow, { backgroundColor: theme.glass.fill, borderColor: theme.glass.border }]}
                 onPress={openPopup}
                 accessibilityLabel={label}
                 accessibilityRole="button"

@@ -44,7 +44,7 @@ export function StatCard({ label, value, iconName, onPress }: StatCardProps) {
     return (
       <Animated.View style={{ transform: [{ scale: scaleAnim }], flex: 1, minWidth: 0 }}>
       <Pressable
-        style={[styles.cardWrapper, !theme.isDark && { borderColor: theme.glassColors.border }, theme.isDark && { borderWidth: 0 }]}
+        style={[styles.cardWrapper, theme.glass.cardWrapperStyle]}
         onPress={onPress}
         onPressIn={onPressIn}
         onPressOut={onPressOut}
@@ -52,7 +52,7 @@ export function StatCard({ label, value, iconName, onPress }: StatCardProps) {
         accessibilityLabel={`${label}: ${value}`}
       >
         <AdaptiveGlassView intensity={24} darkIntensity={10} glassEffectStyle="clear" absoluteFill style={glassStyles.blurContent} />
-        <View style={[styles.cardOverlay, { backgroundColor: theme.isDark ? 'rgba(40, 40, 45, 0.35)' : theme.glassColors.overlayStrong }]} pointerEvents="none" />
+        <View style={[styles.cardOverlay, { backgroundColor: theme.glass.overlayStrong }]} pointerEvents="none" />
         {content}
       </Pressable>
       </Animated.View>
@@ -60,9 +60,9 @@ export function StatCard({ label, value, iconName, onPress }: StatCardProps) {
   }
 
   return (
-    <View style={[styles.cardWrapper, !theme.isDark && { borderColor: theme.glassColors.border }, theme.isDark && { borderWidth: 0 }]} accessibilityLabel={`${label}: ${value}`}>
+    <View style={[styles.cardWrapper, theme.glass.cardWrapperStyle]} accessibilityLabel={`${label}: ${value}`}>
       <AdaptiveGlassView intensity={24} darkIntensity={10} glassEffectStyle="clear" absoluteFill style={glassStyles.blurContent} />
-      <View style={[styles.cardOverlay, { backgroundColor: theme.isDark ? 'rgba(40, 40, 45, 0.35)' : theme.glassColors.overlayStrong }]} pointerEvents="none" />
+      <View style={[styles.cardOverlay, { backgroundColor: theme.glass.overlayStrong }]} pointerEvents="none" />
       {content}
     </View>
   );

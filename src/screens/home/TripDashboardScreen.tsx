@@ -144,8 +144,8 @@ export default function TripDashboardScreen() {
               <Text style={[styles.sectionTitle, { color: theme.colors.text.primary }]}>Upcoming Trips</Text>
               <Animated.View style={{ transform: [{ scale: seeAllAnim.scaleAnim }] }}>
               <Pressable onPress={handleSeeAllPress} onPressIn={seeAllAnim.onPressIn} onPressOut={seeAllAnim.onPressOut}>
-                <AdaptiveGlassView intensity={24} darkIntensity={10} glassEffectStyle="clear" style={[styles.seeAllButtonContainer, glassStyles.blurContentPill, { borderColor: theme.glassColors.border }]}>
-                  <View style={[styles.glassOverlay, { backgroundColor: theme.glassColors.overlayStrong }]} pointerEvents="none" />
+                <AdaptiveGlassView intensity={24} darkIntensity={10} glassEffectStyle="clear" style={[styles.seeAllButtonContainer, glassStyles.blurContentPill, { borderColor: theme.glass.border }]}>
+                  <View style={[styles.glassOverlay, { backgroundColor: theme.glass.overlayStrong }]} pointerEvents="none" />
                   <Text style={[styles.seeAllButton, { color: theme.colors.primary }]}>See All</Text>
                 </AdaptiveGlassView>
               </Pressable>
@@ -194,12 +194,12 @@ export default function TripDashboardScreen() {
         </ScrollView>
 
         <View style={[styles.topNavContainer, { top: topOffset }]}>
-          <View style={[styles.topNavBarWrapper, { borderColor: theme.glassColors.border, boxShadow: theme.glassShadows.nav }]}>
+          <View style={[styles.topNavBarWrapper, theme.glass.navWrapperStyle]}>
             <AdaptiveGlassView
               intensity={24}
               style={styles.topNavBlur}
             >
-              {!theme.isDark && <View style={[styles.glassOverlay, { backgroundColor: theme.glassColors.overlayStrong }]} pointerEvents="none" />}
+              {!theme.isDark && <View style={[styles.glassOverlay, { backgroundColor: theme.glass.overlayStrong }]} pointerEvents="none" />}
             </AdaptiveGlassView>
             <View style={styles.topNavContent}>
               <Animated.View style={{ transform: [{ scale: menuAnim.scaleAnim }] }}>
