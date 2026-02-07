@@ -20,7 +20,7 @@ import { MainStackParamList } from '../../navigation/types';
 import { useTrips } from '../../hooks';
 import { Trip } from '../../types';
 import { useTheme } from '../../contexts/ThemeContext';
-import { AdaptiveGlassView } from '../../components/ui/AdaptiveGlassView';
+import { AdaptiveGlassView, isNativeGlassActive } from '../../components/ui/AdaptiveGlassView';
 import { GlassNavHeader } from '../../components/navigation/GlassNavHeader';
 
 type NavigationProp = NativeStackNavigationProp<MainStackParamList>;
@@ -41,17 +41,35 @@ interface TripItemProps {
 
 const TripItem = React.memo(function TripItem({ trip, index, onPress }: TripItemProps) {
   const theme = useTheme();
-  const fadeAnim = useRef(new Animated.Value(0)).current;
+  
+  // Native GlassView doesn't initialize properly when container starts at opacity 0.
+  // Use scale animation instead of opacity when native glass is active.
+  const useGlassAnimation = isNativeGlassActive(theme.isDark);
+  
+  const fadeAnim = useRef(new Animated.Value(useGlassAnimation ? 1 : 0)).current;
+  const entranceScaleAnim = useRef(new Animated.Value(useGlassAnimation ? 0.95 : 1)).current;
   const { scaleAnim, onPressIn, onPressOut } = usePressAnimation();
 
   useEffect(() => {
-    Animated.timing(fadeAnim, {
-      toValue: 1,
-      duration: 180,
-      delay: index * 80,
-      useNativeDriver: true,
-    }).start();
-  }, [fadeAnim, index]);
+    if (useGlassAnimation) {
+      // Scale up animation for native glass - keeps opacity at 1
+      Animated.spring(entranceScaleAnim, {
+        toValue: 1,
+        tension: 100,
+        friction: 12,
+        delay: index * 80,
+        useNativeDriver: true,
+      }).start();
+    } else {
+      // Standard fade animation for BlurView
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 180,
+        delay: index * 80,
+        useNativeDriver: true,
+      }).start();
+    }
+  }, [index, useGlassAnimation]);
 
   const tripName = trip.destination;
   const statusLabel = TRIP_STATUS_LABEL[trip.status] ?? trip.status;
@@ -63,8 +81,13 @@ const TripItem = React.memo(function TripItem({ trip, index, onPress }: TripItem
   };
   const statusDotStyle = TRIP_STATUS_DOT_STYLE[trip.status] ?? { backgroundColor: theme.colors.text.secondary };
 
+  // Combine entrance animation with press animation
+  const animatedStyle = useGlassAnimation
+    ? { opacity: 1, transform: [{ scale: Animated.multiply(entranceScaleAnim, scaleAnim) }] }
+    : { opacity: fadeAnim, transform: [{ scale: scaleAnim }] };
+
   return (
-    <Animated.View style={{ opacity: fadeAnim, transform: [{ scale: scaleAnim }] }}>
+    <Animated.View style={animatedStyle}>
       <Pressable
         style={[
           styles.tripCard,

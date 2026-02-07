@@ -144,8 +144,8 @@ export default function TripDashboardScreen() {
               <Text style={[styles.sectionTitle, { color: theme.colors.text.primary }]}>Upcoming Trips</Text>
               <Animated.View style={{ transform: [{ scale: seeAllAnim.scaleAnim }] }}>
               <Pressable onPress={handleSeeAllPress} onPressIn={seeAllAnim.onPressIn} onPressOut={seeAllAnim.onPressOut}>
-                <AdaptiveGlassView intensity={24} darkIntensity={10} glassEffectStyle="clear" style={[styles.seeAllButtonContainer, glassStyles.blurContentPill, !theme.isDark && { borderWidth: 1, borderColor: theme.glassColors.border }]}>
-                  <View style={[styles.glassOverlay, { backgroundColor: theme.isDark ? 'rgba(0, 0, 0, 0.55)' : theme.glassColors.overlayStrong }]} pointerEvents="none" />
+                <AdaptiveGlassView intensity={24} darkIntensity={10} glassEffectStyle="clear" style={[styles.seeAllButtonContainer, glassStyles.blurContentPill, { borderColor: theme.glassColors.border }]}>
+                  <View style={[styles.glassOverlay, { backgroundColor: theme.glassColors.overlayStrong }]} pointerEvents="none" />
                   <Text style={[styles.seeAllButton, { color: theme.colors.primary }]}>See All</Text>
                 </AdaptiveGlassView>
               </Pressable>
@@ -312,10 +312,10 @@ const styles = StyleSheet.create({
     letterSpacing: -0.3,
   },
   seeAllButtonContainer: {
-    borderRadius: glassConstants.radius.pill,
-    overflow: 'hidden',
+    ...glassStyles.pillContainer,
     paddingHorizontal: 12,
     paddingVertical: 6,
+    borderWidth: 1.5,
   },
   seeAllButton: {
     fontSize: 14,

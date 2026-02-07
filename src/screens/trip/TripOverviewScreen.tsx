@@ -287,6 +287,7 @@ export default function TripOverviewScreen() {
               if (index === 2) handleAddTrain();
             }}
             style={styles.addMenuDropdown}
+            hideSeparators
           />
           <Animated.View style={{ transform: [{ scale: fabAnim.scaleAnim }] }}>
           <Pressable
@@ -296,12 +297,14 @@ export default function TripOverviewScreen() {
             onPressOut={fabAnim.onPressOut}
             accessibilityLabel={addMenuVisible ? 'Close add menu' : 'Add reservation'}
           >
-            <AdaptiveGlassView intensity={24} darkIntensity={10} glassEffectStyle="clear" style={styles.fabBlur}>
-              <View style={[styles.fabGlassOverlay, { backgroundColor: theme.isDark ? 'rgba(40, 40, 45, 0.35)' : theme.glassColors.overlayStrong }]} pointerEvents="none" />
-              <View style={styles.fabContent}>
-                <MaterialIcons name="add" size={28} color={theme.colors.primary} />
-              </View>
-            </AdaptiveGlassView>
+            <View style={styles.fabInner}>
+              <AdaptiveGlassView intensity={24} darkIntensity={10} glassEffectStyle="clear" style={styles.fabBlur}>
+                <View style={[styles.fabGlassOverlay, { backgroundColor: theme.isDark ? 'rgba(40, 40, 45, 0.35)' : theme.glassColors.overlayStrong }]} pointerEvents="none" />
+                <View style={styles.fabContent}>
+                  <MaterialIcons name="add" size={28} color={theme.colors.primary} />
+                </View>
+              </AdaptiveGlassView>
+            </View>
           </Pressable>
           </Animated.View>
         </View>
@@ -436,12 +439,16 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: glassConstants.radius.card,
-    overflow: 'hidden',
     borderWidth: glassConstants.borderWidth.card,
+  },
+  fabInner: {
+    flex: 1,
+    borderRadius: glassConstants.radiusInner.card,
+    overflow: 'hidden',
   },
   fabBlur: {
     ...StyleSheet.absoluteFillObject,
-    borderRadius: glassConstants.radius.card,
+    borderRadius: glassConstants.radiusInner.card,
     overflow: 'hidden',
   },
   fabGlassOverlay: {

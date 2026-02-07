@@ -3,11 +3,15 @@ import { View, Text, StyleSheet, Pressable, Animated, StyleProp, ViewStyle } fro
 import { MaterialIcons } from '@expo/vector-icons';
 import { fontFamilies, glassConstants } from '../../theme';
 import { useTheme } from '../../contexts/ThemeContext';
-import { AdaptiveGlassView } from './AdaptiveGlassView';
+import { AdaptiveGlassView, isNativeGlassActive } from './AdaptiveGlassView';
 
-function useMenuAnimation(visible: boolean) {
-  const opacity = useRef(new Animated.Value(0)).current;
-  const scale = useRef(new Animated.Value(0.96)).current;
+const SCALE_START = 0.88;
+
+function useMenuAnimation(visible: boolean, useGlassAnimation: boolean) {
+  // Native GlassView doesn't initialize properly when container starts at opacity 0.
+  // Use scale-only animation when native glass is active.
+  const opacity = useRef(new Animated.Value(useGlassAnimation ? 1 : 0)).current;
+  const scale = useRef(new Animated.Value(SCALE_START)).current;
   const hasAnimatedForCurrentVisibility = useRef(false);
 
   useEffect(() => {
@@ -15,27 +19,38 @@ function useMenuAnimation(visible: boolean) {
       if (!hasAnimatedForCurrentVisibility.current) {
         hasAnimatedForCurrentVisibility.current = true;
         requestAnimationFrame(() => {
-          Animated.parallel([
-            Animated.timing(opacity, {
-              toValue: 1,
-              duration: 200,
-              useNativeDriver: true,
-            }),
+          if (useGlassAnimation) {
+            // Scale-only animation for native glass - keeps opacity at 1
             Animated.spring(scale, {
               toValue: 1,
               useNativeDriver: true,
-              damping: 14,
-              stiffness: 200,
-            }),
-          ]).start();
+              damping: 12,
+              stiffness: 180,
+            }).start();
+          } else {
+            // Standard opacity + scale animation for BlurView
+            Animated.parallel([
+              Animated.timing(opacity, {
+                toValue: 1,
+                duration: 220,
+                useNativeDriver: true,
+              }),
+              Animated.spring(scale, {
+                toValue: 1,
+                useNativeDriver: true,
+                damping: 12,
+                stiffness: 180,
+              }),
+            ]).start();
+          }
         });
       }
     } else {
       hasAnimatedForCurrentVisibility.current = false;
-      opacity.setValue(0);
-      scale.setValue(0.96);
+      opacity.setValue(useGlassAnimation ? 1 : 0);
+      scale.setValue(SCALE_START);
     }
-  }, [visible, opacity, scale]);
+  }, [visible, opacity, scale, useGlassAnimation]);
 
   return { opacity, scale };
 }
@@ -64,6 +79,8 @@ interface GlassDropdownMenuProps {
   style?: StyleProp<ViewStyle>;
   /** When true, applies a uniform subtle background to all menu items */
   uniformItemBackground?: boolean;
+  /** When true, hides separator lines between menu items */
+  hideSeparators?: boolean;
 }
 
 export function GlassDropdownMenu({
@@ -73,9 +90,11 @@ export function GlassDropdownMenu({
   onSelect,
   style,
   uniformItemBackground,
+  hideSeparators = false,
 }: GlassDropdownMenuProps) {
   const theme = useTheme();
-  const animation = useMenuAnimation(visible);
+  const useGlassAnimation = isNativeGlassActive(theme.isDark);
+  const animation = useMenuAnimation(visible, useGlassAnimation);
 
   if (!visible) return null;
 
@@ -91,7 +110,6 @@ export function GlassDropdownMenu({
           position: 'absolute',
           minWidth: 180,
           borderRadius: MENU.borderRadius,
-          overflow: 'hidden',
           borderWidth: MENU.borderWidth,
           borderColor: theme.glassColors.borderStrong,
         },
@@ -102,14 +120,21 @@ export function GlassDropdownMenu({
         },
       ]}
     >
-      <AdaptiveGlassView intensity={MENU.blurIntensity} darkIntensity={20} glassEffectStyle="clear" absoluteFill style={{
-        borderRadius: MENU.borderRadius,
-        overflow: 'hidden',
-      }} />
-      <View style={[StyleSheet.absoluteFillObject, {
-        backgroundColor: theme.isDark ? 'rgba(40, 40, 45, 0.60)' : theme.glassColors.overlay,
-      }]} pointerEvents="none" />
-      <View style={{ position: 'relative' }}>
+      <View
+        style={{
+          borderRadius: glassConstants.radiusInner.card,
+          overflow: 'hidden',
+        }}
+        pointerEvents="box-none"
+      >
+        <AdaptiveGlassView intensity={MENU.blurIntensity} darkIntensity={20} glassEffectStyle="clear" absoluteFill style={{
+          borderRadius: glassConstants.radiusInner.card,
+          overflow: 'hidden',
+        }} />
+        <View style={[StyleSheet.absoluteFillObject, {
+          backgroundColor: theme.isDark ? 'rgba(40, 40, 45, 0.60)' : theme.glassColors.overlay,
+        }]} pointerEvents="none" />
+        <View style={{ position: 'relative' }}>
         {actions.map((action, index) => {
           const isLast = index === actions.length - 1;
           return (
@@ -122,7 +147,7 @@ export function GlassDropdownMenu({
                   paddingVertical: MENU.paddingVertical,
                   paddingHorizontal: MENU.paddingHorizontal,
                 },
-                !isLast && {
+                !isLast && !hideSeparators && {
                   borderBottomWidth: StyleSheet.hairlineWidth,
                   borderBottomColor: theme.colors.border,
                 },
@@ -160,6 +185,7 @@ export function GlassDropdownMenu({
             </Pressable>
           );
         })}
+      </View>
       </View>
     </Animated.View>
   );

@@ -7,9 +7,9 @@ import {
   ChevronRight,
   type LucideIcon,
 } from 'lucide-react-native';
-import { borderRadius, fontFamilies, glassStyles } from '../../theme';
+import { borderRadius, fontFamilies, glassStyles, glassConstants } from '../../theme';
 import { useTheme } from '../../contexts/ThemeContext';
-import { AdaptiveGlassView } from '../ui/AdaptiveGlassView';
+import { AdaptiveGlassView, isNativeGlassActive } from '../ui/AdaptiveGlassView';
 
 const QUICK_ACTION_ICON_MAP = {
   'map-pin-plus': MapPinPlus,
@@ -44,17 +44,35 @@ export function QuickActionCard({
 }: QuickActionCardProps) {
   const theme = useTheme();
   const IconComponent = QUICK_ACTION_ICON_MAP[iconKey];
-  const fadeAnim = useRef(new Animated.Value(0)).current;
+  
+  // Native GlassView doesn't initialize properly when container starts at opacity 0.
+  // Use scale animation instead of opacity when native glass is active.
+  const useGlassAnimation = isNativeGlassActive(theme.isDark);
+  
+  const fadeAnim = useRef(new Animated.Value(useGlassAnimation ? 1 : 0)).current;
+  const entranceScaleAnim = useRef(new Animated.Value(useGlassAnimation ? 0.95 : 1)).current;
   const scaleAnim = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
-    Animated.timing(fadeAnim, {
-      toValue: 1,
-      duration: 180,
-      delay,
-      useNativeDriver: true,
-    }).start();
-  }, [fadeAnim, delay]);
+    if (useGlassAnimation) {
+      // Scale up animation for native glass - keeps opacity at 1
+      Animated.spring(entranceScaleAnim, {
+        toValue: 1,
+        tension: 100,
+        friction: 12,
+        delay,
+        useNativeDriver: true,
+      }).start();
+    } else {
+      // Standard fade animation for BlurView
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 180,
+        delay,
+        useNativeDriver: true,
+      }).start();
+    }
+  }, [delay, useGlassAnimation]);
 
   const handlePressIn = useCallback(() => {
     Animated.spring(scaleAnim, { ...PRESS_SPRING, toValue: PRESS_SCALE }).start();
@@ -64,8 +82,13 @@ export function QuickActionCard({
     Animated.spring(scaleAnim, { ...RELEASE_SPRING, toValue: 1 }).start();
   }, [scaleAnim]);
 
+  // Combine entrance animation with press animation
+  const animatedStyle = useGlassAnimation
+    ? { opacity: 1, transform: [{ scale: Animated.multiply(entranceScaleAnim, scaleAnim) }] }
+    : { opacity: fadeAnim, transform: [{ scale: scaleAnim }] };
+
   return (
-    <Animated.View style={{ opacity: fadeAnim, transform: [{ scale: scaleAnim }] }}>
+    <Animated.View style={animatedStyle}>
       <Pressable
         style={[
           styles.cardWrapper,
