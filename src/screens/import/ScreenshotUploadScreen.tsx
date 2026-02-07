@@ -9,6 +9,7 @@ import {
   Dimensions,
   ActivityIndicator,
   Animated,
+  Alert,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -22,6 +23,7 @@ import { MainStackParamList } from '../../navigation/types';
 import { fontFamilies, glassStyles, glassConstants } from '../../theme';
 import { usePressAnimation } from '../../hooks';
 import { useTheme } from '../../contexts/ThemeContext';
+import { parseReservationFromImage } from '../../data/services/parseReservationService';
 
 type NavigationProp = NativeStackNavigationProp<MainStackParamList>;
 
@@ -31,6 +33,7 @@ const IMAGE_SIZE = (SCREEN_WIDTH - 8) / 3;
 interface Photo {
   id: string;
   uri: string;
+  base64?: string;
 }
 
 export default function ScreenshotUploadScreen() {
@@ -78,12 +81,15 @@ export default function ScreenshotUploadScreen() {
         mediaTypes: ['images'],
         allowsMultipleSelection: false,
         quality: 1,
+        base64: true,
       });
 
       if (!result.canceled && result.assets[0]) {
+        const asset = result.assets[0];
         const newPhoto: Photo = {
           id: Date.now().toString(),
-          uri: result.assets[0].uri,
+          uri: asset.uri,
+          base64: asset.base64 ?? undefined,
         };
         setPhotos((prev) => [newPhoto, ...prev]);
         handlePhotoPress(newPhoto.uri);
@@ -105,7 +111,7 @@ export default function ScreenshotUploadScreen() {
     navigation.goBack();
   };
 
-  const handleAutoScan = () => {
+  const handleAutoScan = async () => {
     if (!selectedPhoto) {
       pickImage();
       return;
@@ -113,10 +119,23 @@ export default function ScreenshotUploadScreen() {
 
     setIsParsing(true);
 
-    setTimeout(() => {
+    const photo = photos.find((p) => p.uri === selectedPhoto);
+
+    try {
+      const parsedData = await parseReservationFromImage(
+        photo?.base64 ? { base64: photo.base64 } : { uri: selectedPhoto }
+      );
+      navigation.navigate('ReviewDetails', { imageUri: selectedPhoto, parsedData });
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : 'Could not parse screenshot. Try again.';
+      Alert.alert('Parsing Failed', message, [
+        { text: 'Try Again', onPress: () => handleAutoScan() },
+        { text: 'Cancel', style: 'cancel' },
+      ]);
+    } finally {
       setIsParsing(false);
-      navigation.navigate('ReviewDetails', { imageUri: selectedPhoto });
-    }, 2000);
+    }
   };
 
   const renderPhoto = ({ item }: { item: Photo }) => {

@@ -2,6 +2,7 @@ import { NavigatorScreenParams } from '@react-navigation/native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import { CompositeScreenProps } from '@react-navigation/native';
+import type { ParsedReservation } from '../types';
 
 export type RootStackParamList = {
   Auth: NavigatorScreenParams<AuthStackParamList>;
@@ -21,7 +22,7 @@ export type MainStackParamList = {
   EditReservation: { timelineItemId: string };
   ReservationAttachments: { timelineItemId: string };
   ScreenshotUpload: undefined;
-  ReviewDetails: { imageUri: string };
+  ReviewDetails: { imageUri: string; parsedData?: ParsedReservation };
   ManualEntryOptions: undefined;
   FlightEntry: { tripId?: string };
   LodgingEntry: { tripId?: string };

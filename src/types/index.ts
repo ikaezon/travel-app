@@ -1,3 +1,4 @@
+export type { ParsedReservation, ParsedFlightReservation, ParsedHotelReservation, ParsedTrainReservation, ParsedUnknownReservation } from './parsedReservation';
 export type ReservationType = 'flight' | 'hotel' | 'train' | 'car';
 export type TripIconType = 'airplane-ticket' | 'hotel' | 'train';
 

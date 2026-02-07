@@ -54,6 +54,15 @@ function GlassNavButton({
     Animated.spring(scale, { ...RELEASE_SPRING, toValue: 1 }).start();
   }, [scale]);
 
+  const isLight = !theme.isDark;
+  const iconColor = isLight ? theme.colors.primary : theme.colors.text.primary;
+
+  // Both modes use AdaptiveGlassView to match the "Expand View" pill styling
+  // Light mode: use a subtle gray border for visibility against the light nav bar
+  const buttonBorderStyle = isLight
+    ? { borderWidth: 1.5, borderColor: 'rgba(0, 0, 0, 0.04)' }
+    : theme.glass.pillContainerStyle;
+
   return (
     <Animated.View style={[styles.navButtonOuter, { transform: [{ scale }] }]}>
       <Pressable
@@ -64,9 +73,16 @@ function GlassNavButton({
         accessibilityRole="button"
         style={styles.navButtonPressable}
       >
-        <AdaptiveGlassView intensity={45} glassEffectStyle="clear" useGlassInLightMode style={[styles.navButtonBlur, { borderColor: theme.glass.borderStrong }]}>
-          {!theme.isDark && <View style={[styles.navButtonOverlay, { backgroundColor: 'rgba(255, 255, 255, 0.25)' }]} pointerEvents="none" />}
-          <MaterialIcons name={icon} size={22} color={theme.colors.text.primary} />
+        <AdaptiveGlassView
+          intensity={40}
+          darkIntensity={10}
+          glassEffectStyle="clear"
+          style={[styles.navButtonBlur, glassStyles.blurContentPill, buttonBorderStyle]}
+        >
+          {!isLight && (
+            <View style={[styles.navButtonOverlay, { backgroundColor: 'rgba(255, 255, 255, 0.12)' }]} pointerEvents="none" />
+          )}
+          <MaterialIcons name={icon} size={22} color={iconColor} />
         </AdaptiveGlassView>
       </Pressable>
     </Animated.View>
@@ -169,9 +185,6 @@ const styles = StyleSheet.create({
   },
   navButtonBlur: {
     flex: 1,
-    borderRadius: BUTTON_RADIUS,
-    overflow: 'hidden',
-    borderWidth: 1.5,
     justifyContent: 'center',
     alignItems: 'center',
   },

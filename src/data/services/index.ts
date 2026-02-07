@@ -27,3 +27,7 @@ export {
   fetchCoverImageForDestination,
   isCoverImageAvailable,
 } from './coverImageService';
+export {
+  parseReservationFromImage,
+  type ParseReservationInput,
+} from './parseReservationService';

@@ -73,6 +73,7 @@ export const TimelineCard = React.memo(function TimelineCard({
 }: TimelineCardProps) {
   const theme = useTheme();
   const { entranceAnim, scaleAnim, onPressIn, onPressOut } = usePressAnimation(1.03, delay);
+  const { scaleAnim: actionScaleAnim, onPressIn: onActionPressIn, onPressOut: onActionPressOut } = usePressAnimation(0.98, -1);
 
   const iconConfig = getTimelineIconConfig(type, theme);
   const actionType = getActionType(actionLabel);
@@ -129,16 +130,18 @@ export const TimelineCard = React.memo(function TimelineCard({
               )}
             </View>
 
+            <Animated.View style={[styles.actionButtonWrapper, { transform: [{ scale: actionScaleAnim }] }]}>
             <Pressable
-              style={({ pressed }) => [
+              style={[
                 styles.actionButton,
                 actionType === 'boardingPass' && [styles.actionButtonBlue, { borderColor: theme.glass.borderShimmerBlue }],
                 actionType === 'directions' && [styles.actionButtonOrange, { borderColor: theme.glass.borderShimmerOrange }],
                 actionType === 'default' && { borderColor: iconConfig.iconColor },
-                pressed && styles.actionButtonPressed,
                 !theme.isDark && { boxShadow: '0 1px 3px rgba(0, 0, 0, 0.12)' },
               ]}
               onPress={onActionPress}
+              onPressIn={onActionPressIn}
+              onPressOut={onActionPressOut}
             >
               <AdaptiveGlassView intensity={24} darkIntensity={10} glassEffectStyle="clear" absoluteFill style={glassStyles.blurContentIcon} />
               <View
@@ -179,6 +182,7 @@ export const TimelineCard = React.memo(function TimelineCard({
                 />
               </View>
             </Pressable>
+            </Animated.View>
           </View>
         </Pressable>
         </Animated.View>
@@ -268,6 +272,9 @@ const styles = StyleSheet.create({
     fontFamily: fontFamilies.semibold,
     marginTop: 2,
   },
+  actionButtonWrapper: {
+    width: '100%',
+  },
   actionButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -286,10 +293,6 @@ const styles = StyleSheet.create({
   },
   actionButtonOrange: {
     borderWidth: glassConstants.borderWidth.cardThin,
-  },
-  actionButtonPressed: {
-    opacity: 0.9,
-    transform: [{ scale: 0.98 }],
   },
   actionButtonContent: {
     flexDirection: 'row',
