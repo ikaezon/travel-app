@@ -5,7 +5,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { borderRadius, fontFamilies, glassStyles, glassConstants } from '../../theme';
 import { TripIconType } from '../../types';
 import { useTheme } from '../../contexts/ThemeContext';
-import { AdaptiveGlassView, isNativeGlassActive } from '../ui/AdaptiveGlassView';
+import { AdaptiveGlassView } from '../ui/AdaptiveGlassView';
 
 interface TripCardProps {
   destination: string;
@@ -33,12 +33,8 @@ export const TripCard = React.memo(function TripCard({
 }: TripCardProps) {
   const theme = useTheme();
   
-  // Native GlassView doesn't initialize properly when container starts at opacity 0.
-  // Use scale animation instead of opacity when native glass is active.
-  const useGlassAnimation = isNativeGlassActive(theme.isDark);
-  
-  const fadeAnim = useRef(new Animated.Value(useGlassAnimation ? 1 : 0)).current;
-  const entranceScaleAnim = useRef(new Animated.Value(useGlassAnimation ? 0.95 : 1)).current;
+  // Scale animation for consistent "pop in" entrance effect
+  const entranceScaleAnim = useRef(new Animated.Value(0.95)).current;
   const scaleAnim = useRef(new Animated.Value(1)).current;
   
   const getAccentColor = (iconName: TripIconType): string => {
@@ -55,25 +51,14 @@ export const TripCard = React.memo(function TripCard({
   const accentColor = getAccentColor(iconName);
 
   useEffect(() => {
-    if (useGlassAnimation) {
-      // Scale up animation for native glass - keeps opacity at 1
-      Animated.spring(entranceScaleAnim, {
-        toValue: 1,
-        tension: 100,
-        friction: 12,
-        delay,
-        useNativeDriver: true,
-      }).start();
-    } else {
-      // Standard fade animation for BlurView
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 180,
-        delay,
-        useNativeDriver: true,
-      }).start();
-    }
-  }, [delay, useGlassAnimation]);
+    Animated.spring(entranceScaleAnim, {
+      toValue: 1,
+      tension: 100,
+      friction: 12,
+      delay,
+      useNativeDriver: true,
+    }).start();
+  }, [delay]);
 
   const handlePressIn = useCallback(() => {
     Animated.spring(scaleAnim, { ...PRESS_SPRING, toValue: PRESS_SCALE }).start();
@@ -97,9 +82,7 @@ export const TripCard = React.memo(function TripCard({
   };
 
   // Combine entrance animation with press animation
-  const animatedStyle = useGlassAnimation
-    ? { opacity: 1, transform: [{ scale: Animated.multiply(entranceScaleAnim, scaleAnim) }] }
-    : { opacity: fadeAnim, transform: [{ scale: scaleAnim }] };
+  const animatedStyle = { transform: [{ scale: Animated.multiply(entranceScaleAnim, scaleAnim) }] };
 
   return (
     <Animated.View style={animatedStyle}>

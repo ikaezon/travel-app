@@ -3,14 +3,12 @@ import { View, Text, StyleSheet, Pressable, Animated, StyleProp, ViewStyle } fro
 import { MaterialIcons } from '@expo/vector-icons';
 import { fontFamilies, glassConstants } from '../../theme';
 import { useTheme } from '../../contexts/ThemeContext';
-import { AdaptiveGlassView, isNativeGlassActive } from './AdaptiveGlassView';
+import { AdaptiveGlassView } from './AdaptiveGlassView';
 
 const SCALE_START = 0.88;
 
-function useMenuAnimation(visible: boolean, useGlassAnimation: boolean) {
-  // Native GlassView doesn't initialize properly when container starts at opacity 0.
-  // Use scale-only animation when native glass is active.
-  const opacity = useRef(new Animated.Value(useGlassAnimation ? 1 : 0)).current;
+function useMenuAnimation(visible: boolean) {
+  // Scale-only animation for consistent "pop in" entrance effect
   const scale = useRef(new Animated.Value(SCALE_START)).current;
   const hasAnimatedForCurrentVisibility = useRef(false);
 
@@ -19,40 +17,21 @@ function useMenuAnimation(visible: boolean, useGlassAnimation: boolean) {
       if (!hasAnimatedForCurrentVisibility.current) {
         hasAnimatedForCurrentVisibility.current = true;
         requestAnimationFrame(() => {
-          if (useGlassAnimation) {
-            // Scale-only animation for native glass - keeps opacity at 1
-            Animated.spring(scale, {
-              toValue: 1,
-              useNativeDriver: true,
-              damping: 12,
-              stiffness: 180,
-            }).start();
-          } else {
-            // Standard opacity + scale animation for BlurView
-            Animated.parallel([
-              Animated.timing(opacity, {
-                toValue: 1,
-                duration: 220,
-                useNativeDriver: true,
-              }),
-              Animated.spring(scale, {
-                toValue: 1,
-                useNativeDriver: true,
-                damping: 12,
-                stiffness: 180,
-              }),
-            ]).start();
-          }
+          Animated.spring(scale, {
+            toValue: 1,
+            useNativeDriver: true,
+            damping: 12,
+            stiffness: 180,
+          }).start();
         });
       }
     } else {
       hasAnimatedForCurrentVisibility.current = false;
-      opacity.setValue(useGlassAnimation ? 1 : 0);
       scale.setValue(SCALE_START);
     }
-  }, [visible, opacity, scale, useGlassAnimation]);
+  }, [visible, scale]);
 
-  return { opacity, scale };
+  return { scale };
 }
 
 // Menu styling constants
@@ -93,11 +72,12 @@ export function GlassDropdownMenu({
   hideSeparators = false,
 }: GlassDropdownMenuProps) {
   const theme = useTheme();
-  const useGlassAnimation = isNativeGlassActive(theme.isDark);
-  const animation = useMenuAnimation(visible, useGlassAnimation);
+  const animation = useMenuAnimation(visible);
 
   if (!visible) return null;
 
+  // Preserve existing border styling difference between light/dark mode
+  const useGlassAnimation = theme.isDark;
   const effectiveBorderWidth = useGlassAnimation ? 0 : MENU.borderWidth;
   const innerRadius = MENU.borderRadius - effectiveBorderWidth;
 
@@ -119,7 +99,6 @@ export function GlassDropdownMenu({
         useGlassAnimation && { borderWidth: 0 },
         style,
         {
-          opacity: animation.opacity,
           transform: [{ scale: animation.scale }],
         },
       ]}

@@ -10,15 +10,6 @@ import { useTheme } from '../../contexts/ThemeContext';
  */
 const liquidGlassReady = isLiquidGlassAvailable();
 
-/**
- * Returns true if native glass effect will be used (dark mode + device supports it).
- * Useful for components that need to adjust animations - native GlassView doesn't
- * initialize properly when its container starts at opacity 0.
- */
-export function isNativeGlassActive(isDark: boolean): boolean {
-  return isDark && liquidGlassReady;
-}
-
 interface AdaptiveGlassViewProps {
   /** Blur intensity used when falling back to BlurView (light mode or unsupported device) */
   intensity?: number;
