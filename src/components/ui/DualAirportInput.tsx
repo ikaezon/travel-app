@@ -192,15 +192,15 @@ export function DualAirportInput({
   return (
     <View style={styles.container}>
       {/* Main card */}
-      <View style={[styles.glassWrapper, theme.glass.cardWrapperStyle]} onLayout={handleCardLayout}>
+      <View style={[glassStyles.formWrapper, theme.glass.cardWrapperStyle]} onLayout={handleCardLayout}>
         <AdaptiveGlassView
           intensity={24}
           darkIntensity={10}
           glassEffectStyle="clear"
-          style={[styles.glassBlur, glassStyles.blurContent]}
+          style={[glassStyles.formBlur, glassStyles.blurContent]}
         >
           <View style={[styles.glassOverlay, { backgroundColor: theme.glass.overlayStrong }]} pointerEvents="none" />
-          <View style={styles.glassContent}>
+          <View style={glassStyles.formContent}>
             {/* Labels row */}
             <View style={styles.labelsRow}>
               <Text style={[styles.label, { color: theme.colors.text.primary }]}>From</Text>
@@ -271,7 +271,6 @@ export function DualAirportInput({
           style={[
             styles.dropdownContainer,
             { top: cardHeight + 8, borderColor: theme.glass.borderStrong },
-            showArrivalSuggestions && styles.dropdownRight,
           ]}
         >
           <AdaptiveGlassView
@@ -308,19 +307,8 @@ const styles = StyleSheet.create({
     width: '100%',
     zIndex: 100,
   },
-  glassWrapper: {
-    ...glassStyles.cardWrapper,
-    width: '100%',
-  },
-  glassBlur: {
-    padding: 12,
-    position: 'relative',
-  },
   glassOverlay: {
     ...glassStyles.cardOverlay,
-  },
-  glassContent: {
-    position: 'relative',
   },
   labelsRow: {
     flexDirection: 'row',
@@ -371,8 +359,6 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     borderWidth: 1.5,
     zIndex: 200,
-  },
-  dropdownRight: {
   },
   dropdownBlur: {
     borderRadius: glassConstants.radius.card,

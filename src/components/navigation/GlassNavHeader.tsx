@@ -90,13 +90,13 @@ export function GlassNavHeader({
 
   return (
     <View style={[styles.container, { top: topOffset }]}>
-      <View style={[styles.barWrapper, theme.glass.navWrapperStyle]}>
+      <View style={styles.barWrapper}>
         <AdaptiveGlassView
           intensity={24}
           useGlassInLightMode
-          style={styles.blurContainer}
+          style={[styles.blurContainer, glassStyles.blurContentLarge, theme.glass.navWrapperStyle]}
         >
-          {!theme.isDark && <View style={[styles.glassOverlay, { backgroundColor: theme.glass.overlayStrong }]} pointerEvents="none" />}
+          {!theme.isDark && <View style={[styles.glassOverlay, { backgroundColor: theme.glass.overlay }]} pointerEvents="none" />}
         </AdaptiveGlassView>
         <View style={styles.content}>
           <GlassNavButton
@@ -144,7 +144,7 @@ const styles = StyleSheet.create({
   },
   blurContainer: {
     ...StyleSheet.absoluteFillObject,
-    ...glassStyles.blurContentLarge,
+    ...glassStyles.navBarWrapper,
     zIndex: 0,
   },
   glassOverlay: {

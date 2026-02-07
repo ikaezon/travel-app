@@ -215,7 +215,7 @@ export default function ProfileScreen({
               onPressOut={signOutAnim.onPressOut}
             >
               <AdaptiveGlassView intensity={24} darkIntensity={10} glassEffectStyle="clear" style={[styles.signOutBlur, glassStyles.blurContent]}>
-                <View style={[styles.glassOverlay, styles.signOutOverlay, { backgroundColor: theme.isDark ? 'rgba(248, 113, 113, 0.08)' : 'rgba(254, 226, 226, 0.4)' }]} pointerEvents="none" />
+                <View style={[styles.glassOverlay, { backgroundColor: theme.isDark ? 'rgba(248, 113, 113, 0.08)' : 'rgba(254, 226, 226, 0.4)' }]} pointerEvents="none" />
                 <View style={styles.signOutContent}>
                   <MaterialIcons name="logout" size={20} color={theme.colors.status.error} />
                   <Text style={[styles.signOutText, { color: theme.colors.status.error }]}>Log Out</Text>
@@ -424,8 +424,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     gap: spacing.sm,
     position: 'relative',
-  },
-  signOutOverlay: {
   },
   signOutContent: {
     flexDirection: 'row',

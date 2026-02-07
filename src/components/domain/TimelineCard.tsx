@@ -1,10 +1,11 @@
-import React, { useEffect, useRef, useCallback } from 'react';
+import React from 'react';
 import { View, Text, ImageBackground, StyleSheet, Pressable, Animated } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { spacing, borderRadius, fontFamilies, glassStyles, glassConstants } from '../../theme';
 import { ReservationType } from '../../types';
 import { useTheme } from '../../contexts/ThemeContext';
 import { AdaptiveGlassView } from '../ui/AdaptiveGlassView';
+import { usePressAnimation } from '../../hooks/usePressAnimation';
 
 function getTimelineIconConfig(type: ReservationType, theme: ReturnType<typeof useTheme>) {
   const TIMELINE_ICON_CONFIG: Record<ReservationType, { name: keyof typeof MaterialIcons.glyphMap; iconColor: string }> = {
@@ -57,10 +58,6 @@ interface TimelineCardProps {
   delay?: number;
 }
 
-const PRESS_SPRING = { tension: 280, friction: 14, useNativeDriver: true };
-const RELEASE_SPRING = { tension: 200, friction: 18, useNativeDriver: true };
-const PRESS_SCALE = 1.03;
-
 export const TimelineCard = React.memo(function TimelineCard({
   type,
   time,
@@ -75,35 +72,13 @@ export const TimelineCard = React.memo(function TimelineCard({
   delay = 0,
 }: TimelineCardProps) {
   const theme = useTheme();
-  
-  const entranceScaleAnim = useRef(new Animated.Value(0.95)).current;
-  const scaleAnim = useRef(new Animated.Value(1)).current;
-
-  useEffect(() => {
-    Animated.spring(entranceScaleAnim, {
-      toValue: 1,
-      tension: 100,
-      friction: 12,
-      delay,
-      useNativeDriver: true,
-    }).start();
-  }, [delay]);
-
-  const handlePressIn = useCallback(() => {
-    Animated.spring(scaleAnim, { ...PRESS_SPRING, toValue: PRESS_SCALE }).start();
-  }, [scaleAnim]);
-
-  const handlePressOut = useCallback(() => {
-    Animated.spring(scaleAnim, { ...RELEASE_SPRING, toValue: 1 }).start();
-  }, [scaleAnim]);
+  const { entranceAnim, scaleAnim, onPressIn, onPressOut } = usePressAnimation(1.03, delay);
 
   const iconConfig = getTimelineIconConfig(type, theme);
   const actionType = getActionType(actionLabel);
 
-  const wrapperAnimStyle = { transform: [{ scale: entranceScaleAnim }] };
-
   return (
-    <Animated.View style={[styles.wrapper, wrapperAnimStyle]}>
+    <Animated.View style={[styles.wrapper, { transform: [{ scale: entranceAnim }] }]}>
       <View style={styles.container}>
         <View style={styles.timelineColumn}>
           <AdaptiveGlassView intensity={24} darkIntensity={10} glassEffectStyle="clear" style={[styles.iconContainer, glassStyles.blurContentIcon, !theme.isDark && { borderColor: theme.glass.border }, theme.isDark && { borderWidth: 1, borderColor: theme.glass.borderStrong }, { backgroundColor: theme.isDark ? theme.glass.iconBg : undefined }]}>
@@ -120,8 +95,8 @@ export const TimelineCard = React.memo(function TimelineCard({
         <Pressable
           style={[styles.card, theme.glass.cardWrapperStyle]}
           onPress={onPress}
-          onPressIn={handlePressIn}
-          onPressOut={handlePressOut}
+          onPressIn={onPressIn}
+          onPressOut={onPressOut}
         >
           <AdaptiveGlassView intensity={24} darkIntensity={10} glassEffectStyle="clear" absoluteFill style={glassStyles.blurContent} />
           <View style={[styles.cardOverlay, { backgroundColor: theme.glass.overlay }]} pointerEvents="none" />

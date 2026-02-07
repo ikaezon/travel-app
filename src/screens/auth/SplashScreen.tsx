@@ -139,19 +139,19 @@ export default function SplashScreen({
             {/* Primary button – boarding pass glass style */}
             <Animated.View style={{ transform: [{ scale: emailAnim.scaleAnim }] }}>
             <Pressable
-              style={[styles.primaryButton, theme.glass.cardWrapperStyle]}
+              style={[styles.primaryButton, theme.glass.cardWrapperStyle, theme.isDark && styles.darkCardBorder]}
               onPress={onEmailPress}
               onPressIn={emailAnim.onPressIn}
               onPressOut={emailAnim.onPressOut}
             >
               <AdaptiveGlassView
                 intensity={glassConstants.blur.card}
-                darkIntensity={10}
+                darkIntensity={20}
                 glassEffectStyle="clear"
                 absoluteFill
                 style={glassStyles.blurContent}
               />
-              <View style={[styles.primaryOverlay, { backgroundColor: theme.glass.overlayStrong }]} pointerEvents="none" />
+              <View style={[styles.primaryOverlay, { backgroundColor: theme.isDark ? theme.glass.overlay : theme.glass.overlayStrong }]} pointerEvents="none" />
               <View style={styles.primaryContent}>
                 <MaterialIcons name="mail" size={20} color={theme.colors.primary} />
                 <Text style={[styles.primaryButtonText, { color: theme.colors.primary }]}>Continue with Email</Text>
@@ -169,19 +169,19 @@ export default function SplashScreen({
             {/* Secondary button – Apple (glass card) */}
             <Animated.View style={{ transform: [{ scale: appleAnim.scaleAnim }] }}>
             <Pressable
-              style={[styles.secondaryButton, theme.glass.cardWrapperStyle]}
+              style={[styles.secondaryButton, theme.glass.cardWrapperStyle, theme.isDark && styles.darkCardBorder]}
               onPress={onApplePress}
               onPressIn={appleAnim.onPressIn}
               onPressOut={appleAnim.onPressOut}
             >
               <AdaptiveGlassView
                 intensity={glassConstants.blur.card}
-                darkIntensity={10}
+                darkIntensity={20}
                 glassEffectStyle="clear"
                 absoluteFill
                 style={glassStyles.blurContent}
               />
-              <View style={[styles.glassOverlay, { backgroundColor: theme.glass.overlayStrong }]} pointerEvents="none" />
+              <View style={[styles.glassOverlay, { backgroundColor: theme.isDark ? theme.glass.overlay : theme.glass.overlayStrong }]} pointerEvents="none" />
               <View style={styles.secondaryContent}>
                 <MaterialIcons name="smartphone" size={22} color={theme.colors.text.primary} />
                 <Text style={[styles.secondaryButtonText, { color: theme.colors.text.primary }]}>Continue with Apple</Text>
@@ -192,19 +192,19 @@ export default function SplashScreen({
             {/* Secondary button – Google (glass card) */}
             <Animated.View style={{ transform: [{ scale: googleAnim.scaleAnim }] }}>
             <Pressable
-              style={[styles.secondaryButton, theme.glass.cardWrapperStyle]}
+              style={[styles.secondaryButton, theme.glass.cardWrapperStyle, theme.isDark && styles.darkCardBorder]}
               onPress={onGooglePress}
               onPressIn={googleAnim.onPressIn}
               onPressOut={googleAnim.onPressOut}
             >
               <AdaptiveGlassView
                 intensity={glassConstants.blur.card}
-                darkIntensity={10}
+                darkIntensity={20}
                 glassEffectStyle="clear"
                 absoluteFill
                 style={glassStyles.blurContent}
               />
-              <View style={[styles.glassOverlay, { backgroundColor: theme.glass.overlayStrong }]} pointerEvents="none" />
+              <View style={[styles.glassOverlay, { backgroundColor: theme.isDark ? theme.glass.overlay : theme.glass.overlayStrong }]} pointerEvents="none" />
               <View style={styles.secondaryContent}>
                 <MaterialIcons name="language" size={22} color={theme.colors.text.primary} />
                 <Text style={[styles.secondaryButtonText, { color: theme.colors.text.primary }]}>Continue with Google</Text>
@@ -259,6 +259,10 @@ const styles = StyleSheet.create({
 
   glassOverlay: {
     ...glassStyles.cardOverlay,
+  },
+  darkCardBorder: {
+    borderWidth: 1.5,
+    borderColor: 'rgba(255, 255, 255, 0.18)',
   },
 
   logoOuterContainer: {

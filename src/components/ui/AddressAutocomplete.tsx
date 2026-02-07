@@ -16,17 +16,23 @@ import { AdaptiveGlassView } from './AdaptiveGlassView';
 import {
   isPlaceAutocompleteAvailable,
   createAddressAutocompleteService,
+  createPlaceAutocompleteService,
   type AddressSuggestion,
+  type PlaceSuggestion,
 } from '../../data/services/placeAutocompleteService';
+
+type Suggestion = AddressSuggestion | PlaceSuggestion;
 
 interface AddressAutocompleteProps {
   label: string;
   value: string;
   onChangeText: (text: string) => void;
-  onSelectSuggestion?: (suggestion: AddressSuggestion) => void;
+  onSelectSuggestion?: (suggestion: Suggestion) => void;
   placeholder?: string;
   style?: object;
   variant?: 'default' | 'glass';
+  /** 'address' for street-level, 'place' for city/region. Default: 'address' */
+  type?: 'address' | 'place';
 }
 
 export function AddressAutocomplete({
@@ -37,9 +43,10 @@ export function AddressAutocomplete({
   placeholder = 'Search for an address...',
   style,
   variant = 'default',
+  type = 'address',
 }: AddressAutocompleteProps) {
   const theme = useTheme();
-  const [suggestions, setSuggestions] = useState<AddressSuggestion[]>([]);
+  const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [loading, setLoading] = useState(false);
   const [dropdownVisible, setDropdownVisible] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
@@ -48,7 +55,9 @@ export function AddressAutocomplete({
   const lastQueryRef = useRef<string>('');
   const justSelectedRef = useRef<string | null>(null);
   const userHasTypedRef = useRef(false);
-  const autocompleteApi = useRef(createAddressAutocompleteService()).current;
+  const autocompleteApi = useRef(
+    type === 'place' ? createPlaceAutocompleteService() : createAddressAutocompleteService()
+  ).current;
 
   useEffect(() => {
     // Only fetch suggestions if user is focused and has typed
@@ -102,7 +111,7 @@ export function AddressAutocomplete({
   }, []);
 
   const handleSelect = useCallback(
-    (item: AddressSuggestion) => {
+    (item: Suggestion) => {
       const displayText = item.formatted;
       justSelectedRef.current = displayText;
       onChangeText(displayText);
@@ -116,7 +125,7 @@ export function AddressAutocomplete({
 );
 
   const renderSuggestion = useCallback(
-    (item: AddressSuggestion) => (
+    (item: Suggestion) => (
       <Pressable
         key={item.placeId}
         style={({ pressed }) => [
@@ -189,10 +198,10 @@ export function AddressAutocomplete({
   if (variant === 'glass') {
     return (
       <View style={[styles.container, style]}>
-        <View style={[styles.glassWrapper, theme.glass.cardWrapperStyle]}>
-          <AdaptiveGlassView intensity={24} darkIntensity={10} glassEffectStyle="clear" style={[styles.glassBlur, glassStyles.blurContent]}>
+        <View style={[glassStyles.formWrapper, theme.glass.cardWrapperStyle]}>
+          <AdaptiveGlassView intensity={24} darkIntensity={10} glassEffectStyle="clear" style={[glassStyles.formBlur, glassStyles.blurContent]}>
             <View style={[styles.glassOverlay, { backgroundColor: theme.glass.overlayStrong }]} pointerEvents="none" />
-            <View style={styles.glassContent}>{inputContent}</View>
+            <View style={glassStyles.formContent}>{inputContent}</View>
           </AdaptiveGlassView>
         </View>
       </View>
@@ -210,20 +219,8 @@ const styles = StyleSheet.create({
   container: {
     width: '100%',
   },
-  glassWrapper: {
-    ...glassStyles.cardWrapper,
-    overflow: 'hidden',
-    width: '100%',
-  },
-  glassBlur: {
-    padding: 12,
-    position: 'relative',
-  },
   glassOverlay: {
     ...glassStyles.cardOverlay,
-  },
-  glassContent: {
-    position: 'relative',
   },
   label: {
     fontSize: 14,

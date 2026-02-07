@@ -1,7 +1,6 @@
 import React, { useState, useRef, useCallback } from 'react';
 import {
   View,
-  StyleSheet,
   ScrollView,
   Keyboard,
   Alert,
@@ -16,7 +15,7 @@ import { DateRangePickerInput } from '../../components/ui/DateRangePickerInput';
 import { TripSelector } from '../../components/domain/TripSelector';
 import { GlassNavHeader } from '../../components/navigation/GlassNavHeader';
 import { ShimmerButton } from '../../components/ui/ShimmerButton';
-import { spacing } from '../../theme';
+import { spacing, glassStyles } from '../../theme';
 import { MainStackParamList } from '../../navigation/types';
 import { createLodgingReservation } from '../../data';
 import { formatCalendarDateToLongDisplay } from '../../utils/dateFormat';
@@ -110,14 +109,14 @@ export default function LodgingEntryScreen() {
       colors={theme.gradient}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
-      style={styles.gradientContainer}
+      style={glassStyles.screenGradient}
     >
-      <View style={styles.container}>
+      <View style={glassStyles.screenContainer}>
         <ScrollView
           ref={scrollViewRef}
-          style={styles.scrollView}
+          style={glassStyles.screenScrollView}
           contentContainerStyle={[
-            styles.scrollContent,
+            glassStyles.screenScrollContent,
             {
               paddingTop: topOffset + 72,
               paddingBottom: spacing.xxl + keyboardHeight,
@@ -196,18 +195,3 @@ export default function LodgingEntryScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  gradientContainer: {
-    flex: 1,
-  },
-  container: {
-    flex: 1,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
-    paddingHorizontal: 24,
-    gap: 12,
-  },
-});

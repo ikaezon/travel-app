@@ -89,10 +89,10 @@ export function FormInput({
 
   if (variant === 'glass') {
     return (
-      <View style={[styles.glassWrapper, theme.glass.cardWrapperStyle, style]}>
-        <AdaptiveGlassView intensity={24} darkIntensity={10} glassEffectStyle="clear" style={[styles.glassBlur, glassStyles.blurContent]}>
+      <View style={[glassStyles.formWrapper, theme.glass.cardWrapperStyle, style]}>
+        <AdaptiveGlassView intensity={24} darkIntensity={10} glassEffectStyle="clear" style={[glassStyles.formBlur, glassStyles.blurContent]}>
           <View style={[styles.glassOverlay, { backgroundColor: theme.glass.overlayStrong }]} pointerEvents="none" />
-          <View style={styles.glassContent}>{content}</View>
+          <View style={glassStyles.formContent}>{content}</View>
         </AdaptiveGlassView>
       </View>
     );
@@ -105,20 +105,8 @@ const styles = StyleSheet.create({
   container: {
     width: '100%',
   },
-  glassWrapper: {
-    ...glassStyles.cardWrapper,
-    overflow: 'hidden',
-    width: '100%',
-  },
-  glassBlur: {
-    padding: 12,
-    position: 'relative',
-  },
   glassOverlay: {
     ...glassStyles.cardOverlay,
-  },
-  glassContent: {
-    position: 'relative',
   },
   labelContainer: {
     flexDirection: 'row',
@@ -134,9 +122,6 @@ const styles = StyleSheet.create({
   },
   inputWithRightIcon: {
     paddingRight: 48,
-  },
-  inputDashed: {
-    borderStyle: 'dashed',
   },
   leftIcon: {
     position: 'absolute',

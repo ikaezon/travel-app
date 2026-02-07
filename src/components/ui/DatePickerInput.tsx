@@ -28,6 +28,25 @@ const FADE_CONFIG = {
   useNativeDriver: true as const,
 };
 
+/** Shared calendar theme builder used by both DatePickerInput and DateRangePickerInput */
+export function buildCalendarTheme(theme: ReturnType<typeof useTheme>) {
+  return {
+    backgroundColor: theme.colors.surface,
+    calendarBackground: theme.colors.surface,
+    textSectionTitleColor: theme.colors.text.secondary,
+    selectedDayBackgroundColor: theme.colors.primary,
+    selectedDayTextColor: theme.colors.white,
+    todayTextColor: theme.colors.primary,
+    dayTextColor: theme.colors.text.primary,
+    textDisabledColor: theme.colors.text.tertiary,
+    arrowColor: theme.colors.primary,
+    monthTextColor: theme.colors.text.primary,
+    textDayFontSize: 14,
+    textMonthFontSize: 14,
+    textDayHeaderFontSize: 11,
+  };
+}
+
 
 export interface DatePickerInputProps {
   label: string;
@@ -75,21 +94,7 @@ export function DatePickerInput({
   const backdropOpacity = useRef(new Animated.Value(0)).current;
   const popupOpacity = useRef(new Animated.Value(0)).current;
 
-  const CALENDAR_THEME = {
-    backgroundColor: theme.colors.surface,
-    calendarBackground: theme.colors.surface,
-    textSectionTitleColor: theme.colors.text.secondary,
-    selectedDayBackgroundColor: theme.colors.primary,
-    selectedDayTextColor: theme.colors.white,
-    todayTextColor: theme.colors.primary,
-    dayTextColor: theme.colors.text.primary,
-    textDisabledColor: theme.colors.text.tertiary,
-    arrowColor: theme.colors.primary,
-    monthTextColor: theme.colors.text.primary,
-    textDayFontSize: 14,
-    textMonthFontSize: 14,
-    textDayHeaderFontSize: 11,
-  };
+  const calendarTheme = buildCalendarTheme(theme);
 
   useEffect(() => {
     const parsed = parseToCalendarDate(value);
@@ -147,10 +152,10 @@ export function DatePickerInput({
   return (
     <View ref={containerRef} style={[styles.container, style]} collapsable={false}>
       {variant === 'glass' ? (
-        <View style={[styles.glassWrapper, theme.glass.cardWrapperStyle]}>
-          <AdaptiveGlassView intensity={24} darkIntensity={10} glassEffectStyle="clear" style={[styles.glassBlur, glassStyles.blurContent]}>
+        <View style={[glassStyles.formWrapper, theme.glass.cardWrapperStyle]}>
+          <AdaptiveGlassView intensity={24} darkIntensity={10} glassEffectStyle="clear" style={[glassStyles.formBlur, glassStyles.blurContent]}>
             <View style={[styles.glassOverlay, { backgroundColor: theme.glass.overlayStrong }]} pointerEvents="none" />
-            <View style={styles.glassContent}>
+            <View style={glassStyles.formContent}>
               <View style={styles.labelRow}>
                 <Text style={[styles.label, { color: theme.colors.text.secondary }]}>{label}</Text>
               </View>
@@ -166,7 +171,7 @@ export function DatePickerInput({
                   color={theme.colors.text.secondary}
                   style={styles.icon}
                 />
-                <Text style={[styles.value, !displayText && styles.placeholder, { color: displayText ? theme.colors.text.primary : theme.colors.text.tertiary }]}>
+                <Text style={[styles.value, { color: displayText ? theme.colors.text.primary : theme.colors.text.tertiary }]}>
                   {displayText || placeholder}
                 </Text>
                 <MaterialIcons name="chevron-right" size={24} color={theme.colors.text.tertiary} />
@@ -191,7 +196,7 @@ export function DatePickerInput({
               color={theme.colors.text.secondary}
               style={styles.icon}
             />
-            <Text style={[styles.value, !displayText && styles.placeholder, { color: displayText ? theme.colors.text.primary : theme.colors.text.tertiary }]}>
+            <Text style={[styles.value, { color: displayText ? theme.colors.text.primary : theme.colors.text.tertiary }]}>
               {displayText || placeholder}
             </Text>
             <MaterialIcons name="chevron-right" size={24} color={theme.colors.text.tertiary} />
@@ -223,7 +228,7 @@ export function DatePickerInput({
                   onDayPress={handleDayPress}
                   markedDates={markedDates}
                   enableSwipeMonths
-                  theme={CALENDAR_THEME}
+                  theme={calendarTheme}
                   renderArrow={(direction) => (
                     <MaterialIcons
                       name={direction === 'left' ? 'chevron-left' : 'chevron-right'}
@@ -245,20 +250,8 @@ const styles = StyleSheet.create({
   container: {
     width: '100%',
   },
-  glassWrapper: {
-    ...glassStyles.cardWrapper,
-    overflow: 'hidden',
-    width: '100%',
-  },
-  glassBlur: {
-    padding: 12,
-    position: 'relative',
-  },
   glassOverlay: {
     ...glassStyles.cardOverlay,
-  },
-  glassContent: {
-    position: 'relative',
   },
   labelRow: {
     marginBottom: spacing.sm,
@@ -283,8 +276,6 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 16,
     fontFamily: fontFamilies.regular,
-  },
-  placeholder: {
   },
   overlay: {
     flex: 1,

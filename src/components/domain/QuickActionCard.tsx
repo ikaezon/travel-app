@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useCallback } from 'react';
+import React from 'react';
 import { View, Text, StyleSheet, Pressable, Animated } from 'react-native';
 import {
   MapPinPlus,
@@ -10,6 +10,7 @@ import {
 import { borderRadius, fontFamilies, glassStyles, glassConstants } from '../../theme';
 import { useTheme } from '../../contexts/ThemeContext';
 import { AdaptiveGlassView } from '../ui/AdaptiveGlassView';
+import { usePressAnimation } from '../../hooks/usePressAnimation';
 
 const QUICK_ACTION_ICON_MAP = {
   'map-pin-plus': MapPinPlus,
@@ -29,10 +30,6 @@ interface QuickActionCardProps {
   delay?: number;
 }
 
-const PRESS_SPRING = { tension: 280, friction: 14, useNativeDriver: true };
-const RELEASE_SPRING = { tension: 200, friction: 18, useNativeDriver: true };
-const PRESS_SCALE = 1.03;
-
 export function QuickActionCard({
   title,
   subtitle,
@@ -43,40 +40,18 @@ export function QuickActionCard({
 }: QuickActionCardProps) {
   const theme = useTheme();
   const IconComponent = QUICK_ACTION_ICON_MAP[iconKey];
-  
-  const entranceScaleAnim = useRef(new Animated.Value(0.95)).current;
-  const scaleAnim = useRef(new Animated.Value(1)).current;
-
-  useEffect(() => {
-    Animated.spring(entranceScaleAnim, {
-      toValue: 1,
-      tension: 100,
-      friction: 12,
-      delay,
-      useNativeDriver: true,
-    }).start();
-  }, [delay]);
-
-  const handlePressIn = useCallback(() => {
-    Animated.spring(scaleAnim, { ...PRESS_SPRING, toValue: PRESS_SCALE }).start();
-  }, [scaleAnim]);
-
-  const handlePressOut = useCallback(() => {
-    Animated.spring(scaleAnim, { ...RELEASE_SPRING, toValue: 1 }).start();
-  }, [scaleAnim]);
-
-  const animatedStyle = { transform: [{ scale: Animated.multiply(entranceScaleAnim, scaleAnim) }] };
+  const { animatedScale, onPressIn, onPressOut } = usePressAnimation(1.03, delay);
 
   return (
-    <Animated.View style={animatedStyle}>
+    <Animated.View style={{ transform: [{ scale: animatedScale }] }}>
       <Pressable
         style={[
           styles.cardWrapper,
           theme.glass.cardWrapperStyle,
         ]}
         onPress={onPress}
-        onPressIn={handlePressIn}
-        onPressOut={handlePressOut}
+        onPressIn={onPressIn}
+        onPressOut={onPressOut}
         accessibilityRole="button"
         accessibilityLabel={`${title}. ${subtitle}`}
       >

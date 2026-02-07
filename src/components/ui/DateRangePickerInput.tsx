@@ -14,6 +14,7 @@ import { Calendar } from 'react-native-calendars';
 import { spacing, borderRadius, shadows, fontFamilies, glassStyles, glassConstants } from '../../theme';
 import { useTheme } from '../../contexts/ThemeContext';
 import { AdaptiveGlassView } from './AdaptiveGlassView';
+import { buildCalendarTheme } from './DatePickerInput';
 import { formatCalendarDateToDisplay } from '../../utils/dateFormat';
 
 const POPUP_FADE_DURATION = 150;
@@ -192,10 +193,10 @@ export function DateRangePickerInput({
   return (
     <View ref={containerRef} style={[styles.container, style]} collapsable={false}>
       {variant === 'glass' ? (
-        <View style={[styles.glassWrapper, theme.glass.cardWrapperStyle]}>
-          <AdaptiveGlassView intensity={24} darkIntensity={10} glassEffectStyle="clear" style={[styles.glassBlur, glassStyles.blurContent]}>
+        <View style={[glassStyles.formWrapper, theme.glass.cardWrapperStyle]}>
+          <AdaptiveGlassView intensity={24} darkIntensity={10} glassEffectStyle="clear" style={[glassStyles.formBlur, glassStyles.blurContent]}>
             <View style={[styles.glassOverlay, { backgroundColor: theme.glass.overlayStrong }]} pointerEvents="none" />
-            <View style={styles.glassContent}>
+            <View style={glassStyles.formContent}>
               <View style={styles.labelRow}>
                 <Text style={[styles.label, { color: theme.colors.text.primary }]}>{label}</Text>
               </View>
@@ -287,21 +288,7 @@ export function DateRangePickerInput({
                   markedDates={markedDates}
                   markingType="period"
                   enableSwipeMonths
-                  theme={{
-                    backgroundColor: theme.colors.surface,
-                    calendarBackground: theme.colors.surface,
-                    textSectionTitleColor: theme.colors.text.secondary,
-                    selectedDayBackgroundColor: theme.colors.primary,
-                    selectedDayTextColor: theme.colors.white,
-                    todayTextColor: theme.colors.primary,
-                    dayTextColor: theme.colors.text.primary,
-                    textDisabledColor: theme.colors.text.tertiary,
-                    arrowColor: theme.colors.primary,
-                    monthTextColor: theme.colors.text.primary,
-                    textDayFontSize: 14,
-                    textMonthFontSize: 14,
-                    textDayHeaderFontSize: 11,
-                  }}
+                  theme={buildCalendarTheme(theme)}
                   renderArrow={(direction) => (
                     <MaterialIcons
                       name={direction === 'left' ? 'chevron-left' : 'chevron-right'}
@@ -323,20 +310,8 @@ const styles = StyleSheet.create({
   container: {
     width: '100%',
   },
-  glassWrapper: {
-    ...glassStyles.cardWrapper,
-    overflow: 'hidden',
-    width: '100%',
-  },
-  glassBlur: {
-    padding: 12,
-    position: 'relative',
-  },
   glassOverlay: {
     ...glassStyles.cardOverlay,
-  },
-  glassContent: {
-    position: 'relative',
   },
   labelRow: {
     marginBottom: spacing.sm,

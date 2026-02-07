@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   View,
-  StyleSheet,
   ScrollView,
   Platform,
   Keyboard,
@@ -11,12 +10,12 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { DestinationAutocomplete } from '../../components/ui/DestinationAutocomplete';
+import { AddressAutocomplete } from '../../components/ui/AddressAutocomplete';
 import { FormInput } from '../../components/ui/FormInput';
 import { DateRangePickerInput } from '../../components/ui/DateRangePickerInput';
 import { ShimmerButton } from '../../components/ui/ShimmerButton';
 import { GlassNavHeader } from '../../components/navigation/GlassNavHeader';
-import { spacing } from '../../theme';
+import { spacing, glassStyles } from '../../theme';
 import { MainStackParamList } from '../../navigation/types';
 import { useCreateTrip } from '../../hooks';
 import { formatCalendarDateToDisplay, daysBetween } from '../../utils/dateFormat';
@@ -129,24 +128,25 @@ export default function CreateTripScreen() {
       colors={theme.gradient}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
-      style={styles.gradientContainer}
+      style={glassStyles.screenGradient}
     >
-      <View style={styles.container}>
+      <View style={glassStyles.screenContainer}>
         <ScrollView
-          style={styles.scrollView}
+          style={glassStyles.screenScrollView}
           contentContainerStyle={[
-            styles.scrollContent,
+            glassStyles.screenScrollContent,
             { paddingTop: topOffset + 72, paddingBottom: spacing.xxl + keyboardHeight },
           ]}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-          <DestinationAutocomplete
+          <AddressAutocomplete
             label="Destination"
             value={destination}
             onChangeText={setDestination}
             placeholder="e.g. Paris, France or Tokyo, Japan"
             variant="glass"
+            type="place"
           />
 
           <DateRangePickerInput
@@ -189,18 +189,3 @@ export default function CreateTripScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  gradientContainer: {
-    flex: 1,
-  },
-  container: {
-    flex: 1,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
-    paddingHorizontal: 24,
-    gap: 12,
-  },
-});

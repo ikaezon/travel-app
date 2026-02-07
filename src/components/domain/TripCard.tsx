@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useCallback } from 'react';
+import React from 'react';
 import { View, Text, ImageBackground, StyleSheet, Pressable, Animated } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -6,6 +6,7 @@ import { borderRadius, fontFamilies, glassStyles, glassConstants } from '../../t
 import { TripIconType } from '../../types';
 import { useTheme } from '../../contexts/ThemeContext';
 import { AdaptiveGlassView } from '../ui/AdaptiveGlassView';
+import { usePressAnimation } from '../../hooks/usePressAnimation';
 
 interface TripCardProps {
   destination: string;
@@ -17,10 +18,6 @@ interface TripCardProps {
   delay?: number;
 }
 
-const PRESS_SPRING = { tension: 280, friction: 14, useNativeDriver: true };
-const RELEASE_SPRING = { tension: 200, friction: 18, useNativeDriver: true };
-const PRESS_SCALE = 1.03;
-
 export const TripCard = React.memo(function TripCard({
   destination,
   dateRange,
@@ -31,40 +28,12 @@ export const TripCard = React.memo(function TripCard({
   delay = 0,
 }: TripCardProps) {
   const theme = useTheme();
+  const { animatedScale, onPressIn, onPressOut } = usePressAnimation(1.03, delay);
   
-  const entranceScaleAnim = useRef(new Animated.Value(0.95)).current;
-  const scaleAnim = useRef(new Animated.Value(1)).current;
-  
-  const getAccentColor = (iconName: TripIconType): string => {
-    switch (iconName) {
-      case 'hotel':
-        return theme.colors.accent.indigo;
-      case 'train':
-        return theme.colors.status.success;
-      default:
-        return theme.colors.accent.blue;
-    }
-  };
-  
-  const accentColor = getAccentColor(iconName);
-
-  useEffect(() => {
-    Animated.spring(entranceScaleAnim, {
-      toValue: 1,
-      tension: 100,
-      friction: 12,
-      delay,
-      useNativeDriver: true,
-    }).start();
-  }, [delay]);
-
-  const handlePressIn = useCallback(() => {
-    Animated.spring(scaleAnim, { ...PRESS_SPRING, toValue: PRESS_SCALE }).start();
-  }, [scaleAnim]);
-
-  const handlePressOut = useCallback(() => {
-    Animated.spring(scaleAnim, { ...RELEASE_SPRING, toValue: 1 }).start();
-  }, [scaleAnim]);
+  const accentColor =
+    iconName === 'hotel' ? theme.colors.accent.indigo
+    : iconName === 'train' ? theme.colors.status.success
+    : theme.colors.accent.blue;
 
   const getIconName = (): keyof typeof MaterialIcons.glyphMap => {
     switch (iconName) {
@@ -79,18 +48,16 @@ export const TripCard = React.memo(function TripCard({
     }
   };
 
-  const animatedStyle = { transform: [{ scale: Animated.multiply(entranceScaleAnim, scaleAnim) }] };
-
   return (
-    <Animated.View style={animatedStyle}>
+    <Animated.View style={{ transform: [{ scale: animatedScale }] }}>
       <Pressable
         style={[
           styles.cardWrapper,
           theme.glass.cardWrapperStyle,
         ]}
         onPress={onPress}
-        onPressIn={handlePressIn}
-        onPressOut={handlePressOut}
+        onPressIn={onPressIn}
+        onPressOut={onPressOut}
         accessibilityRole="button"
         accessibilityLabel={`${destination}. ${dateRange}. ${durationLabel}`}
       >
