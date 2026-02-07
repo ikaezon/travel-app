@@ -323,7 +323,7 @@ const styles = StyleSheet.create({
   },
   tripsCarousel: {
     paddingHorizontal: 24,
-    paddingBottom: 8,
+    paddingVertical: 8,
     gap: 20,
   },
   quickActionsSection: {
