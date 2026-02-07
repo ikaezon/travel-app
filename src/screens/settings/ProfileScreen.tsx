@@ -21,6 +21,7 @@ import {
   borderRadius,
   fontFamilies,
   glassStyles,
+  glassConstants,
 } from '../../theme';
 import { useProfileUser, useAppSettings, usePressAnimation } from '../../hooks';
 import { useTheme } from '../../contexts/ThemeContext';
@@ -77,8 +78,14 @@ export default function ProfileScreen({
       >
         <View style={styles.container}>
           <View style={[styles.topNavContainer, { top: topOffset }]}>
-            <AdaptiveGlassView intensity={24} style={[styles.topNavBlur, glassStyles.blurContentLarge, theme.glass.navWrapperStyle]}>
-              {!theme.isDark && <View style={[styles.glassOverlay, { backgroundColor: theme.glass.overlayStrong }]} pointerEvents="none" />}
+            <View style={[styles.topNavBarWrapper, theme.glass.navWrapperStyle]}>
+              <AdaptiveGlassView
+                intensity={24}
+                useGlassInLightMode
+                style={styles.topNavBlur}
+              >
+                {!theme.isDark && <View style={[styles.glassOverlay, { backgroundColor: theme.glass.overlayStrong }]} pointerEvents="none" />}
+              </AdaptiveGlassView>
               <View style={styles.topNavContent}>
                 <View style={styles.navButton} />
                 <View style={styles.headerCenter}>
@@ -87,7 +94,7 @@ export default function ProfileScreen({
                 </View>
                 <View style={styles.navButton} />
               </View>
-            </AdaptiveGlassView>
+            </View>
           </View>
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color={theme.colors.primary} />
@@ -223,8 +230,14 @@ export default function ProfileScreen({
         </ScrollView>
 
         <View style={[styles.topNavContainer, { top: topOffset }]}>
-          <AdaptiveGlassView intensity={24} style={[styles.topNavBlur, glassStyles.blurContentLarge, theme.glass.navWrapperStyle]}>
-            {!theme.isDark && <View style={[styles.glassOverlay, { backgroundColor: theme.glass.overlayStrong }]} pointerEvents="none" />}
+          <View style={[styles.topNavBarWrapper, theme.glass.navWrapperStyle]}>
+            <AdaptiveGlassView
+              intensity={24}
+              useGlassInLightMode
+              style={styles.topNavBlur}
+            >
+              {!theme.isDark && <View style={[styles.glassOverlay, { backgroundColor: theme.glass.overlayStrong }]} pointerEvents="none" />}
+            </AdaptiveGlassView>
             <View style={styles.topNavContent}>
               <View style={styles.navButton} />
               <View style={styles.headerCenter}>
@@ -232,17 +245,17 @@ export default function ProfileScreen({
                 <Text style={[styles.headerTitle, { color: theme.colors.text.primary }]}>Settings</Text>
               </View>
               <Animated.View style={{ transform: [{ scale: editAnim.scaleAnim }] }}>
-              <Pressable
-                style={styles.navButton}
-                onPress={onEditPress}
-                onPressIn={editAnim.onPressIn}
-                onPressOut={editAnim.onPressOut}
-              >
-                <Text style={[styles.editText, { color: theme.colors.primary }]}>Edit</Text>
-              </Pressable>
+                <Pressable
+                  style={styles.navButton}
+                  onPress={onEditPress}
+                  onPressIn={editAnim.onPressIn}
+                  onPressOut={editAnim.onPressOut}
+                >
+                  <Text style={[styles.editText, { color: theme.colors.primary }]}>Edit</Text>
+                </Pressable>
               </Animated.View>
             </View>
-          </AdaptiveGlassView>
+          </View>
         </View>
       </View>
     </LinearGradient>
@@ -263,23 +276,30 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     zIndex: 60,
   },
-  topNavBlur: {
+  topNavBarWrapper: {
     ...glassStyles.navBarWrapper,
     width: '90%',
     maxWidth: 340,
-    position: 'relative',
     height: 56,
-    justifyContent: 'center',
+    position: 'relative',
+  },
+  topNavBlur: {
+    ...StyleSheet.absoluteFillObject,
+    ...glassStyles.blurContentLarge,
+    zIndex: 0,
   },
   topNavContent: {
+    ...StyleSheet.absoluteFillObject,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 16,
+    zIndex: 2,
   },
   navButton: {
-    width: 48,
-    minHeight: 36,
+    width: 36,
+    height: 36,
+    borderRadius: glassConstants.radius.icon,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -304,7 +324,7 @@ const styles = StyleSheet.create({
     fontFamily: fontFamilies.semibold,
   },
   glassOverlay: {
-    ...glassStyles.cardOverlay,
+    ...StyleSheet.absoluteFillObject,
   },
   loadingContainer: {
     flex: 1,

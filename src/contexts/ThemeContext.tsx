@@ -1,7 +1,13 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { Appearance } from 'react-native';
 import { getThemeColors, ResolvedColors } from '../theme/colors';
 import { getResolvedGlass, ResolvedGlass } from '../theme/glassStyles';
 import { userService } from '../data';
+
+/** Initial isDark from system - avoids flash before storage loads */
+function getInitialIsDark(): boolean {
+  return Appearance.getColorScheme() === 'dark';
+}
 
 interface ThemeContextValue {
   isDark: boolean;
@@ -21,7 +27,7 @@ interface ThemeProviderProps {
 }
 
 export function ThemeProvider({ children, onHydrated }: ThemeProviderProps) {
-  const [isDark, setIsDark] = useState(false);
+  const [isDark, setIsDark] = useState(getInitialIsDark);
   const [isHydrated, setIsHydrated] = useState(false);
   const initializedRef = useRef(false);
 
@@ -29,9 +35,7 @@ export function ThemeProvider({ children, onHydrated }: ThemeProviderProps) {
     if (!initializedRef.current) {
       initializedRef.current = true;
       userService.getAppSettings().then((settings) => {
-        if (settings?.darkMode) {
-          setIsDark(true);
-        }
+        setIsDark(Boolean(settings?.darkMode));
         setIsHydrated(true);
         onHydrated?.();
       }).catch(() => {

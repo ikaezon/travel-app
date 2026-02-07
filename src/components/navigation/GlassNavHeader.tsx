@@ -64,7 +64,7 @@ function GlassNavButton({
         accessibilityRole="button"
         style={styles.navButtonPressable}
       >
-        <AdaptiveGlassView intensity={45} glassEffectStyle="clear" style={[styles.navButtonBlur, { borderColor: theme.glass.borderStrong }]}>
+        <AdaptiveGlassView intensity={45} glassEffectStyle="clear" useGlassInLightMode style={[styles.navButtonBlur, { borderColor: theme.glass.borderStrong }]}>
           {!theme.isDark && <View style={[styles.navButtonOverlay, { backgroundColor: 'rgba(255, 255, 255, 0.25)' }]} pointerEvents="none" />}
           <MaterialIcons name={icon} size={22} color={theme.colors.text.primary} />
         </AdaptiveGlassView>
@@ -93,6 +93,7 @@ export function GlassNavHeader({
       <View style={[styles.barWrapper, theme.glass.navWrapperStyle]}>
         <AdaptiveGlassView
           intensity={24}
+          useGlassInLightMode
           style={styles.blurContainer}
         >
           {!theme.isDark && <View style={[styles.glassOverlay, { backgroundColor: theme.glass.overlayStrong }]} pointerEvents="none" />}

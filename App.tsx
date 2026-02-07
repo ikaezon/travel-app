@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Appearance, Platform } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import {
   NavigationContainer,
@@ -47,6 +48,12 @@ function useNativeThemeSync(
     if (!isHydrated) return;
 
     const colors = getThemeColors(isDark);
+
+    // Sync native color scheme with app theme - prevents native elements
+    // (GlassView, stack containers) from flashing wrong appearance during transitions
+    if (Platform.OS !== 'web') {
+      Appearance.setColorScheme(isDark ? 'dark' : 'light');
+    }
     
     // Set native background color - this affects the UIWindow on iOS
     // and root View on Android, eliminating the white flash

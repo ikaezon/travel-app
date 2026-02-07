@@ -197,6 +197,7 @@ export default function TripDashboardScreen() {
           <View style={[styles.topNavBarWrapper, theme.glass.navWrapperStyle]}>
             <AdaptiveGlassView
               intensity={24}
+              useGlassInLightMode
               style={styles.topNavBlur}
             >
               {!theme.isDark && <View style={[styles.glassOverlay, { backgroundColor: theme.glass.overlayStrong }]} pointerEvents="none" />}

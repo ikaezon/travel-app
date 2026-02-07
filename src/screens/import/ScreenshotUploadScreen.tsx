@@ -236,7 +236,7 @@ export default function ScreenshotUploadScreen() {
         </View>
 
         <View style={[styles.headerContainer, { top: topOffset }]}>
-          <AdaptiveGlassView intensity={24} style={[styles.headerBlur, glassStyles.blurContentLarge, theme.glass.navWrapperStyle]}>
+          <AdaptiveGlassView intensity={24} useGlassInLightMode style={[styles.headerBlur, glassStyles.blurContentLarge, theme.glass.navWrapperStyle]}>
             {!theme.isDark && <View style={[styles.glassOverlay, { backgroundColor: theme.glass.overlayStrong }]} pointerEvents="none" />}
             <View style={styles.headerContent}>
               <Animated.View style={{ transform: [{ scale: backAnim.scaleAnim }] }}>
