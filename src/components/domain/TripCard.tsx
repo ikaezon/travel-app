@@ -139,7 +139,7 @@ export const TripCard = React.memo(function TripCard({
                 style={styles.image}
                 resizeMode="cover"
               >
-                <AdaptiveGlassView intensity={24} darkIntensity={10} glassEffectStyle="clear" style={[styles.durationBadge, glassStyles.blurContentPill, theme.isDark && { borderWidth: 1, borderColor: theme.glassColors.borderStrong }]}>
+                <AdaptiveGlassView intensity={24} darkIntensity={10} glassEffectStyle="clear" style={[styles.durationBadge, glassStyles.blurContentPill, !theme.isDark && { borderColor: theme.glassColors.border }, theme.isDark && { borderWidth: 0 }]}>
                   <View style={[styles.durationOverlay, { backgroundColor: theme.isDark ? 'rgba(0, 0, 0, 0.35)' : theme.colors.glass.iconInset }]} pointerEvents="none" />
                   <MaterialIcons name="flight-takeoff" size={14} color={theme.colors.text.primary} />
                   <Text style={[styles.durationText, { color: theme.colors.text.primary }]}>{durationLabel}</Text>
@@ -155,7 +155,7 @@ export const TripCard = React.memo(function TripCard({
                   {dateRange}
                 </Text>
               </View>
-              <View style={[styles.iconBadge, glassStyles.blurContentIcon, theme.isDark && { borderWidth: 1, borderColor: theme.glassColors.borderStrong }, { backgroundColor: theme.isDark ? 'rgba(255, 255, 255, 0.06)' : theme.colors.glass.iconInset }]}>
+              <View style={[styles.iconBadge, glassStyles.blurContentIcon, !theme.isDark && { borderColor: theme.glassColors.border }, theme.isDark && { borderWidth: 0 }, { backgroundColor: theme.isDark ? 'rgba(255, 255, 255, 0.06)' : theme.colors.glass.iconInset }]}>
                 <MaterialIcons name={getIconName()} size={24} color={theme.isDark ? theme.colors.text.secondary : accentColor} />
               </View>
             </View>

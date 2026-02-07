@@ -98,6 +98,9 @@ export function GlassDropdownMenu({
 
   if (!visible) return null;
 
+  const effectiveBorderWidth = useGlassAnimation ? 0 : MENU.borderWidth;
+  const innerRadius = MENU.borderRadius - effectiveBorderWidth;
+
   const handlePress = (index: number) => {
     onSelect(index);
     onClose();
@@ -113,6 +116,7 @@ export function GlassDropdownMenu({
           borderWidth: MENU.borderWidth,
           borderColor: theme.glassColors.borderStrong,
         },
+        useGlassAnimation && { borderWidth: 0 },
         style,
         {
           opacity: animation.opacity,
@@ -122,13 +126,13 @@ export function GlassDropdownMenu({
     >
       <View
         style={{
-          borderRadius: glassConstants.radiusInner.card,
+          borderRadius: innerRadius,
           overflow: 'hidden',
         }}
         pointerEvents="box-none"
       >
         <AdaptiveGlassView intensity={MENU.blurIntensity} darkIntensity={20} glassEffectStyle="clear" absoluteFill style={{
-          borderRadius: glassConstants.radiusInner.card,
+          borderRadius: innerRadius,
           overflow: 'hidden',
         }} />
         <View style={[StyleSheet.absoluteFillObject, {
