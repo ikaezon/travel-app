@@ -11,7 +11,6 @@ import {
 import { fontFamilies, glassConstants } from '../../theme';
 import { useTheme } from '../../contexts/ThemeContext';
 
-// Smooth spring config
 const SPRING_CONFIG = {
   tension: 170,
   friction: 26,
@@ -35,20 +34,14 @@ export function SegmentedControl({
   onValueChange,
 }: SegmentedControlProps) {
   const theme = useTheme();
-  // Track segment layouts
   const segmentLayouts = useRef<{ x: number; width: number; center: number }[]>([]);
   const isInitialized = useRef(false);
-
-  // Get current selected index
   const selectedIndex = options.findIndex((opt) => opt.value === selectedValue);
-
-  // Animated value for pill translateX (position of left edge)
   const pillTranslateX = useRef(new Animated.Value(0)).current;
   const isDragging = useRef(false);
   const startIndex = useRef(selectedIndex);
   const currentTranslateX = useRef(0);
 
-  // Track current value for pan calculations
   useEffect(() => {
     const id = pillTranslateX.addListener(({ value }) => {
       currentTranslateX.current = value;
@@ -56,7 +49,6 @@ export function SegmentedControl({
     return () => pillTranslateX.removeListener(id);
   }, [pillTranslateX]);
 
-  // Animate pill to a specific segment
   const animatePillToSegment = useCallback(
     (index: number, animate = true) => {
       const layout = segmentLayouts.current[index];
@@ -76,7 +68,6 @@ export function SegmentedControl({
     [pillTranslateX]
   );
 
-  // Find nearest segment based on X position
   const findNearestSegment = useCallback((x: number): number => {
     let nearestIndex = 0;
     let nearestDistance = Infinity;
@@ -92,7 +83,6 @@ export function SegmentedControl({
     return nearestIndex;
   }, []);
 
-  // Select a segment
   const selectSegment = useCallback(
     (index: number) => {
       const option = options[index];
@@ -103,7 +93,6 @@ export function SegmentedControl({
     [options, selectedValue, onValueChange]
   );
 
-  // Pan responder for dragging
   const panResponder = useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: () => true,
@@ -119,8 +108,6 @@ export function SegmentedControl({
         if (!startLayout) return;
 
         const targetX = startLayout.x + gestureState.dx;
-
-        // Clamp to valid range
         const firstLayout = segmentLayouts.current[0];
         const lastLayout = segmentLayouts.current[segmentLayouts.current.length - 1];
         if (!firstLayout || !lastLayout) return;
@@ -130,18 +117,12 @@ export function SegmentedControl({
       },
       onPanResponderRelease: () => {
         isDragging.current = false;
-
-        // Find nearest based on current position + half width to get center
         const startLayout = segmentLayouts.current[startIndex.current];
         if (!startLayout) return;
 
         const currentCenter = currentTranslateX.current + startLayout.width / 2;
         const nearestIndex = findNearestSegment(currentCenter);
-
-        // Animate to nearest segment
         animatePillToSegment(nearestIndex, true);
-
-        // Update selection if different
         if (nearestIndex !== selectedIndex) {
           selectSegment(nearestIndex);
         }
@@ -149,13 +130,10 @@ export function SegmentedControl({
     })
   ).current;
 
-  // Handle segment layout measurements
   const handleSegmentLayout = useCallback(
     (index: number, event: LayoutChangeEvent) => {
       const { x, width } = event.nativeEvent.layout;
       segmentLayouts.current[index] = { x, width, center: x + width / 2 };
-
-      // Initialize pill position once all segments are measured
       if (index === options.length - 1 && !isInitialized.current) {
         isInitialized.current = true;
         animatePillToSegment(selectedIndex, false);
@@ -164,14 +142,12 @@ export function SegmentedControl({
     [selectedIndex, options.length, animatePillToSegment]
   );
 
-  // Update pill when selectedValue changes externally
   useEffect(() => {
     if (!isDragging.current && isInitialized.current && selectedIndex >= 0) {
       animatePillToSegment(selectedIndex, true);
     }
   }, [selectedIndex, animatePillToSegment]);
 
-  // Handle segment press
   const handleSegmentPress = useCallback(
     (index: number) => {
       animatePillToSegment(index, true);
@@ -180,12 +156,10 @@ export function SegmentedControl({
     [animatePillToSegment, selectSegment]
   );
 
-  // Calculate pill width based on number of options (equal width segments)
   const segmentWidthPercent = 100 / options.length;
 
   return (
     <View style={styles.container} {...panResponder.panHandlers}>
-      {/* Animated pill indicator */}
       <Animated.View
         style={[
           {
@@ -204,8 +178,6 @@ export function SegmentedControl({
           },
         ]}
       />
-
-      {/* Segment items */}
       {options.map((option, index) => {
         const isSelected = selectedValue === option.value;
 

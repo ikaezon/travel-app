@@ -162,7 +162,6 @@ export async function fetchPlaceSuggestions(query: string, signal?: AbortSignal)
   }
 }
 
-// Address autocomplete types and functions
 export interface AddressSuggestion {
   formatted: string;
   street?: string;
@@ -177,7 +176,6 @@ export interface AddressSuggestion {
 }
 
 function formatAddressLabel(p: Record<string, unknown>): string {
-  // Return the full formatted address from Geoapify
   return (p.formatted as string) ?? '';
 }
 
@@ -214,7 +212,6 @@ async function fetchAddressSuggestionsRaw(
     text, 
     apiKey: apiKeyVal, 
     limit: '8',
-    // Don't filter by type to get all address types (street, building, etc.)
   });
   const res = await fetch(`${API_URL}?${params}`, { signal });
   if (!res.ok) return [];

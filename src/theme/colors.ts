@@ -81,10 +81,6 @@ export const colors = {
   transparent: 'transparent',
 } as const;
 
-// ============================================
-// RESOLVED COLORS (theme-aware)
-// ============================================
-
 export interface ResolvedColors {
   primary: string;
   primaryLight: string;

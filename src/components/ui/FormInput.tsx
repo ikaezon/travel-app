@@ -16,7 +16,6 @@ interface FormInputProps {
   isDashed?: boolean;
   labelRight?: React.ReactNode;
   style?: ViewStyle;
-  /** Use liquid glass card styling */
   variant?: 'default' | 'glass';
 }
 

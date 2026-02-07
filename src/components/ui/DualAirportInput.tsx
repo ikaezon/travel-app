@@ -39,7 +39,6 @@ interface DualAirportInputProps {
   arrivalPlaceholder?: string;
 }
 
-// Pre-process airports for faster search
 const airportList: Airport[] = airports
   .filter((a: any) => a.iata && a.iata.length === 3)
   .map((a: any) => ({
@@ -89,7 +88,6 @@ export function DualAirportInput({
   const justSelectedDep = useRef<string | null>(null);
   const justSelectedArr = useRef<string | null>(null);
 
-  // Suggestions based on active field
   const departureSuggestions = useMemo(() => {
     if (justSelectedDep.current === departureValue.trim()) return [];
     return searchAirports(departureValue);
@@ -365,7 +363,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  // Dropdown styles - glass effect
   dropdownContainer: {
     position: 'absolute',
     left: 0,
@@ -376,7 +373,6 @@ const styles = StyleSheet.create({
     zIndex: 200,
   },
   dropdownRight: {
-    // Alignment hint for arrival (visual only, dropdown is full width)
   },
   dropdownBlur: {
     borderRadius: glassConstants.radius.card,

@@ -127,7 +127,6 @@ export const reservationService = {
 
     const timelineItem = timelineResponse.data as DbTimelineItem;
 
-    // Prefer direct link when available (fixes wrong reservation when multiple hotels/flights per trip)
     if (timelineItem.reservation_id) {
       const reservationResponse = await supabase
         .from('reservations')
@@ -141,7 +140,6 @@ export const reservationService = {
       }
     }
 
-    // Fallback: match by trip_id + type (for legacy timeline items without reservation_id)
     const reservationResponse = await supabase
       .from('reservations')
       .select('*')

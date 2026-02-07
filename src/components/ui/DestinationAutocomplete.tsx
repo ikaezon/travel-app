@@ -26,7 +26,6 @@ interface DestinationAutocompleteProps {
   onSelectSuggestion?: (displayText: string) => void;
   placeholder?: string;
   style?: object;
-  /** Use liquid glass card styling */
   variant?: 'default' | 'glass';
 }
 

@@ -17,7 +17,6 @@ interface TripCardProps {
   delay?: number;
 }
 
-// Spring configs matching the nav bar bubble feel
 const PRESS_SPRING = { tension: 280, friction: 14, useNativeDriver: true };
 const RELEASE_SPRING = { tension: 200, friction: 18, useNativeDriver: true };
 const PRESS_SCALE = 1.03;
@@ -33,7 +32,6 @@ export const TripCard = React.memo(function TripCard({
 }: TripCardProps) {
   const theme = useTheme();
   
-  // Scale animation for consistent "pop in" entrance effect
   const entranceScaleAnim = useRef(new Animated.Value(0.95)).current;
   const scaleAnim = useRef(new Animated.Value(1)).current;
   
@@ -81,7 +79,6 @@ export const TripCard = React.memo(function TripCard({
     }
   };
 
-  // Combine entrance animation with press animation
   const animatedStyle = { transform: [{ scale: Animated.multiply(entranceScaleAnim, scaleAnim) }] };
 
   return (
@@ -100,7 +97,6 @@ export const TripCard = React.memo(function TripCard({
         <AdaptiveGlassView intensity={24} darkIntensity={10} glassEffectStyle="clear" style={[styles.card, glassStyles.blurContent]}>
           <View style={[styles.cardOverlay, { backgroundColor: theme.glass.overlay }]} pointerEvents="none" />
           
-          {/* Inner border overlay - creates anti-aliased edge effect for larger cards */}
           {theme.isDark && (
             <View style={styles.innerBorderOverlay} pointerEvents="none">
               <LinearGradient
@@ -177,7 +173,7 @@ const styles = StyleSheet.create({
   imageFrame: {
     height: 140,
     width: '100%',
-    borderRadius: 20, // 28 - 8 padding
+    borderRadius: 20,
     overflow: 'hidden',
   },
   image: {

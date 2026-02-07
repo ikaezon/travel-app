@@ -9,12 +9,9 @@
  */
 
 const UNSPLASH_API_URL = 'https://api.unsplash.com/search/photos';
-const CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
+const CACHE_TTL_MS = 24 * 60 * 60 * 1000;
 const MAX_CACHE = 100;
 
-// ---------------------------------------------------------------------------
-// Types
-// ---------------------------------------------------------------------------
 
 type UnsplashPhoto = {
   urls?: {
@@ -30,9 +27,6 @@ type UnsplashSearchResponse = {
   results?: UnsplashPhoto[];
 };
 
-// ---------------------------------------------------------------------------
-// Cache
-// ---------------------------------------------------------------------------
 
 const coverImageCache = new Map<string, { url: string; ts: number }>();
 
@@ -53,16 +47,12 @@ function getCached(destination: string): string | null {
 function setCached(destination: string, url: string): void {
   const key = cacheKey(destination);
   if (coverImageCache.size >= MAX_CACHE) {
-    // Evict oldest entry
     const firstKey = coverImageCache.keys().next().value;
     if (firstKey !== undefined) coverImageCache.delete(firstKey);
   }
   coverImageCache.set(key, { url, ts: Date.now() });
 }
 
-// ---------------------------------------------------------------------------
-// API key
-// ---------------------------------------------------------------------------
 
 function apiKey(): string | undefined {
   return typeof process !== 'undefined'
@@ -78,9 +68,6 @@ export function isCoverImageAvailable(): boolean {
   return Boolean(k?.length && k !== 'your_unsplash_access_key');
 }
 
-// ---------------------------------------------------------------------------
-// Fetching
-// ---------------------------------------------------------------------------
 
 /**
  * Fetch a cover image URL for a given destination.
@@ -94,7 +81,6 @@ export async function fetchCoverImageForDestination(
   if (!destination.trim()) return null;
   if (!isCoverImageAvailable()) return null;
 
-  // Check cache first
   const cached = getCached(destination);
   if (cached) return cached;
 
@@ -121,7 +107,6 @@ export async function fetchCoverImageForDestination(
     const imageUrl = firstPhoto?.urls?.regular ?? firstPhoto?.urls?.small ?? null;
 
     if (imageUrl) {
-      // Optionally add width parameter to optimize for card size (800px)
       const optimizedUrl = imageUrl.includes('?')
         ? `${imageUrl}&w=800`
         : `${imageUrl}?w=800`;

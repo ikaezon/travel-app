@@ -46,7 +46,6 @@ export default function TrainEntryScreen() {
   const handleSave = async () => {
     Keyboard.dismiss();
 
-    // Parse route into departure/arrival stations
     const routeParts = routeText.split(/\s*[→\-–—]\s*|\s+to\s+/i).map((s) => s.trim());
     const departureStation = routeParts[0] || '';
     const arrivalStation = routeParts[1] || '';

@@ -17,11 +17,8 @@ export type MainStackParamList = {
   TripList: undefined;
   TripOverview: { tripId: string; tripName?: string };
   CreateTrip: undefined;
-  /** timelineItemId: The ID of the timeline item (not the reservation ID) */
   ReservationDetail: { timelineItemId: string };
-  /** timelineItemId: The ID of the timeline item (not the reservation ID) */
   EditReservation: { timelineItemId: string };
-  /** timelineItemId: The ID of the timeline item (not the reservation ID) */
   ReservationAttachments: { timelineItemId: string };
   ScreenshotUpload: undefined;
   ReviewDetails: { imageUri: string };

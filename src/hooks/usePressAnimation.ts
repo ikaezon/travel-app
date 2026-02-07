@@ -1,7 +1,6 @@
 import { useRef, useCallback } from 'react';
 import { Animated } from 'react-native';
 
-// Spring configs matching the bottom tab bar bubble feel
 const PRESS_SPRING = { tension: 280, friction: 14, useNativeDriver: true };
 const RELEASE_SPRING = { tension: 200, friction: 18, useNativeDriver: true };
 

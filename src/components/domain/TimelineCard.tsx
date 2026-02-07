@@ -57,7 +57,6 @@ interface TimelineCardProps {
   delay?: number;
 }
 
-// Spring configs matching the nav bar bubble feel
 const PRESS_SPRING = { tension: 280, friction: 14, useNativeDriver: true };
 const RELEASE_SPRING = { tension: 200, friction: 18, useNativeDriver: true };
 const PRESS_SCALE = 1.03;
@@ -77,7 +76,6 @@ export const TimelineCard = React.memo(function TimelineCard({
 }: TimelineCardProps) {
   const theme = useTheme();
   
-  // Scale animation for consistent "pop in" entrance effect
   const entranceScaleAnim = useRef(new Animated.Value(0.95)).current;
   const scaleAnim = useRef(new Animated.Value(1)).current;
 
@@ -102,7 +100,6 @@ export const TimelineCard = React.memo(function TimelineCard({
   const iconConfig = getTimelineIconConfig(type, theme);
   const actionType = getActionType(actionLabel);
 
-  // Entrance scale animation
   const wrapperAnimStyle = { transform: [{ scale: entranceScaleAnim }] };
 
   return (

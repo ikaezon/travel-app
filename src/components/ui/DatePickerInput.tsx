@@ -39,7 +39,6 @@ export interface DatePickerInputProps {
   onOpen?: () => void;
   onClose?: () => void;
   bottomPadding?: number;
-  /** Use liquid glass card styling */
   variant?: 'default' | 'glass';
 }
 
@@ -286,7 +285,6 @@ const styles = StyleSheet.create({
     fontFamily: fontFamilies.regular,
   },
   placeholder: {
-    // Placeholder styling handled inline with color
   },
   overlay: {
     flex: 1,

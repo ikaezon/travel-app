@@ -26,7 +26,6 @@ interface AddressAutocompleteProps {
   onSelectSuggestion?: (suggestion: AddressSuggestion) => void;
   placeholder?: string;
   style?: object;
-  /** Use liquid glass card styling */
   variant?: 'default' | 'glass';
 }
 
@@ -48,7 +47,6 @@ export function AddressAutocomplete({
   const hasApi = useMemo(() => isPlaceAutocompleteAvailable(), []);
   const lastQueryRef = useRef<string>('');
   const justSelectedRef = useRef<string | null>(null);
-  // Track if user has typed since focus - prevents dropdown on programmatic value changes
   const userHasTypedRef = useRef(false);
   const autocompleteApi = useRef(createAddressAutocompleteService()).current;
 
@@ -82,7 +80,6 @@ export function AddressAutocomplete({
 
   const handleChangeText = useCallback(
     (text: string) => {
-      // Mark that user has typed (not just programmatic value change)
       userHasTypedRef.current = true;
       onChangeText(text);
       if (!hasApi) return;
@@ -96,8 +93,6 @@ export function AddressAutocomplete({
 
   const handleFocus = useCallback(() => {
     setIsFocused(true);
-    // Don't show dropdown on focus if user hasn't typed yet
-    // This prevents showing stale suggestions when returning to the field
   }, []);
 
   const handleBlur = useCallback(() => {

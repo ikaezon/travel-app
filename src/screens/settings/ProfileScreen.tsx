@@ -406,7 +406,6 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   signOutOverlay: {
-    // backgroundColor is now set inline with theme.isDark conditional
   },
   signOutContent: {
     flexDirection: 'row',

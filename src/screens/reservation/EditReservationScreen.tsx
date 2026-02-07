@@ -47,23 +47,19 @@ function parseTimelineTitle(title: string, reservationProviderName: string): { p
   const trimmedTitle = title.trim();
   const trimmedProvider = reservationProviderName.trim();
   
-  // If the title starts with the provider name, extract the rest as the number
   if (trimmedTitle.toLowerCase().startsWith(trimmedProvider.toLowerCase())) {
     const remainder = trimmedTitle.slice(trimmedProvider.length).trim();
     return { providerName: trimmedProvider, number: remainder };
   }
   
-  // Fallback: try to split on the last space to separate name from number
   const lastSpaceIndex = trimmedTitle.lastIndexOf(' ');
   if (lastSpaceIndex > 0) {
     const possibleNumber = trimmedTitle.slice(lastSpaceIndex + 1);
-    // Check if the remainder looks like a flight/train number (contains digits)
     if (/\d/.test(possibleNumber)) {
       return { providerName: trimmedTitle.slice(0, lastSpaceIndex), number: possibleNumber };
     }
   }
   
-  // No number found, use the full title as provider name
   return { providerName: trimmedTitle, number: '' };
 }
 
@@ -74,7 +70,6 @@ function parseTimelineTitle(title: string, reservationProviderName: string): { p
 function parse12HourTo24Hour(time12h: string): string {
   if (!time12h) return '';
   
-  // If already in 24-hour format (no AM/PM), return as is
   if (!/[ap]m/i.test(time12h)) return time12h;
   
   const match = time12h.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
@@ -147,13 +142,11 @@ export default function EditReservationScreen() {
       }
 
       if (reservation.type === 'hotel') {
-        // Parse date range from duration (e.g. "February 5, 2025 - February 8, 2025" or "2025-02-05 - 2025-02-08")
-        // Same pattern as flight: pre-populate from existing data when editing
         let parsedStart: string | null = null;
         let parsedEnd: string | null = null;
         const duration = reservation.duration?.trim();
         if (duration) {
-          const parts = duration.split(/\s*[-–—]\s*/); // hyphen, en-dash, em-dash
+          const parts = duration.split(/\s*[-–—]\s*/);
           if (parts.length >= 2) {
             parsedStart = parseToCalendarDate(parts[0].trim());
             parsedEnd = parseToCalendarDate(parts[1].trim());
@@ -162,7 +155,6 @@ export default function EditReservationScreen() {
             parsedEnd = parsedStart;
           }
         }
-        // Fallback: use reservation.date when duration is empty (same as flight uses date directly)
         if (!parsedStart && reservation.date) {
           parsedStart = parseToCalendarDate(reservation.date);
           parsedEnd = parsedStart;
@@ -171,15 +163,12 @@ export default function EditReservationScreen() {
         if (parsedEnd) setCheckOutDate(parsedEnd);
       }
 
-      // Parse flight/train number from timeline item title and time
       if (timelineItem) {
-        // Extract flight/train number from the title (e.g., "Delta 123" -> "123")
         if (reservation.type === 'flight' || reservation.type === 'train') {
           const parsed = parseTimelineTitle(timelineItem.title, reservation.providerName);
           setFlightOrTrainNumber(parsed.number);
         }
         
-        // Set departure time from timeline item (convert 12h to 24h if needed)
         if (timelineItem.time) {
           const time24h = parse12HourTo24Hour(timelineItem.time);
           setDepartureTime(time24h);
@@ -224,7 +213,6 @@ export default function EditReservationScreen() {
             ? providerName
             : routeText;
 
-      // Use hook for reservation update instead of direct service call
       const updated = await updateReservation(reservation.id, {
         providerName,
         route: finalRoute,
@@ -237,13 +225,9 @@ export default function EditReservationScreen() {
         address: address.trim() || undefined,
       });
       if (updated) {
-        // Construct the title including flight/train number if present
-        // Format: "ProviderName Number" (e.g., "Delta 123" or "SNCF TGV 6789")
         const trimmedNumber = flightOrTrainNumber.trim();
         const finalTitle = trimmedNumber ? `${providerName} ${trimmedNumber}` : providerName;
 
-        // Update timeline item with all relevant fields, including metadata (confirmation code)
-        // Pass empty string when fields are cleared - the mapper converts '' to null in DB
         const trimmedCode = confirmationCode.trim();
         const trimmedTime = departureTime.trim();
         await tripService.updateTimelineItem(timelineItemId, {

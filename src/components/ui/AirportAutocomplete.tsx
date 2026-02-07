@@ -38,7 +38,6 @@ interface AirportAutocompleteProps {
   variant?: 'default' | 'glass';
 }
 
-// Pre-process airports for faster search
 const airportList: Airport[] = airports
   .filter((a: any) => a.iata && a.iata.length === 3)
   .map((a: any) => ({
@@ -62,7 +61,6 @@ export function AirportAutocomplete({
   const [cardHeight, setCardHeight] = useState(0);
   const justSelectedRef = useRef<string | null>(null);
 
-  // Search airports by IATA, city, or name
   const suggestions = useMemo(() => {
     if (!value.trim() || value.trim().length < 2) return [];
     if (justSelectedRef.current === value.trim()) return [];
@@ -213,7 +211,6 @@ export function AirportAutocomplete({
           </AdaptiveGlassView>
         </View>
 
-        {/* Glass dropdown */}
         {showDropdown && (
           <View style={[styles.dropdownContainer, { top: cardHeight + 8, borderColor: theme.glass.borderStrong, boxShadow: theme.glass.elevatedBoxShadow }]}>
             <AdaptiveGlassView intensity={48} darkIntensity={10} glassEffectStyle="clear" style={styles.dropdownBlur}>
@@ -300,7 +297,6 @@ const styles = StyleSheet.create({
     top: 18,
     zIndex: 1,
   },
-  // Glass dropdown
   dropdownContainer: {
     position: 'absolute',
     left: 0,
@@ -317,7 +313,6 @@ const styles = StyleSheet.create({
   dropdownOverlay: {
     ...StyleSheet.absoluteFillObject,
   },
-  // Default dropdown
   dropdownContainerDefault: {
     position: 'absolute',
     left: 0,

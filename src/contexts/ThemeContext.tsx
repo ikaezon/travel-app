@@ -17,7 +17,6 @@ const ThemeContext = createContext<ThemeContextValue | null>(null);
 
 interface ThemeProviderProps {
   children: React.ReactNode;
-  /** Called when theme has been loaded from storage (used to avoid flash before splash hides) */
   onHydrated?: () => void;
 }
 
@@ -26,7 +25,6 @@ export function ThemeProvider({ children, onHydrated }: ThemeProviderProps) {
   const [isHydrated, setIsHydrated] = useState(false);
   const initializedRef = useRef(false);
 
-  // Load initial dark mode preference from persisted settings
   useEffect(() => {
     if (!initializedRef.current) {
       initializedRef.current = true;
@@ -48,7 +46,6 @@ export function ThemeProvider({ children, onHydrated }: ThemeProviderProps) {
     try {
       await userService.updateAppSettings({ darkMode: value });
     } catch {
-      // Revert on failure
       setIsDark(!value);
     }
   }, []);

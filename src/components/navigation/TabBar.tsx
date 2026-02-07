@@ -21,24 +21,9 @@ import { spacing, fontFamilies, glassStyles } from '../../theme';
 import { useTheme } from '../../contexts/ThemeContext';
 import { AdaptiveGlassView } from '../ui/AdaptiveGlassView';
 
-// ============================================
-// SPRING PHYSICS (Reanimated — same values as before)
-// ============================================
-
-// tension → stiffness, friction → damping (1:1 mapping, same physics model)
-
-// Slide spring — fast snap to target
 const SLIDE_SPRING = { stiffness: 750, damping: 80 };
-
-// Press scale spring — snappy, responsive
 const PRESS_SPRING = { stiffness: 400, damping: 18 };
-
-// Release scale spring — settles quickly
 const RELEASE_SPRING = { stiffness: 340, damping: 22 };
-
-// ============================================
-// LAYOUT CONSTANTS
-// ============================================
 
 const TAB_CONFIG: Record<string, { icon: 'home' | 'person'; label: string }> = {
   Home: { icon: 'home', label: 'Home' },
@@ -49,36 +34,23 @@ const BAR_HEIGHT = 64;
 const PILL_WIDTH = 72;
 const PILL_HEIGHT = 52;
 const PILL_PADDING = 6;
-
-/** How much the pill grows when finger is pressed down */
 const PRESS_SCALE = 1.12;
-
-// ============================================
-// MAIN TABBAR COMPONENT
-// ============================================
 
 export function TabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
   const bottomOffset = Math.max(insets.bottom, spacing.lg);
   const theme = useTheme();
-
-  // ── Layout measurements ──
   const tabCenters = useRef<number[]>([]);
   const isInitialized = useRef(false);
-
-  // ── Shared values (Reanimated — animations run on UI thread) ──
   const pillX = useSharedValue(0);
   const pillScale = useSharedValue(1);
   const isDragging = useRef(false);
   const startIndex = useRef(state.index);
-
-  // Keep a live ref of state.index so PanResponder callbacks never read stale closures
   const liveTabIndex = useRef(state.index);
   useEffect(() => {
     liveTabIndex.current = state.index;
   }, [state.index]);
 
-  // ── Helpers ──
   const getTranslateXForTab = useCallback((index: number): number | undefined => {
     const centerX = tabCenters.current[index];
     if (centerX === undefined) return undefined;
@@ -107,7 +79,6 @@ export function TabBar({ state, descriptors, navigation }: BottomTabBarProps) {
         target: route.key,
         canPreventDefault: true,
       });
-      // Use liveTabIndex ref to avoid stale closure when called from PanResponder
       if (liveTabIndex.current !== index && !event.defaultPrevented) {
         navigation.navigate(route.name);
       }
@@ -121,7 +92,6 @@ export function TabBar({ state, descriptors, navigation }: BottomTabBarProps) {
     }
   }, []);
 
-  // ── Animate pill to tab ──
   const animatePillToTab = useCallback(
     (index: number, animate = true) => {
       const translateX = getTranslateXForTab(index);
@@ -136,7 +106,6 @@ export function TabBar({ state, descriptors, navigation }: BottomTabBarProps) {
     [pillX, getTranslateXForTab],
   );
 
-  // ── Scale animations for press ──
   const scaleUp = useCallback(() => {
     pillScale.value = withSpring(PRESS_SCALE, PRESS_SPRING);
   }, [pillScale]);
@@ -145,14 +114,11 @@ export function TabBar({ state, descriptors, navigation }: BottomTabBarProps) {
     pillScale.value = withSpring(1, RELEASE_SPRING);
   }, [pillScale]);
 
-  // ── Layout handler ──
   const handleTabLayout = useCallback(
     (index: number, event: LayoutChangeEvent) => {
       const { x, width } = event.nativeEvent.layout;
       const center = x + width / 2;
       tabCenters.current[index] = center;
-
-      // Initialize pill position once all tabs are measured
       if (index === state.routes.length - 1 && !isInitialized.current) {
         isInitialized.current = true;
         animatePillToTab(state.index, false);
@@ -161,14 +127,12 @@ export function TabBar({ state, descriptors, navigation }: BottomTabBarProps) {
     [state.index, state.routes.length, animatePillToTab],
   );
 
-  // ── Sync pill when state.index changes externally ──
   useEffect(() => {
     if (!isDragging.current && isInitialized.current) {
       animatePillToTab(state.index, true);
     }
   }, [state.index, animatePillToTab]);
 
-  // ── Tab press handler ──
   const handleTabPress = useCallback(
     (index: number) => {
       triggerHaptic();
@@ -178,7 +142,6 @@ export function TabBar({ state, descriptors, navigation }: BottomTabBarProps) {
     [animatePillToTab, navigateToTab, triggerHaptic],
   );
 
-  // ── PanResponder for dragging the pill ──
   const panResponder = useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: () => true,
@@ -195,8 +158,6 @@ export function TabBar({ state, descriptors, navigation }: BottomTabBarProps) {
         if (startTranslateX === undefined) return;
 
         const targetTranslateX = startTranslateX + gestureState.dx;
-
-        // Clamp to valid range
         const firstTranslateX = getTranslateXForTab(0);
         const lastTranslateX = getTranslateXForTab(tabCenters.current.length - 1);
         if (firstTranslateX === undefined || lastTranslateX === undefined) return;
@@ -205,21 +166,14 @@ export function TabBar({ state, descriptors, navigation }: BottomTabBarProps) {
           firstTranslateX,
           Math.min(lastTranslateX, targetTranslateX),
         );
-        // Set shared value directly — dispatched to UI thread via JSI
         pillX.value = clampedTranslateX;
       },
       onPanResponderRelease: () => {
         isDragging.current = false;
         scaleDown();
-
-        // Read current pill position directly from shared value
         const currentPillCenter = pillX.value + PILL_WIDTH / 2;
         const nearestIndex = findNearestTab(currentPillCenter);
-
-        // Animate to nearest tab
         animatePillToTab(nearestIndex, true);
-
-        // Navigate if different (use live ref to avoid stale closure)
         if (nearestIndex !== liveTabIndex.current) {
           triggerHaptic();
           navigateToTab(nearestIndex);
@@ -228,7 +182,6 @@ export function TabBar({ state, descriptors, navigation }: BottomTabBarProps) {
     }),
   ).current;
 
-  // ── Pill animated style (computed on UI thread — 60fps) ──
   const pillAnimatedStyle = useAnimatedStyle(() => ({
     transform: [
       { translateX: pillX.value },
@@ -239,7 +192,6 @@ export function TabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   return (
     <View style={[styles.outerContainer, { bottom: bottomOffset }]}>
       <View style={styles.barWrapper}>
-        {/* Animated pill indicator — can overflow when scaled */}
         <Animated.View
           style={[styles.pill, pillAnimatedStyle]}
           pointerEvents="none"
@@ -248,16 +200,12 @@ export function TabBar({ state, descriptors, navigation }: BottomTabBarProps) {
             {!theme.isDark && <View style={[styles.pillOverlay, { backgroundColor: 'rgba(255, 255, 255, 0.55)' }]} />}
           </AdaptiveGlassView>
         </Animated.View>
-
-        {/* Glass bar background */}
         <AdaptiveGlassView
           intensity={24}
           style={[styles.blurContainer, glassStyles.blurContentLarge, theme.glass.navWrapperStyle]}
         >
           {!theme.isDark && <View style={[styles.glassOverlay, { backgroundColor: theme.glass.overlay }]} pointerEvents="none" />}
         </AdaptiveGlassView>
-
-        {/* Tab items with pan responder on container */}
         <View style={styles.tabBar} {...panResponder.panHandlers}>
           {state.routes.map((route, index) => {
             const { options } = descriptors[route.key];
@@ -295,10 +243,6 @@ export function TabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   );
 }
 
-// ============================================
-// STYLES
-// ============================================
-
 const styles = StyleSheet.create({
   outerContainer: {
     position: 'absolute',
@@ -312,7 +256,7 @@ const styles = StyleSheet.create({
     maxWidth: 340,
     height: BAR_HEIGHT,
     position: 'relative',
-    overflow: 'visible', // Allow pill to overflow when scaled
+    overflow: 'visible',
   },
   blurContainer: {
     ...StyleSheet.absoluteFillObject,

@@ -8,7 +8,6 @@ import { AdaptiveGlassView } from './AdaptiveGlassView';
 const SCALE_START = 0.88;
 
 function useMenuAnimation(visible: boolean) {
-  // Scale-only animation for consistent "pop in" entrance effect
   const scale = useRef(new Animated.Value(SCALE_START)).current;
   const hasAnimatedForCurrentVisibility = useRef(false);
 
@@ -34,7 +33,6 @@ function useMenuAnimation(visible: boolean) {
   return { scale };
 }
 
-// Menu styling constants
 const MENU = {
   borderRadius: glassConstants.radius.card,
   blurIntensity: 48,
@@ -56,9 +54,7 @@ interface GlassDropdownMenuProps {
   actions: GlassDropdownAction[];
   onSelect: (index: number) => void;
   style?: StyleProp<ViewStyle>;
-  /** When true, applies a uniform subtle background to all menu items */
   uniformItemBackground?: boolean;
-  /** When true, hides separator lines between menu items */
   hideSeparators?: boolean;
 }
 
@@ -76,7 +72,6 @@ export function GlassDropdownMenu({
 
   if (!visible) return null;
 
-  // Preserve existing border styling difference between light/dark mode
   const useGlassAnimation = theme.isDark;
   const effectiveBorderWidth = useGlassAnimation ? 0 : MENU.borderWidth;
   const innerRadius = MENU.borderRadius - effectiveBorderWidth;

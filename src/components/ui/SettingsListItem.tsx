@@ -12,7 +12,6 @@ interface SettingsListItemProps {
   onPress?: () => void;
   rightElement?: React.ReactNode;
   showChevron?: boolean;
-  /** Use liquid glass card styling (for Profile screen) */
   variant?: 'default' | 'glass';
 }
 

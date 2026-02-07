@@ -17,18 +17,13 @@ interface TripRowProps {
 function TripRow({ trip, isSelected, onSelect, variant }: TripRowProps) {
   const theme = useTheme();
   const scaleAnim = useRef(new Animated.Value(1)).current;
-  // Initialize with correct value based on initial selection state
   const checkAnim = useRef(new Animated.Value(isSelected ? 1 : 0)).current;
   const borderAnim = useRef(new Animated.Value(isSelected ? 1 : 0)).current;
   const wasSelected = useRef(isSelected);
 
   useEffect(() => {
-    // Only animate if selection state changed (not on initial mount)
     if (isSelected && !wasSelected.current) {
-      // Selection animation sequence
-      // Note: useNativeDriver: false for all because we're animating colors on the same view
       Animated.parallel([
-        // Scale bounce
         Animated.sequence([
           Animated.timing(scaleAnim, {
             toValue: 0.96,
@@ -42,14 +37,12 @@ function TripRow({ trip, isSelected, onSelect, variant }: TripRowProps) {
             useNativeDriver: false,
           }),
         ]),
-        // Checkmark pop in
         Animated.spring(checkAnim, {
           toValue: 1,
           friction: 5,
           tension: 400,
           useNativeDriver: false,
         }),
-        // Border color fade
         Animated.timing(borderAnim, {
           toValue: 1,
           duration: 150,
@@ -57,10 +50,8 @@ function TripRow({ trip, isSelected, onSelect, variant }: TripRowProps) {
         }),
       ]).start();
 
-      // Haptic feedback
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
     } else if (!isSelected && wasSelected.current) {
-      // Deselection animation
       Animated.parallel([
         Animated.timing(checkAnim, {
           toValue: 0,

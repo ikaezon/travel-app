@@ -25,8 +25,6 @@ import { GlassNavHeader } from '../../components/navigation/GlassNavHeader';
 
 type NavigationProp = NativeStackNavigationProp<MainStackParamList>;
 
-// TRIP_STATUS_DOT_STYLE moved to component to use theme
-
 const TRIP_STATUS_LABEL: Record<Trip['status'], string> = {
   ongoing: 'Ongoing',
   upcoming: 'Upcoming',
@@ -42,7 +40,6 @@ interface TripItemProps {
 const TripItem = React.memo(function TripItem({ trip, index, onPress }: TripItemProps) {
   const theme = useTheme();
   
-  // Scale animation for consistent "pop in" entrance effect
   const entranceScaleAnim = useRef(new Animated.Value(0.95)).current;
   const { scaleAnim, onPressIn, onPressOut } = usePressAnimation();
 
@@ -66,7 +63,6 @@ const TripItem = React.memo(function TripItem({ trip, index, onPress }: TripItem
   };
   const statusDotStyle = TRIP_STATUS_DOT_STYLE[trip.status] ?? { backgroundColor: theme.colors.text.secondary };
 
-  // Combine entrance animation with press animation
   const animatedStyle = { transform: [{ scale: Animated.multiply(entranceScaleAnim, scaleAnim) }] };
 
   return (

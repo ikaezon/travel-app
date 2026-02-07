@@ -6,7 +6,6 @@ import { fontFamilies, glassStyles } from '../../theme';
 import { useTheme } from '../../contexts/ThemeContext';
 import { AdaptiveGlassView } from '../ui/AdaptiveGlassView';
 
-// Spring configs matching the bottom tab bar bubble feel
 const PRESS_SPRING = { tension: 280, friction: 14, useNativeDriver: true };
 const RELEASE_SPRING = { tension: 200, friction: 18, useNativeDriver: true };
 const PRESS_SCALE = 1.12;

@@ -54,7 +54,6 @@ export default function ReservationAttachmentsScreen() {
     const uri = result.assets[0].uri;
     const fileName = result.assets[0].fileName ?? `attachment_${Date.now()}.jpg`;
     try {
-      // Use hook instead of direct service call
       await createAttachment(reservation.id, uri, fileName);
       navigation.goBack();
     } catch (e) {

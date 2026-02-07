@@ -244,7 +244,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
 
-  // ── Hero ──────────────────────────────────────
   heroContainer: {
     alignItems: 'center',
     width: '100%',
@@ -258,12 +257,10 @@ const styles = StyleSheet.create({
     width: '100%',
   },
 
-  // ── Shared glass overlay (identical to TripDashboardScreen) ──
   glassOverlay: {
     ...glassStyles.cardOverlay,
   },
 
-  // ── Logo (liquid glass) ───────────────────────
   logoOuterContainer: {
     marginTop: -56,
     zIndex: 10,
@@ -288,7 +285,6 @@ const styles = StyleSheet.create({
     transform: [{ rotate: '-45deg' }],
   },
 
-  // ── Headline ──────────────────────────────────
   headlineContainer: {
     width: '100%',
     paddingHorizontal: spacing.xxl,
@@ -311,7 +307,6 @@ const styles = StyleSheet.create({
     lineHeight: 24,
   },
 
-  // ── Actions (no outer card, directly on gradient) ──
   actionsContainer: {
     paddingHorizontal: spacing.xxl,
     paddingBottom: spacing.huge,
@@ -319,7 +314,6 @@ const styles = StyleSheet.create({
     gap: spacing.md,
   },
 
-  // ── Primary button (matches See All / nav icon style) ──
   primaryButton: {
     ...glassStyles.cardWrapper,
     height: 56,
@@ -341,7 +335,6 @@ const styles = StyleSheet.create({
     letterSpacing: 0.3,
   },
 
-  // ── Secondary buttons (identical glass card pattern) ──
   secondaryButton: {
     ...glassStyles.cardWrapper,
     height: 56,
@@ -360,9 +353,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.24,
   },
 
-  // ── Shared ────────────────────────────────────
 
-  // ── Separator ─────────────────────────────────
   separator: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -379,7 +370,6 @@ const styles = StyleSheet.create({
     letterSpacing: 1.5,
   },
 
-  // ── Footer ────────────────────────────────────
   footer: {
     marginTop: spacing.sm,
     alignItems: 'center',

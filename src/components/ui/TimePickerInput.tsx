@@ -53,20 +53,17 @@ function parseTimeToDate(value: string): Date {
     return date;
   }
 
-  // Try to match time with optional AM/PM
   const match = value.match(/(\d{1,2}):(\d{2})\s*(AM|PM)?/i);
   if (match) {
     let hours = parseInt(match[1], 10);
     const minutes = parseInt(match[2], 10);
     const period = match[3]?.toUpperCase();
 
-    // If AM/PM is present, convert to 24-hour
     if (period === 'PM' && hours !== 12) {
       hours += 12;
     } else if (period === 'AM' && hours === 12) {
       hours = 0;
     }
-    // If no AM/PM, assume it's already in 24-hour format
 
     date.setHours(hours, minutes);
   }
@@ -106,7 +103,6 @@ export function TimePickerInput({
 
   const currentDate = useMemo(() => parseTimeToDate(value), [value]);
 
-  // Animation values - native driver for 60fps
   const slideAnim = useRef(new Animated.Value(PICKER_HEIGHT)).current;
   const backdropOpacity = useRef(new Animated.Value(0)).current;
 
@@ -117,7 +113,6 @@ export function TimePickerInput({
     onOpen?.();
   }, [value, onOpen]);
 
-  // Run open animation when modal becomes visible
   useEffect(() => {
     if (visible) {
       slideAnim.setValue(PICKER_HEIGHT);
@@ -142,7 +137,6 @@ export function TimePickerInput({
         setPickerReady(true);
       });
     }
-    // Note: slideAnim and backdropOpacity are stable refs, not included in deps
   }, [visible]);
 
   const closePicker = useCallback(() => {
@@ -186,7 +180,6 @@ export function TimePickerInput({
     closePicker();
   }, [tempDate, onChange, closePicker]);
 
-  // Display in 12-hour format even though stored value is 24-hour
   const displayText = value ? formatTimeTo12Hour(value) : '';
 
   return (
@@ -388,7 +381,6 @@ const styles = StyleSheet.create({
     fontFamily: fontFamilies.regular,
   },
   placeholder: {
-    // Placeholder styling handled inline with color
   },
   modalContainer: {
     flex: 1,

@@ -9,19 +9,15 @@ export function formatReservationDateDisplay(reservation: Reservation): string {
   const hasDuration = duration && duration !== '—' && duration !== '-';
 
   if (reservation.type === 'hotel') {
-    // For hotels, duration contains the date range (e.g., "Jan 15 - Jan 18")
     if (duration.includes(' - ')) {
       return duration;
     }
-    // If duration equals date, just show date once
     if (duration === reservation.date) {
       return reservation.date;
     }
-    // Otherwise combine date and duration
     return hasDuration ? `${reservation.date} • ${duration}` : reservation.date;
   }
 
-  // For flights, trains, etc: show date with duration if available
   return hasDuration ? `${reservation.date} • ${duration}` : reservation.date;
 }
 

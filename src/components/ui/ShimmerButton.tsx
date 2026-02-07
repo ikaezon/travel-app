@@ -13,7 +13,6 @@ interface ShimmerButtonProps {
   onPress?: () => void;
   disabled?: boolean;
   loading?: boolean;
-  /** Boarding pass style: liquid glass with blue tint */
   variant?: 'default' | 'boardingPass';
 }
 

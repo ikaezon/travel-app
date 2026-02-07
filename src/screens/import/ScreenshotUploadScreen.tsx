@@ -386,7 +386,6 @@ const styles = StyleSheet.create({
   },
   selectedOverlay: {
     ...StyleSheet.absoluteFillObject,
-    // backgroundColor set inline with theme.colors.primaryLight
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -394,7 +393,6 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: glassConstants.radius.icon,
-    // backgroundColor set inline with theme.colors.primary
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#000',

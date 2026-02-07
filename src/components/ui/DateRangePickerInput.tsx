@@ -31,7 +31,6 @@ export interface DateRangePickerInputProps {
   style?: ViewStyle;
   onOpen?: () => void;
   onClose?: () => void;
-  /** Use liquid glass card styling */
   variant?: 'default' | 'glass';
 }
 

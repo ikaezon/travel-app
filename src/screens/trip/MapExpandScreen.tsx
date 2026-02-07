@@ -31,9 +31,6 @@ export default function MapExpandScreen() {
   const { region, markers, isLoading, hasData } = useTripMapData(tripId);
   const mapRef = useRef<MapView>(null);
 
-  // Safety net: when region changes after MapView has mounted (e.g. new
-  // geocoding results arrive), or if initialRegion wasn't applied correctly
-  // during a navigation transition, animateToRegion ensures correct positioning.
   useEffect(() => {
     if (region && mapRef.current) {
       mapRef.current.animateToRegion(region, 0);
@@ -51,7 +48,6 @@ export default function MapExpandScreen() {
   const handleOpenInMaps = useCallback(() => {
     if (markers.length === 0) return;
 
-    // Open the destination marker (or first marker) in native maps app
     const target = markers.find((m) => m.isDestination) || markers[0];
     const encodedAddress = encodeURIComponent(target.title);
 
@@ -72,7 +68,6 @@ export default function MapExpandScreen() {
     });
   }, [markers]);
 
-  // Loading state
   if (isLoading) {
     return (
       <LinearGradient
@@ -93,7 +88,6 @@ export default function MapExpandScreen() {
     );
   }
 
-  // No data / error fallback
   if (!hasData || !region) {
     return (
       <LinearGradient
@@ -122,7 +116,6 @@ export default function MapExpandScreen() {
     );
   }
 
-  // Full-screen interactive map
   return (
     <View style={styles.fullscreen}>
       <MapView

@@ -90,10 +90,8 @@ export default function CreateTripScreen() {
       const dateRangeValue = dateRangeDisplay?.trim() || 'TBD';
       const durationLabelValue = durationLabel?.trim() || 'TBD';
 
-      // Determine final image URL
       let finalImageUrl = imageUrl.trim();
       if (!finalImageUrl && isCoverImageAvailable()) {
-        // Fetch destination-based cover image from Unsplash
         const coverUrl = await fetchCoverImageForDestination(trimmedDestination);
         finalImageUrl = coverUrl || DEFAULT_IMAGE_URL;
       } else if (!finalImageUrl) {

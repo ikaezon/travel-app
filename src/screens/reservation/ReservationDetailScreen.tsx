@@ -120,7 +120,6 @@ export default function ReservationDetailScreen() {
 
     const encodedAddress = encodeURIComponent(directionsAddress);
     
-    // Use Apple Maps on iOS, Google Maps on Android
     const url = Platform.select({
       ios: `maps://maps.apple.com/?daddr=${encodedAddress}`,
       android: `geo:0,0?q=${encodedAddress}`,
@@ -131,7 +130,6 @@ export default function ReservationDetailScreen() {
       if (supported) {
         Linking.openURL(url);
       } else {
-        // Fallback to web URL
         Linking.openURL(`https://maps.apple.com/?daddr=${encodedAddress}`);
       }
     });
@@ -446,7 +444,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   heroCardBg: {
-    // backgroundColor and borderRadius moved to inline styles
   },
   heroCard: {
     ...glassStyles.cardWrapperLarge,
@@ -531,7 +528,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   cardSolidBg: {
-    // backgroundColor and borderRadius moved to inline styles
   },
   detailsCard: {
     ...glassStyles.cardWrapper,
@@ -596,13 +592,10 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   actionButtonBg: {
-    // backgroundColor and borderRadius moved to inline styles
   },
   actionButtonBgPrimary: {
-    // backgroundColor moved to inline styles
   },
   actionButtonPrimary: {
-    // borderColor moved to inline styles
   },
   actionButtonPressed: {
     opacity: 0.8,
@@ -613,6 +606,5 @@ const styles = StyleSheet.create({
     fontFamily: fontFamilies.semibold,
   },
   actionButtonTextPrimary: {
-    // color moved to inline styles
   },
 });
