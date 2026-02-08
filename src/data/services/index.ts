@@ -26,6 +26,7 @@ export type { GeocodeResult } from './geocodingService';
 export {
   fetchCoverImageForDestination,
   fetchCoverImageForProperty,
+  getCachedPropertyImage,
   isCoverImageAvailable,
 } from './coverImageService';
 export {

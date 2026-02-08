@@ -136,27 +136,55 @@ function extractCityFromDestination(destination: string): string {
 }
 
 /**
+ * Per-reservation image cache.
+ * Maps reservationId to resolved image URL so revisits are instant.
+ */
+const reservationImageCache = new Map<string, string>();
+
+/**
+ * Get a cached cover image for a reservation (synchronous, instant).
+ * Returns the URL if previously resolved, or null.
+ */
+export function getCachedPropertyImage(reservationId: string): string | null {
+  return reservationImageCache.get(reservationId) ?? null;
+}
+
+/**
  * Fetch a cover image for a hotel/property based on property name + city.
  * City should come from the trip destination (e.g. "Paris" from "Paris, France").
+ * Results are cached by reservationId for instant revisits.
  *
+ * @param reservationId - Reservation ID (used for caching)
  * @param propertyName - Hotel or property name
  * @param tripDestination - Trip destination (e.g. "Paris, France") – first part used as city
  * @returns Image URL on success, null on failure
  */
 export async function fetchCoverImageForProperty(
+  reservationId: string,
   propertyName: string,
   tripDestination?: string
 ): Promise<string | null> {
+  // Check reservation-level cache first
+  const cached = reservationImageCache.get(reservationId);
+  if (cached) return cached;
+
   const city = tripDestination ? extractCityFromDestination(tripDestination) : '';
   const primaryQuery = [propertyName.trim(), city].filter(Boolean).join(' ');
   if (!primaryQuery.trim()) return null;
 
   const url = await fetchAndCacheImage(primaryQuery);
-  if (url) return url;
+  if (url) {
+    reservationImageCache.set(reservationId, url);
+    return url;
+  }
 
   // Fallback: city only (e.g. "Paris")
   if (city) {
-    return fetchAndCacheImage(city);
+    const fallbackUrl = await fetchAndCacheImage(city);
+    if (fallbackUrl) {
+      reservationImageCache.set(reservationId, fallbackUrl);
+      return fallbackUrl;
+    }
   }
   return null;
 }

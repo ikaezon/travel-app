@@ -27,7 +27,7 @@ import { MainStackParamList } from '../../navigation/types';
 import { useReservationByTimelineId, useTripById } from '../../hooks';
 import { spacing, fontFamilies, glassStyles, glassConstants } from '../../theme';
 import { useTheme } from '../../contexts/ThemeContext';
-import { deleteReservationWithTimeline, fetchCoverImageForProperty } from '../../data';
+import { deleteReservationWithTimeline, fetchCoverImageForProperty, getCachedPropertyImage } from '../../data';
 import { shortenCountryInAddress } from '../../utils/addressFormat';
 import { formatReservationDateDisplay, getReservationDisplayAddress } from '../../utils/reservationFormat';
 import type { Reservation } from '../../types';
@@ -58,14 +58,24 @@ export default function ReservationDetailScreen() {
   const { reservation, isLoading, error, refetch } = useReservationByTimelineId(timelineItemId);
   const { trip } = useTripById(reservation?.tripId ?? '');
   const [menuVisible, setMenuVisible] = useState(false);
-  const [fetchedImageUrl, setFetchedImageUrl] = useState<string | null>(null);
-  const [isFetchingImage, setIsFetchingImage] = useState(false);
 
   const reservationId = reservation?.id;
   const providerName = reservation?.providerName;
   const tripDestination = trip?.destination ?? undefined;
 
+  // Check instant cache first so revisits don't show shimmer
+  const cachedUrl = reservationId ? getCachedPropertyImage(reservationId) : null;
+  const [fetchedImageUrl, setFetchedImageUrl] = useState<string | null>(cachedUrl);
+  const [isFetchingImage, setIsFetchingImage] = useState(!cachedUrl);
+
   useEffect(() => {
+    // Already have a cached image — skip fetch entirely
+    if (cachedUrl) {
+      setFetchedImageUrl(cachedUrl);
+      setIsFetchingImage(false);
+      return;
+    }
+
     setFetchedImageUrl(null);
     if (!reservationId) {
       setIsFetchingImage(false);
@@ -81,7 +91,7 @@ export default function ReservationDetailScreen() {
     let cancelled = false;
     setIsFetchingImage(true);
 
-    fetchCoverImageForProperty(providerName || '', tripDestination)
+    fetchCoverImageForProperty(reservationId, providerName || '', tripDestination)
       .then((url) => {
         if (!cancelled) {
           if (url) setFetchedImageUrl(url);
@@ -93,7 +103,7 @@ export default function ReservationDetailScreen() {
       });
 
     return () => { cancelled = true; };
-  }, [reservationId, providerName, tripDestination]);
+  }, [reservationId, providerName, tripDestination, cachedUrl]);
 
   // Show fetched image, or nothing while loading (no stock fallback)
   const heroImageUrl = fetchedImageUrl || undefined;
