@@ -1,11 +1,3 @@
-/**
- * Discriminated union for AI-parsed reservation data.
- *
- * Returned by parseReservationService after Gemini Vision
- * processes a screenshot. The `type` field determines which
- * form the ReviewDetailsScreen renders.
- */
-
 export interface ParsedFlightReservation {
   type: 'flight';
   airline: string;

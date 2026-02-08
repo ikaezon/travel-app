@@ -26,14 +26,8 @@ import { spacing, borderRadius, fontFamilies, glassStyles, glassConstants } from
 import { sortTimelineItemsByDateAndTime } from '../../utils/dateFormat';
 import { useTheme } from '../../contexts/ThemeContext';
 
-/**
- * Parses a flight title to extract the airline name and flight number.
- * Title format is typically "Airline FlightNumber" (e.g., "Delta 123" or "United Airlines UA 456").
- * Returns { airline, flightNumber } where flightNumber may be empty if not present.
- */
 function parseFlightTitle(title: string): { airline: string; flightNumber: string } {
   const trimmed = title.trim();
-  // Match pattern: text followed by optional flight number (letters+numbers or just numbers at end)
   const match = trimmed.match(/^(.+?)\s+([A-Z]{0,3}\s*\d+)$/i);
   if (match) {
     return { airline: match[1].trim(), flightNumber: match[2].trim() };

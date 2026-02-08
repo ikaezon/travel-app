@@ -3,7 +3,6 @@ import {
   View,
   Text,
   StyleSheet,
-  ScrollView,
   Pressable,
   Image,
   Keyboard,
@@ -23,10 +22,11 @@ import { TimePickerInput } from '../../components/ui/TimePickerInput';
 import { DualAirportInput } from '../../components/ui/DualAirportInput';
 import { TripSelector } from '../../components/domain/TripSelector';
 import { ShimmerButton } from '../../components/ui/ShimmerButton';
+import { KeyboardAwareScrollView } from '../../components/ui/KeyboardAwareScrollView';
 import { MainStackParamList } from '../../navigation/types';
 import { fontFamilies, glassStyles, glassConstants, spacing } from '../../theme';
 import { mockImages } from '../../data/mocks';
-import { usePressAnimation, useTrips, useKeyboardHeight } from '../../hooks';
+import { usePressAnimation, useTrips } from '../../hooks';
 import { useTheme } from '../../contexts/ThemeContext';
 import {
   createFlightReservation,
@@ -41,7 +41,6 @@ import type { ParsedReservation } from '../../types';
 type NavigationProp = NativeStackNavigationProp<MainStackParamList>;
 type ReviewDetailsRouteProp = RouteProp<MainStackParamList, 'ReviewDetails'>;
 
-/** Flight form fields */
 interface FlightFormData {
   airline: string;
   flightNumber: string;
@@ -52,7 +51,6 @@ interface FlightFormData {
   confirmationCode: string;
 }
 
-/** Hotel form fields */
 interface HotelFormData {
   propertyName: string;
   address: string;
@@ -61,7 +59,6 @@ interface HotelFormData {
   confirmationCode: string;
 }
 
-/** Train form fields */
 interface TrainFormData {
   operator: string;
   trainNumber: string;
@@ -149,22 +146,18 @@ export default function ReviewDetailsScreen() {
 
   const reservationType = parsedData?.type ?? 'unknown';
 
-  // Trip selection
   const { trips, isLoading: tripsLoading, error: tripsError } = useTrips();
   const [selectedTripId, setSelectedTripId] = useState<string | null>(null);
 
-  // Form state for each type
   const [flightForm, setFlightForm] = useState<FlightFormData>(() => initFlightForm(parsedData ?? initialParsedData));
   const [hotelForm, setHotelForm] = useState<HotelFormData>(() => initHotelForm(parsedData ?? initialParsedData));
   const [trainForm, setTrainForm] = useState<TrainFormData>(() => initTrainForm(parsedData ?? initialParsedData));
 
-  const keyboardHeight = useKeyboardHeight();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const topOffset = insets.top + 8;
   const sourceAnim = usePressAnimation();
 
-  // Parse image when we have imageUri but no parsedData yet
   useEffect(() => {
     if (parsedData || !sourceImageUrl || sourceImageUrl === mockImages.defaultReviewImage) return;
 
@@ -468,19 +461,16 @@ export default function ReviewDetailsScreen() {
       style={[glassStyles.screenGradient, styles.gradientContainer]}
     >
       <View style={glassStyles.screenContainer}>
-        <ScrollView
+        <KeyboardAwareScrollView
           style={glassStyles.screenScrollView}
           contentContainerStyle={[
             glassStyles.screenScrollContent,
             {
               paddingTop: topOffset + 72,
-              paddingBottom: spacing.xxl + keyboardHeight,
+              paddingBottom: spacing.xxl,
             },
           ]}
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
         >
-          {/* Source Card - aligned with other glass cards */}
           <Animated.View style={{ transform: [{ scale: sourceAnim.scaleAnim }] }}>
             <Pressable 
               onPressIn={sourceAnim.onPressIn} 
@@ -564,7 +554,6 @@ export default function ReviewDetailsScreen() {
 
               {renderForm()}
 
-              {/* Confirm button at bottom of scroll content - not floating */}
               {reservationType !== 'unknown' && (
                 <View style={styles.confirmButtonContainer}>
                   <ShimmerButton
@@ -579,7 +568,7 @@ export default function ReviewDetailsScreen() {
               )}
             </>
           )}
-        </ScrollView>
+        </KeyboardAwareScrollView>
 
         <GlassNavHeader 
           title="Review Details" 

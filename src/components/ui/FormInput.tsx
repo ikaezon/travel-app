@@ -13,7 +13,6 @@ interface FormInputProps {
   iconName?: keyof typeof MaterialIcons.glyphMap;
   rightIconName?: keyof typeof MaterialIcons.glyphMap;
   rightIconColor?: string;
-  /** Show a glass-styled checkmark indicator (for OCR-verified fields) */
   showGlassCheck?: boolean;
   isDashed?: boolean;
   labelRight?: React.ReactNode;
@@ -37,8 +36,6 @@ export function FormInput({
 }: FormInputProps) {
   const theme = useTheme();
   const defaultRightIconColor = rightIconColor ?? theme.colors.status.success;
-  
-  // Determine if we should show any right-side element
   const hasRightIcon = rightIconName || showGlassCheck;
   
   const content = (

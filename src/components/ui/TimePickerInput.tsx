@@ -35,14 +35,9 @@ export interface TimePickerInputProps {
   style?: ViewStyle;
   onOpen?: () => void;
   onClose?: () => void;
-  /** Use liquid glass card styling */
   variant?: 'default' | 'glass';
 }
 
-/**
- * Parses time string to Date object.
- * Handles both 24-hour format (HH:MM) and 12-hour format (H:MM AM/PM).
- */
 function parseTimeToDate(value: string): Date {
   const date = new Date();
   date.setSeconds(0);
@@ -71,10 +66,6 @@ function parseTimeToDate(value: string): Date {
   return date;
 }
 
-/**
- * Converts Date to 24-hour time format for database storage.
- * Display formatting (12-hour with AM/PM) is handled by formatTimeTo12Hour utility.
- */
 function formatDateToTime(date: Date): string {
   const hours = date.getHours();
   const minutes = date.getMinutes();
@@ -246,12 +237,10 @@ export function TimePickerInput({
           statusBarTranslucent
         >
           <Pressable style={styles.modalContainer} onPress={closePicker}>
-            {/* Backdrop visual only */}
             <Animated.View
               style={[styles.backdrop, { opacity: backdropOpacity }]}
               pointerEvents="none"
             />
-            {/* Picker sheet - elevated above backdrop */}
             <Animated.View
               style={[
                 styles.pickerSheetWrapper,
@@ -266,8 +255,7 @@ export function TimePickerInput({
                 style={styles.pickerSheetBlur}
               >
                 <View style={[styles.pickerSheetOverlay, { backgroundColor: theme.glass.menuOverlay }]} pointerEvents="none" />
-                
-                {/* Header */}
+
                 <View style={styles.pickerHeader}>
                   <Pressable 
                     onPress={closePicker} 
@@ -302,7 +290,6 @@ export function TimePickerInput({
 
                 <View style={[styles.divider, { backgroundColor: theme.glass.menuItemBorder }]} />
 
-                {/* Picker - only render after animation */}
                 <View style={styles.pickerContainer}>
                   {pickerReady ? (
                     <DateTimePicker

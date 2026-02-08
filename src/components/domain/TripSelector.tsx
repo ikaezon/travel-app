@@ -143,7 +143,6 @@ export interface TripSelectorProps {
   onSelectTrip: (tripId: string) => void;
   isLoading?: boolean;
   error?: Error | null;
-  /** Use liquid glass card styling */
   variant?: 'default' | 'glass';
 }
 

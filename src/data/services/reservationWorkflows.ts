@@ -1,14 +1,3 @@
-/**
- * Reservation Workflows
- *
- * High-level operations that coordinate multiple service calls.
- * These provide transaction-like behavior for operations that
- * span multiple tables (reservations + timeline_items).
- *
- * Note: True database transactions require a backend RPC function.
- * This layer orders operations to minimize inconsistent states.
- */
-
 import { Reservation, ReservationType } from '../../types';
 import { reservationService } from './reservationService';
 import { tripService } from './tripService';
@@ -46,11 +35,6 @@ export interface CreateTrainInput {
   confirmationNumber?: string;
 }
 
-/**
- * Creates a flight reservation and its associated timeline item.
- * Operations are ordered so that if the second fails, the data
- * is still usable (reservation exists, just not on timeline).
- */
 export async function createFlightReservation(
   input: CreateFlightInput
 ): Promise<{ reservation: Reservation; timelineItemId: string }> {
@@ -99,9 +83,6 @@ export async function createFlightReservation(
   return { reservation, timelineItemId: timelineItem.id };
 }
 
-/**
- * Creates a lodging reservation and its associated timeline item.
- */
 export async function createLodgingReservation(
   input: CreateLodgingInput
 ): Promise<{ reservation: Reservation; timelineItemId: string }> {
@@ -150,9 +131,6 @@ export async function createLodgingReservation(
   return { reservation, timelineItemId: timelineItem.id };
 }
 
-/**
- * Creates a train reservation and its associated timeline item.
- */
 export async function createTrainReservation(
   input: CreateTrainInput
 ): Promise<{ reservation: Reservation; timelineItemId: string }> {
@@ -201,11 +179,6 @@ export async function createTrainReservation(
   return { reservation, timelineItemId: timelineItem.id };
 }
 
-/**
- * Deletes a reservation and its associated timeline item.
- * Timeline item is deleted first since it's the "view" layer.
- * If timeline deletion fails, reservation remains intact (recoverable).
- */
 export async function deleteReservationWithTimeline(
   reservationId: string,
   timelineItemId: string

@@ -50,25 +50,11 @@ function apiKey(): string | undefined {
     : undefined;
 }
 
-/**
- * Whether geocoding is available (API key is configured).
- */
 export function isGeocodingAvailable(): boolean {
   const k = apiKey();
   return Boolean(k?.length && k !== 'your_geoapify_api_key');
 }
 
-
-/**
- * Geocode a text address into lat/lon coordinates.
- *
- * Returns `null` if:
- * - The API key is missing or invalid
- * - The address is empty
- * - The API call fails or returns no results
- *
- * This function never throws — callers can safely await and handle `null`.
- */
 export async function geocodeAddress(
   address: string,
   signal?: AbortSignal,
@@ -119,10 +105,6 @@ export async function geocodeAddress(
   }
 }
 
-/**
- * Geocode multiple addresses in parallel.
- * Returns results in the same order as input. Failed entries are `null`.
- */
 export async function geocodeAddresses(
   addresses: string[],
   signal?: AbortSignal,

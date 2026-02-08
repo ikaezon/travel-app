@@ -31,7 +31,6 @@ interface AddressAutocompleteProps {
   placeholder?: string;
   style?: object;
   variant?: 'default' | 'glass';
-  /** 'address' for street-level, 'place' for city/region. Default: 'address' */
   type?: 'address' | 'place';
 }
 
@@ -60,7 +59,6 @@ export function AddressAutocomplete({
   ).current;
 
   useEffect(() => {
-    // Only fetch suggestions if user is focused and has typed
     if (!hasApi || !isFocused || !userHasTypedRef.current || value.trim().length < 2) {
       setSuggestions([]);
       setDropdownVisible(false);

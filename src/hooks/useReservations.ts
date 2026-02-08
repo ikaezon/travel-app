@@ -64,9 +64,6 @@ export function useReservationByTimelineId(timelineId: string): UseReservationRe
   return { reservation: data, isLoading, isRefetching, error, refetch };
 }
 
-/**
- * Hook for updating a reservation.
- */
 interface UseUpdateReservationResult {
   updateReservation: (
     reservationId: string,
@@ -104,9 +101,6 @@ export function useUpdateReservation(): UseUpdateReservationResult {
   return { updateReservation, isUpdating, error };
 }
 
-/**
- * Hook for creating an attachment from a file.
- */
 interface UseCreateAttachmentResult {
   createAttachment: (
     reservationId: string,

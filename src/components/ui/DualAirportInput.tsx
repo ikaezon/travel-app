@@ -191,7 +191,6 @@ export function DualAirportInput({
 
   return (
     <View style={styles.container}>
-      {/* Main card */}
       <View style={[glassStyles.formWrapper, theme.glass.cardWrapperStyle]} onLayout={handleCardLayout}>
         <AdaptiveGlassView
           intensity={24}
@@ -201,16 +200,13 @@ export function DualAirportInput({
         >
           <View style={[styles.glassOverlay, { backgroundColor: theme.glass.overlayStrong }]} pointerEvents="none" />
           <View style={glassStyles.formContent}>
-            {/* Labels row */}
             <View style={styles.labelsRow}>
               <Text style={[styles.label, { color: theme.colors.text.primary }]}>From</Text>
               <View style={styles.labelSpacer} />
               <Text style={[styles.label, { color: theme.colors.text.primary }]}>To</Text>
             </View>
 
-            {/* Inputs row */}
             <View style={styles.inputsRow}>
-              {/* Departure input */}
               <View style={styles.inputWrapper}>
                 <MaterialIcons
                   name="flight-takeoff"
@@ -231,7 +227,6 @@ export function DualAirportInput({
                 />
               </View>
 
-              {/* Separator icon */}
               <View style={styles.separatorContainer}>
                 <MaterialIcons
                   name="arrow-forward"
@@ -240,7 +235,6 @@ export function DualAirportInput({
                 />
               </View>
 
-              {/* Arrival input */}
               <View style={styles.inputWrapper}>
                 <MaterialIcons
                   name="flight-land"
@@ -265,7 +259,6 @@ export function DualAirportInput({
         </AdaptiveGlassView>
       </View>
 
-      {/* Dropdown - positioned outside the card */}
       {(showDepartureSuggestions || showArrivalSuggestions) && (
         <View
           style={[

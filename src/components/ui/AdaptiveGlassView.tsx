@@ -10,7 +10,6 @@ interface AdaptiveGlassViewProps {
   intensity?: number;
   darkIntensity?: number;
   glassEffectStyle?: 'regular' | 'clear';
-  /** When true, uses GlassView only in light mode (e.g. nav bars). Default: false */
   useGlassInLightMode?: boolean;
   style?: StyleProp<ViewStyle>;
   children?: React.ReactNode;
@@ -32,7 +31,6 @@ export function AdaptiveGlassView({
     ? [{ position: 'absolute' as const, top: 0, left: 0, right: 0, bottom: 0 }, style]
     : style;
 
-  /** Dark mode: GlassView everywhere. Light mode: GlassView only on nav bars (useGlassInLightMode) */
   const useGlassView = liquidGlassReady && (isDark || useGlassInLightMode);
   const themeKey = isDark ? 'dark' : 'light';
 

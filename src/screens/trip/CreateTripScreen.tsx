@@ -1,8 +1,6 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import {
   View,
-  ScrollView,
-  Platform,
   Keyboard,
   Alert,
 } from 'react-native';
@@ -14,6 +12,7 @@ import { AddressAutocomplete } from '../../components/ui/AddressAutocomplete';
 import { FormInput } from '../../components/ui/FormInput';
 import { DateRangePickerInput } from '../../components/ui/DateRangePickerInput';
 import { ShimmerButton } from '../../components/ui/ShimmerButton';
+import { KeyboardAwareScrollView } from '../../components/ui/KeyboardAwareScrollView';
 import { GlassNavHeader } from '../../components/navigation/GlassNavHeader';
 import { spacing, glassStyles } from '../../theme';
 import { MainStackParamList } from '../../navigation/types';
@@ -42,7 +41,6 @@ export default function CreateTripScreen() {
   const [startDate, setStartDate] = useState<string | null>(null);
   const [endDate, setEndDate] = useState<string | null>(null);
   const [imageUrl, setImageUrl] = useState('');
-  const [keyboardHeight, setKeyboardHeight] = useState(0);
 
   const topOffset = insets.top + 8;
 
@@ -58,21 +56,6 @@ export default function CreateTripScreen() {
     const days = daysBetween(startDate, end);
     return days === 1 ? '1 Day' : `${days} Days`;
   }, [startDate, endDate]);
-
-  useEffect(() => {
-    const showSub = Keyboard.addListener(
-      Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
-      (e) => setKeyboardHeight(e.endCoordinates.height)
-    );
-    const hideSub = Keyboard.addListener(
-      Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide',
-      () => setKeyboardHeight(0)
-    );
-    return () => {
-      showSub.remove();
-      hideSub.remove();
-    };
-  }, []);
 
   const handleSave = async () => {
     Keyboard.dismiss();
@@ -128,14 +111,12 @@ export default function CreateTripScreen() {
       style={glassStyles.screenGradient}
     >
       <View style={glassStyles.screenContainer}>
-        <ScrollView
+        <KeyboardAwareScrollView
           style={glassStyles.screenScrollView}
           contentContainerStyle={[
             glassStyles.screenScrollContent,
-            { paddingTop: topOffset + 72, paddingBottom: spacing.xxl + keyboardHeight },
+            { paddingTop: topOffset + 72, paddingBottom: spacing.xxl },
           ]}
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
         >
           <AddressAutocomplete
             label="Destination"
@@ -175,7 +156,7 @@ export default function CreateTripScreen() {
             loading={isSubmitting}
             variant="boardingPass"
           />
-        </ScrollView>
+        </KeyboardAwareScrollView>
 
         <GlassNavHeader
           title="New Trip"

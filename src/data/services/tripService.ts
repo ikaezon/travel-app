@@ -214,8 +214,6 @@ export const tripService = {
     }
     const reservationIds = (reservationsResponse.data ?? []).map((r) => r.id);
 
-    // Order matters: timeline_items FK → reservations, attachments FK → reservations
-    // Delete timeline_items first (they reference reservations), then attachments, then reservations
     const timelineResponse = await supabase
       .from('timeline_items')
       .delete()

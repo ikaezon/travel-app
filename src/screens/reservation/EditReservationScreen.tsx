@@ -4,9 +4,7 @@ import {
   Text,
   TextInput,
   StyleSheet,
-  ScrollView,
   Pressable,
-  Platform,
   Keyboard,
   ActivityIndicator,
   Alert,
@@ -23,6 +21,7 @@ import { DatePickerInput } from '../../components/ui/DatePickerInput';
 import { DateRangePickerInput } from '../../components/ui/DateRangePickerInput';
 import { TimePickerInput } from '../../components/ui/TimePickerInput';
 import { ShimmerButton } from '../../components/ui/ShimmerButton';
+import { KeyboardAwareScrollView } from '../../components/ui/KeyboardAwareScrollView';
 import { GlassNavHeader } from '../../components/navigation/GlassNavHeader';
 import { AdaptiveGlassView } from '../../components/ui/AdaptiveGlassView';
 import {
@@ -38,11 +37,6 @@ import { useReservationByTimelineId, useUpdateReservation, useTimelineItemById }
 import { tripService } from '../../data';
 import { formatCalendarDateToLongDisplay, parseToCalendarDate } from '../../utils/dateFormat';
 
-/**
- * Parses the timeline title to extract provider name and flight/train number.
- * The title format is typically "ProviderName Number" (e.g., "Delta 123" or "SNCF TGV 6789")
- * Returns { providerName, number } where number may be empty if not present.
- */
 function parseTimelineTitle(title: string, reservationProviderName: string): { providerName: string; number: string } {
   const trimmedTitle = title.trim();
   const trimmedProvider = reservationProviderName.trim();
@@ -63,10 +57,6 @@ function parseTimelineTitle(title: string, reservationProviderName: string): { p
   return { providerName: trimmedTitle, number: '' };
 }
 
-/**
- * Converts 12-hour time format (e.g., "2:30 PM") to 24-hour format (e.g., "14:30")
- * for the TimePickerInput which uses 24-hour format internally.
- */
 function parse12HourTo24Hour(time12h: string): string {
   if (!time12h) return '';
   
@@ -115,7 +105,6 @@ export default function EditReservationScreen() {
   const [gate, setGate] = useState('');
   const [seat, setSeat] = useState('');
   const [address, setAddress] = useState('');
-  const [keyboardHeight, setKeyboardHeight] = useState(0);
   const [saving, setSaving] = useState(false);
 
   const topOffset = insets.top + 8;
@@ -176,21 +165,6 @@ export default function EditReservationScreen() {
       }
     }
   }, [reservation, timelineItem]);
-
-  useEffect(() => {
-    const showSub = Keyboard.addListener(
-      Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
-      (e) => setKeyboardHeight(e.endCoordinates.height)
-    );
-    const hideSub = Keyboard.addListener(
-      Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide',
-      () => setKeyboardHeight(0)
-    );
-    return () => {
-      showSub.remove();
-      hideSub.remove();
-    };
-  }, []);
 
   const handleSave = async () => {
     if (!reservation) return;
@@ -287,17 +261,15 @@ export default function EditReservationScreen() {
       style={styles.gradientContainer}
     >
       <View style={styles.container}>
-        <ScrollView
+        <KeyboardAwareScrollView
           style={styles.scrollView}
           contentContainerStyle={[
             styles.scrollContent,
             {
               paddingTop: topOffset + 72,
-              paddingBottom: spacing.xxl + keyboardHeight,
+              paddingBottom: spacing.xxl,
             },
           ]}
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
         >
           <FormInput
             label={isHotel ? 'Property name' : isFlight ? 'Airline' : 'Provider'}
@@ -450,7 +422,7 @@ export default function EditReservationScreen() {
             loading={saving}
             variant="boardingPass"
           />
-        </ScrollView>
+        </KeyboardAwareScrollView>
 
         <GlassNavHeader title="Edit reservation" onBackPress={handleBackPress} />
       </View>

@@ -27,21 +27,15 @@ interface TripMapPreviewProps {
   onExpandPress: () => void;
 }
 
-/**
- * Inline map preview that shows geocoded trip/reservation locations.
- * Falls back to a placeholder image when geocoding is unavailable or returns no results.
- */
 export function TripMapPreview({ tripId, onExpandPress }: TripMapPreviewProps) {
   const theme = useTheme();
   const { region, markers, isLoading, hasData } = useTripMapData(tripId, {
     destinationOnly: true,
   });
 
-  // Track when the MapView has finished rendering to prevent flash
   const [mapReady, setMapReady] = useState(false);
   const mapOpacity = useRef(new Animated.Value(0)).current;
 
-  // Reset mapReady only when tripId changes (navigating to a different trip)
   useEffect(() => {
     setMapReady(false);
     mapOpacity.setValue(0);
@@ -49,7 +43,6 @@ export function TripMapPreview({ tripId, onExpandPress }: TripMapPreviewProps) {
 
   const handleMapReady = useCallback(() => {
     setMapReady(true);
-    // Fade in the map smoothly
     Animated.timing(mapOpacity, {
       toValue: 1,
       duration: 200,
@@ -64,7 +57,6 @@ export function TripMapPreview({ tripId, onExpandPress }: TripMapPreviewProps) {
     onExpandPress();
   }, [onExpandPress]);
 
-  // Show loading indicator while data is loading OR while map is rendering
   const showLoading = isLoading || (hasData && region && !mapReady);
 
   return (
@@ -134,7 +126,6 @@ export function TripMapPreview({ tripId, onExpandPress }: TripMapPreviewProps) {
         </ImageBackground>
       )}
 
-      {/* Expand View badge */}
       <Animated.View style={[styles.expandBadge, { transform: [{ scale: expandScale }] }]}>
       <Pressable
         onPress={handleExpandPress}

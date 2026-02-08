@@ -4,7 +4,6 @@ import { getThemeColors, ResolvedColors } from '../theme/colors';
 import { getResolvedGlass, ResolvedGlass } from '../theme/glassStyles';
 import { userService } from '../data';
 
-/** Initial isDark from system - avoids flash before storage loads */
 function getInitialIsDark(): boolean {
   return Appearance.getColorScheme() === 'dark';
 }

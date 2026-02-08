@@ -1,7 +1,6 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
-  ScrollView,
   Keyboard,
   Alert,
 } from 'react-native';
@@ -15,11 +14,12 @@ import { DateRangePickerInput } from '../../components/ui/DateRangePickerInput';
 import { TripSelector } from '../../components/domain/TripSelector';
 import { GlassNavHeader } from '../../components/navigation/GlassNavHeader';
 import { ShimmerButton } from '../../components/ui/ShimmerButton';
+import { KeyboardAwareScrollView } from '../../components/ui/KeyboardAwareScrollView';
 import { spacing, glassStyles } from '../../theme';
 import { MainStackParamList } from '../../navigation/types';
 import { createLodgingReservation } from '../../data';
 import { formatCalendarDateToLongDisplay } from '../../utils/dateFormat';
-import { useTrips, useKeyboardHeight } from '../../hooks';
+import { useTrips } from '../../hooks';
 import { useTheme } from '../../contexts/ThemeContext';
 
 type NavigationProp = NativeStackNavigationProp<MainStackParamList, 'LodgingEntry'>;
@@ -40,26 +40,9 @@ export default function LodgingEntryScreen() {
   const [checkOutDate, setCheckOutDate] = useState<string | null>(null);
   const [confirmationNumber, setConfirmationNumber] = useState('');
   const [roomDetails, setRoomDetails] = useState('');
-  const keyboardHeight = useKeyboardHeight();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const scrollViewRef = useRef<ScrollView>(null);
-  const dateFieldYRef = useRef(0);
 
   const topOffset = insets.top + 8;
-
-  const handleCalendarOpen = useCallback(() => {
-    scrollViewRef.current?.scrollTo({
-      y: Math.max(0, dateFieldYRef.current - 100),
-      animated: true,
-    });
-  }, []);
-
-  const handleDateFieldLayout = useCallback(
-    (e: { nativeEvent: { layout: { y: number } } }) => {
-      dateFieldYRef.current = e.nativeEvent.layout.y;
-    },
-    []
-  );
 
   const handleDateRangeChange = (start: string | null, end: string | null) => {
     setCheckInDate(start);
@@ -112,18 +95,15 @@ export default function LodgingEntryScreen() {
       style={glassStyles.screenGradient}
     >
       <View style={glassStyles.screenContainer}>
-        <ScrollView
-          ref={scrollViewRef}
+        <KeyboardAwareScrollView
           style={glassStyles.screenScrollView}
           contentContainerStyle={[
             glassStyles.screenScrollContent,
             {
               paddingTop: topOffset + 72,
-              paddingBottom: spacing.xxl + keyboardHeight,
+              paddingBottom: spacing.xxl,
             },
           ]}
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
         >
           <TripSelector
             trips={trips}
@@ -148,17 +128,14 @@ export default function LodgingEntryScreen() {
             placeholder="Search for an address..."
             variant="glass"
           />
-          <View onLayout={handleDateFieldLayout}>
-            <DateRangePickerInput
-              label="Check-in / Check-out dates"
-              startDate={checkInDate}
-              endDate={checkOutDate}
-              onRangeChange={handleDateRangeChange}
-              placeholder="Tap to select dates"
-              onOpen={handleCalendarOpen}
-              variant="glass"
-            />
-          </View>
+          <DateRangePickerInput
+            label="Check-in / Check-out dates"
+            startDate={checkInDate}
+            endDate={checkOutDate}
+            onRangeChange={handleDateRangeChange}
+            placeholder="Tap to select dates"
+            variant="glass"
+          />
           <FormInput
             label="Confirmation number"
             value={confirmationNumber}
@@ -184,7 +161,7 @@ export default function LodgingEntryScreen() {
             loading={isSubmitting}
             variant="boardingPass"
           />
-        </ScrollView>
+        </KeyboardAwareScrollView>
 
         <GlassNavHeader
           title="Lodging Details"

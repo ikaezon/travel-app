@@ -1,11 +1,3 @@
-/**
- * Parse Reservation Service
- *
- * Sends a screenshot image to Google Gemini Vision API,
- * which performs OCR + semantic extraction in a single step.
- * Returns structured reservation data matching ParsedReservation.
- */
-
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import * as FileSystem from 'expo-file-system';
 import { config } from '../../config';
@@ -27,9 +19,6 @@ Rules:
 - Times must be 24-hour format HH:MM.
 - Return raw JSON only. No wrapping, no explanation.`;
 
-/**
- * Reads a local image file and converts it to a base64 string.
- */
 async function readImageAsBase64(imageUri: string): Promise<string> {
   const base64 = await FileSystem.readAsStringAsync(imageUri, {
     encoding: 'base64',
@@ -37,24 +26,16 @@ async function readImageAsBase64(imageUri: string): Promise<string> {
   return base64;
 }
 
-/**
- * Determines the MIME type from a file URI.
- */
 function getMimeType(uri: string): string {
   const lower = uri.toLowerCase();
   if (lower.endsWith('.png')) return 'image/png';
   if (lower.endsWith('.webp')) return 'image/webp';
   if (lower.endsWith('.gif')) return 'image/gif';
-  // Default to JPEG for .jpg, .jpeg, and unknown extensions
   return 'image/jpeg';
 }
 
-/**
- * Strips markdown code fences from model output if present.
- */
 function stripCodeFences(text: string): string {
   let cleaned = text.trim();
-  // Remove ```json ... ``` or ``` ... ```
   if (cleaned.startsWith('```')) {
     const firstNewline = cleaned.indexOf('\n');
     if (firstNewline !== -1) {
@@ -68,10 +49,6 @@ function stripCodeFences(text: string): string {
   return cleaned;
 }
 
-/**
- * Validates and normalizes the parsed JSON into a ParsedReservation.
- * Returns a type:'unknown' result if the shape is invalid.
- */
 function validateParsedResult(raw: unknown): ParsedReservation {
   if (!raw || typeof raw !== 'object') {
     return { type: 'unknown', rawText: 'Invalid response from AI' };
@@ -124,24 +101,11 @@ function validateParsedResult(raw: unknown): ParsedReservation {
 }
 
 export interface ParseReservationInput {
-  /** Local file:// URI. Only use when base64 is not available (content:// and ph:// often fail). */
   uri?: string;
-  /** Base64-encoded image data. Preferred when available from image picker. */
   base64?: string;
-  /** MIME type when using base64. Defaults to image/jpeg. */
   mimeType?: string;
 }
 
-/**
- * Parses a reservation screenshot using Google Gemini Vision.
- *
- * Prefer passing base64 (e.g. from image picker with base64: true) to avoid
- * FileSystem issues with content:// and ph:// URIs on some devices.
- *
- * @param input - Either { uri } or { base64, mimeType? }
- * @returns Parsed reservation data
- * @throws Error if API key is missing, no input provided, or network request fails
- */
 export async function parseReservationFromImage(
   input: string | ParseReservationInput
 ): Promise<ParsedReservation> {
@@ -193,7 +157,6 @@ export async function parseReservationFromImage(
     const parsed = JSON.parse(cleaned);
     return validateParsedResult(parsed);
   } catch {
-    // If JSON parsing fails, return the raw text for debugging
     return { type: 'unknown', rawText: text.slice(0, 500) };
   }
 }

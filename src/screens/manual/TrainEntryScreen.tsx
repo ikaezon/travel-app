@@ -1,7 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import {
   View,
-  ScrollView,
   Keyboard,
   Alert,
 } from 'react-native';
@@ -13,11 +12,11 @@ import { FormInput } from '../../components/ui/FormInput';
 import { DatePickerInput } from '../../components/ui/DatePickerInput';
 import { TimePickerInput } from '../../components/ui/TimePickerInput';
 import { ShimmerButton } from '../../components/ui/ShimmerButton';
+import { KeyboardAwareScrollView } from '../../components/ui/KeyboardAwareScrollView';
 import { GlassNavHeader } from '../../components/navigation/GlassNavHeader';
 import { spacing, glassStyles } from '../../theme';
 import { MainStackParamList } from '../../navigation/types';
 import { createTrainReservation } from '../../data';
-import { useKeyboardHeight } from '../../hooks';
 import { useTheme } from '../../contexts/ThemeContext';
 
 type NavigationProp = NativeStackNavigationProp<MainStackParamList, 'TrainEntry'>;
@@ -36,7 +35,6 @@ export default function TrainEntryScreen() {
   const [date, setDate] = useState('');
   const [time, setTime] = useState('');
   const [confirmationNumber, setConfirmationNumber] = useState('');
-  const keyboardHeight = useKeyboardHeight();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const topOffset = insets.top + 8;
@@ -81,17 +79,15 @@ export default function TrainEntryScreen() {
       style={glassStyles.screenGradient}
     >
       <View style={glassStyles.screenContainer}>
-        <ScrollView
+        <KeyboardAwareScrollView
           style={glassStyles.screenScrollView}
           contentContainerStyle={[
             glassStyles.screenScrollContent,
             {
               paddingTop: topOffset + 72,
-              paddingBottom: spacing.xxl + keyboardHeight,
+              paddingBottom: spacing.xxl,
             },
           ]}
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
         >
           <FormInput
             label="Operator"
@@ -150,7 +146,7 @@ export default function TrainEntryScreen() {
             loading={isSubmitting}
             variant="boardingPass"
           />
-        </ScrollView>
+        </KeyboardAwareScrollView>
 
         <GlassNavHeader
           title="Train Details"

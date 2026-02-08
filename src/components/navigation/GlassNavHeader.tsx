@@ -14,26 +14,17 @@ const BUTTON_SIZE = 36;
 const BUTTON_RADIUS = BUTTON_SIZE / 2;
 
 interface GlassNavHeaderProps {
-  /** Main title text */
   title: string;
-  /** Optional small label above the title */
   label?: string;
-  /** Called when back button is pressed */
   onBackPress: () => void;
-  /** Optional right-side action button */
   rightAction?: {
     icon: keyof typeof MaterialIcons.glyphMap;
     onPress: () => void;
     accessibilityLabel: string;
   };
-  /** Whether to show the right action (useful for conditional rendering) */
   showRightAction?: boolean;
 }
 
-/**
- * Glass bubble button used in the nav header.
- * Matches the look and feel of the bottom tab bar pill.
- */
 function GlassNavButton({
   icon,
   onPress,
@@ -56,9 +47,6 @@ function GlassNavButton({
 
   const isLight = !theme.isDark;
   const iconColor = isLight ? theme.colors.primary : theme.colors.text.primary;
-
-  // Both modes use AdaptiveGlassView to match the "Expand View" pill styling
-  // Light mode: use a subtle gray border for visibility against the light nav bar
   const buttonBorderStyle = isLight
     ? { borderWidth: 1.5, borderColor: 'rgba(0, 0, 0, 0.04)' }
     : theme.glass.pillContainerStyle;
@@ -89,10 +77,6 @@ function GlassNavButton({
   );
 }
 
-/**
- * Shared glassmorphic navigation header used across screens.
- * Positioned absolutely at top with safe area insets.
- */
 export function GlassNavHeader({
   title,
   label,

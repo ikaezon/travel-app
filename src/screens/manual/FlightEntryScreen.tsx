@@ -1,7 +1,6 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
-  ScrollView,
   Keyboard,
   Alert,
 } from 'react-native';
@@ -16,10 +15,11 @@ import { DualAirportInput } from '../../components/ui/DualAirportInput';
 import { TripSelector } from '../../components/domain/TripSelector';
 import { GlassNavHeader } from '../../components/navigation/GlassNavHeader';
 import { ShimmerButton } from '../../components/ui/ShimmerButton';
+import { KeyboardAwareScrollView } from '../../components/ui/KeyboardAwareScrollView';
 import { spacing, glassStyles } from '../../theme';
 import { MainStackParamList } from '../../navigation/types';
 import { createFlightReservation } from '../../data';
-import { useTrips, useKeyboardHeight } from '../../hooks';
+import { useTrips } from '../../hooks';
 import { useTheme } from '../../contexts/ThemeContext';
 
 type NavigationProp = NativeStackNavigationProp<MainStackParamList, 'FlightEntry'>;
@@ -41,24 +41,7 @@ export default function FlightEntryScreen() {
   const [departureDate, setDepartureDate] = useState('');
   const [departureTime, setDepartureTime] = useState('');
   const [confirmationNumber, setConfirmationNumber] = useState('');
-  const keyboardHeight = useKeyboardHeight();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const scrollViewRef = useRef<ScrollView>(null);
-  const dateFieldYRef = useRef(0);
-
-  const handleCalendarOpen = useCallback(() => {
-    scrollViewRef.current?.scrollTo({
-      y: Math.max(0, dateFieldYRef.current - 100),
-      animated: true,
-    });
-  }, []);
-
-  const handleDateFieldLayout = useCallback(
-    (e: { nativeEvent: { layout: { y: number } } }) => {
-      dateFieldYRef.current = e.nativeEvent.layout.y;
-    },
-    []
-  );
 
   const handleSave = async () => {
     Keyboard.dismiss();
@@ -101,18 +84,15 @@ export default function FlightEntryScreen() {
       style={glassStyles.screenGradient}
     >
       <View style={glassStyles.screenContainer}>
-        <ScrollView
-          ref={scrollViewRef}
+        <KeyboardAwareScrollView
           style={glassStyles.screenScrollView}
           contentContainerStyle={[
             glassStyles.screenScrollContent,
             {
               paddingTop: topOffset + 72,
-              paddingBottom: spacing.xxl + keyboardHeight,
+              paddingBottom: spacing.xxl,
             },
           ]}
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
         >
           <TripSelector
             trips={trips}
@@ -146,18 +126,14 @@ export default function FlightEntryScreen() {
             departurePlaceholder="SFO"
             arrivalPlaceholder="JFK"
           />
-          <View onLayout={handleDateFieldLayout}>
-            <DatePickerInput
-              label="Departure date"
-              value={departureDate}
-              onChange={setDepartureDate}
-              placeholder="Tap to select date"
-              iconName="event"
-              onOpen={handleCalendarOpen}
-              bottomPadding={spacing.xxl + keyboardHeight}
-              variant="glass"
-            />
-          </View>
+          <DatePickerInput
+            label="Departure date"
+            value={departureDate}
+            onChange={setDepartureDate}
+            placeholder="Tap to select date"
+            iconName="event"
+            variant="glass"
+          />
           <TimePickerInput
             label="Departure time"
             value={departureTime}
@@ -183,7 +159,7 @@ export default function FlightEntryScreen() {
             loading={isSubmitting}
             variant="boardingPass"
           />
-        </ScrollView>
+        </KeyboardAwareScrollView>
 
         <GlassNavHeader
           title="Flight Details"

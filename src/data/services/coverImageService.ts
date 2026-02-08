@@ -1,13 +1,3 @@
-/**
- * Cover image service using Unsplash.
- *
- * Fetches destination-relevant photos for trip covers.
- * Results are cached in-memory with a 24-hour TTL to reduce API usage.
- *
- * Unsplash demo: 50 requests/hour
- * Unsplash production: 5,000 requests/hour
- */
-
 const UNSPLASH_API_URL = 'https://api.unsplash.com/search/photos';
 const CACHE_TTL_MS = 24 * 60 * 60 * 1000;
 const MAX_CACHE = 100;
@@ -60,9 +50,6 @@ function apiKey(): string | undefined {
     : undefined;
 }
 
-/**
- * Whether cover image fetching is available (API key is configured).
- */
 export function isCoverImageAvailable(): boolean {
   const k = apiKey();
   return Boolean(k?.length && k !== 'your_unsplash_access_key');
@@ -113,12 +100,6 @@ async function fetchAndCacheImage(query: string): Promise<string | null> {
   }
 }
 
-/**
- * Fetch a cover image URL for a given destination.
- *
- * @param destination - Trip destination (e.g., "Paris, France")
- * @returns Image URL on success, null on failure
- */
 export async function fetchCoverImageForDestination(
   destination: string
 ): Promise<string | null> {
@@ -126,45 +107,23 @@ export async function fetchCoverImageForDestination(
   return fetchAndCacheImage(destination.trim());
 }
 
-/**
- * Extract city from trip destination (e.g. "Paris, France" -> "Paris").
- */
 function extractCityFromDestination(destination: string): string {
   if (!destination?.trim()) return '';
   const parts = destination.split(',').map((p) => p.trim()).filter(Boolean);
   return parts[0] || '';
 }
 
-/**
- * Per-reservation image cache.
- * Maps reservationId to resolved image URL so revisits are instant.
- */
 const reservationImageCache = new Map<string, string>();
 
-/**
- * Get a cached cover image for a reservation (synchronous, instant).
- * Returns the URL if previously resolved, or null.
- */
 export function getCachedPropertyImage(reservationId: string): string | null {
   return reservationImageCache.get(reservationId) ?? null;
 }
 
-/**
- * Fetch a cover image for a hotel/property based on property name + city.
- * City should come from the trip destination (e.g. "Paris" from "Paris, France").
- * Results are cached by reservationId for instant revisits.
- *
- * @param reservationId - Reservation ID (used for caching)
- * @param propertyName - Hotel or property name
- * @param tripDestination - Trip destination (e.g. "Paris, France") – first part used as city
- * @returns Image URL on success, null on failure
- */
 export async function fetchCoverImageForProperty(
   reservationId: string,
   propertyName: string,
   tripDestination?: string
 ): Promise<string | null> {
-  // Check reservation-level cache first
   const cached = reservationImageCache.get(reservationId);
   if (cached) return cached;
 
@@ -178,7 +137,6 @@ export async function fetchCoverImageForProperty(
     return url;
   }
 
-  // Fallback: city only (e.g. "Paris")
   if (city) {
     const fallbackUrl = await fetchAndCacheImage(city);
     if (fallbackUrl) {

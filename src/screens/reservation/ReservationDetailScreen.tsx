@@ -63,13 +63,11 @@ export default function ReservationDetailScreen() {
   const providerName = reservation?.providerName;
   const tripDestination = trip?.destination ?? undefined;
 
-  // Check instant cache first so revisits don't show shimmer
   const cachedUrl = reservationId ? getCachedPropertyImage(reservationId) : null;
   const [fetchedImageUrl, setFetchedImageUrl] = useState<string | null>(cachedUrl);
   const [isFetchingImage, setIsFetchingImage] = useState(!cachedUrl);
 
   useEffect(() => {
-    // Already have a cached image — skip fetch entirely
     if (cachedUrl) {
       setFetchedImageUrl(cachedUrl);
       setIsFetchingImage(false);
@@ -82,7 +80,6 @@ export default function ReservationDetailScreen() {
       return;
     }
 
-    // Wait for trip destination to load before fetching
     if (!tripDestination) {
       setIsFetchingImage(true);
       return;
@@ -105,10 +102,8 @@ export default function ReservationDetailScreen() {
     return () => { cancelled = true; };
   }, [reservationId, providerName, tripDestination, cachedUrl]);
 
-  // Show fetched image, or nothing while loading (no stock fallback)
   const heroImageUrl = fetchedImageUrl || undefined;
 
-  // Pulse animation for hero image loading
   const pulseAnim = useRef(new Animated.Value(0.3)).current;
   useEffect(() => {
     if (!isFetchingImage) return;

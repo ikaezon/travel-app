@@ -28,7 +28,6 @@ const FADE_CONFIG = {
   useNativeDriver: true as const,
 };
 
-/** Shared calendar theme builder used by both DatePickerInput and DateRangePickerInput */
 export function buildCalendarTheme(theme: ReturnType<typeof useTheme>) {
   return {
     backgroundColor: theme.colors.surface,

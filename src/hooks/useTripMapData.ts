@@ -14,7 +14,6 @@ export interface MapMarker {
   latitude: number;
   longitude: number;
   title: string;
-  /** True for the trip destination marker */
   isDestination: boolean;
 }
 
@@ -30,7 +29,6 @@ export interface UseTripMapDataResult {
   markers: MapMarker[];
   isLoading: boolean;
   error: Error | null;
-  /** Convenience flag — true when region and at least one marker exist */
   hasData: boolean;
 }
 
@@ -52,29 +50,15 @@ function computeRegion(markers: MapMarker[]): MapRegion | null {
   };
 }
 
-/**
- * Normalize an address string for deduplication.
- */
 function normalizeAddress(addr: string): string {
   return addr.trim().toLowerCase();
 }
 
 
 export interface UseTripMapDataOptions {
-  /** When true, only the trip destination is shown (e.g. Paris). Used for the inline preview. */
   destinationOnly?: boolean;
 }
 
-/**
- * Provides map region and markers derived from a trip's destination
- * and its reservation addresses.
- *
- * Data flow:
- * 1. Fetch trip (for destination) and reservations (for addresses)
- * 2. Extract + deduplicate addresses (or only destination when destinationOnly)
- * 3. Geocode all addresses in parallel via Geoapify
- * 4. Build markers and compute a bounding region
- */
 export function useTripMapData(
   tripId: string,
   options?: UseTripMapDataOptions,

@@ -72,7 +72,6 @@ export const glassStyles = StyleSheet.create({
     borderRadius: glassConstants.radius.cardLarge,
     overflow: 'hidden',
   },
-  /** Shared screen layout styles for entry/form screens */
   screenGradient: {
     flex: 1,
   },
@@ -86,7 +85,6 @@ export const glassStyles = StyleSheet.create({
     paddingHorizontal: 24,
     gap: 12,
   },
-  /** Shared glass form field wrapper styles */
   formWrapper: {
     borderRadius: glassConstants.radius.card,
     overflow: 'hidden' as const,

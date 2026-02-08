@@ -7,14 +7,9 @@ import { AdaptiveGlassView } from './AdaptiveGlassView';
 const ANIM_DURATION = 800;
 
 interface FormFieldSkeletonProps {
-  /** Number of placeholder bars (label + input rows). Default 2 (label + 1 field). */
   bars?: number;
 }
 
-/**
- * A skeleton placeholder for form fields with a subtle flashing/pulsing animation.
- * Used while API is processing (e.g. OCR parsing).
- */
 export function FormFieldSkeleton({ bars = 2 }: FormFieldSkeletonProps) {
   const theme = useTheme();
   const opacityAnim = useRef(new Animated.Value(0.4)).current;

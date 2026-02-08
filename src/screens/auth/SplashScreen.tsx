@@ -96,7 +96,6 @@ export default function SplashScreen({
               />
             </ImageBackground>
 
-            {/* Logo – liquid glass circle */}
             <View style={[styles.logoOuterContainer, theme.glass.cardWrapperStyle]}>
               <AdaptiveGlassView
                 intensity={glassConstants.blur.card}
@@ -132,11 +131,9 @@ export default function SplashScreen({
                 Organize your entire journey from takeoff to landing in one minimalist space.
               </Text>
             </View>
-          </View>
+            </View>
 
-          {/* Actions – directly on gradient, like dashboard QuickActionCards */}
           <Animated.View style={[styles.actionsContainer, { opacity: fadeAnim }]}>
-            {/* Primary button – boarding pass glass style */}
             <Animated.View style={{ transform: [{ scale: emailAnim.scaleAnim }] }}>
             <Pressable
               style={[styles.primaryButton, theme.glass.cardWrapperStyle, theme.isDark && styles.darkCardBorder]}
@@ -159,14 +156,12 @@ export default function SplashScreen({
             </Pressable>
             </Animated.View>
 
-            {/* Separator */}
             <View style={styles.separator}>
               <View style={[styles.separatorLine, { backgroundColor: theme.glass.menuItemBorder }]} />
               <Text style={[styles.separatorText, { color: theme.colors.text.tertiary }]}>OR</Text>
               <View style={[styles.separatorLine, { backgroundColor: theme.glass.menuItemBorder }]} />
             </View>
 
-            {/* Secondary button – Apple (glass card) */}
             <Animated.View style={{ transform: [{ scale: appleAnim.scaleAnim }] }}>
             <Pressable
               style={[styles.secondaryButton, theme.glass.cardWrapperStyle, theme.isDark && styles.darkCardBorder]}
@@ -189,7 +184,6 @@ export default function SplashScreen({
             </Pressable>
             </Animated.View>
 
-            {/* Secondary button – Google (glass card) */}
             <Animated.View style={{ transform: [{ scale: googleAnim.scaleAnim }] }}>
             <Pressable
               style={[styles.secondaryButton, theme.glass.cardWrapperStyle, theme.isDark && styles.darkCardBorder]}
@@ -212,7 +206,6 @@ export default function SplashScreen({
             </Pressable>
             </Animated.View>
 
-            {/* Footer */}
             <View style={styles.footer}>
               <Text style={[styles.footerText, { color: theme.colors.text.tertiary }]}>
                 By signing up, you agree to our{' '}
