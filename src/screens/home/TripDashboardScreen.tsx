@@ -16,7 +16,6 @@ import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { TripCard } from '../../components/domain/TripCard';
 import { pickImageFromLibrary } from '../../native/imagePicker';
-import { parseReservationFromImage } from '../../data/services/parseReservationService';
 import { QuickActionCard, type QuickActionIconKey } from '../../components/domain/QuickActionCard';
 import { LoadingView } from '../../components/ui/LoadingView';
 import { ErrorView } from '../../components/ui/ErrorView';
@@ -79,19 +78,10 @@ export default function TripDashboardScreen() {
           return;
         }
         if (result && 'uri' in result) {
-          try {
-            const parsedData = await parseReservationFromImage(
-              result.base64 ? { base64: result.base64 } : { uri: result.uri }
-            );
-            navigation.navigate('ReviewDetails', { imageUri: result.uri, parsedData });
-          } catch (err) {
-            const message =
-              err instanceof Error ? err.message : 'Could not parse screenshot. Try again.';
-            Alert.alert('Parsing Failed', message, [
-              { text: 'Manual Entry', onPress: () => navigation.navigate('ManualEntryOptions') },
-              { text: 'OK' },
-            ]);
-          }
+          navigation.navigate('ReviewDetails', {
+            imageUri: result.uri,
+            base64: result.base64,
+          });
         }
         return;
       }

@@ -168,7 +168,7 @@ const styles = StyleSheet.create({
   glassCheckContainer: {
     position: 'absolute',
     right: spacing.md,
-    top: 14,
+    top: 17,
     zIndex: 1,
   },
   glassCheckBadge: {

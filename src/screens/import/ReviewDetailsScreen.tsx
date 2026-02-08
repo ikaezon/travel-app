@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
   Pressable,
-  ImageBackground,
+  Image,
   Keyboard,
   Animated,
   Alert,
@@ -33,6 +33,9 @@ import {
   createLodgingReservation,
   createTrainReservation,
 } from '../../data';
+import { parseReservationFromImage } from '../../data/services/parseReservationService';
+import { FormFieldSkeleton } from '../../components/ui/FormFieldSkeleton';
+import { formatCalendarDateToLongDisplay, parseToCalendarDate } from '../../utils/dateFormat';
 import type { ParsedReservation } from '../../types';
 
 type NavigationProp = NativeStackNavigationProp<MainStackParamList>;
@@ -71,12 +74,13 @@ interface TrainFormData {
 
 function initFlightForm(parsed?: ParsedReservation): FlightFormData {
   if (parsed?.type === 'flight') {
+    const calDate = parseToCalendarDate(parsed.departureDate);
     return {
       airline: parsed.airline,
       flightNumber: parsed.flightNumber,
       departureAirport: parsed.departureAirport,
       arrivalAirport: parsed.arrivalAirport,
-      departureDate: parsed.departureDate,
+      departureDate: calDate ? formatCalendarDateToLongDisplay(calDate) : parsed.departureDate,
       departureTime: parsed.departureTime,
       confirmationCode: parsed.confirmationCode,
     };
@@ -99,12 +103,13 @@ function initHotelForm(parsed?: ParsedReservation): HotelFormData {
 
 function initTrainForm(parsed?: ParsedReservation): TrainFormData {
   if (parsed?.type === 'train') {
+    const calDate = parseToCalendarDate(parsed.departureDate);
     return {
       operator: parsed.operator,
       trainNumber: parsed.trainNumber,
       departureStation: parsed.departureStation,
       arrivalStation: parsed.arrivalStation,
-      departureDate: parsed.departureDate,
+      departureDate: calDate ? formatCalendarDateToLongDisplay(calDate) : parsed.departureDate,
       departureTime: parsed.departureTime,
       confirmationCode: parsed.confirmationCode,
     };
@@ -136,7 +141,11 @@ export default function ReviewDetailsScreen() {
   const route = useRoute<ReviewDetailsRouteProp>();
   const insets = useSafeAreaInsets();
   const sourceImageUrl = route.params?.imageUri || mockImages.defaultReviewImage;
-  const parsedData = route.params?.parsedData;
+  const initialParsedData = route.params?.parsedData;
+  const base64 = route.params?.base64;
+
+  const [parsedData, setParsedData] = useState<ParsedReservation | undefined>(initialParsedData);
+  const [isParsing, setIsParsing] = useState(!initialParsedData && !!route.params?.imageUri);
 
   const reservationType = parsedData?.type ?? 'unknown';
 
@@ -145,9 +154,9 @@ export default function ReviewDetailsScreen() {
   const [selectedTripId, setSelectedTripId] = useState<string | null>(null);
 
   // Form state for each type
-  const [flightForm, setFlightForm] = useState<FlightFormData>(() => initFlightForm(parsedData));
-  const [hotelForm, setHotelForm] = useState<HotelFormData>(() => initHotelForm(parsedData));
-  const [trainForm, setTrainForm] = useState<TrainFormData>(() => initTrainForm(parsedData));
+  const [flightForm, setFlightForm] = useState<FlightFormData>(() => initFlightForm(parsedData ?? initialParsedData));
+  const [hotelForm, setHotelForm] = useState<HotelFormData>(() => initHotelForm(parsedData ?? initialParsedData));
+  const [trainForm, setTrainForm] = useState<TrainFormData>(() => initTrainForm(parsedData ?? initialParsedData));
 
   const keyboardHeight = useKeyboardHeight();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -155,7 +164,43 @@ export default function ReviewDetailsScreen() {
   const topOffset = insets.top + 8;
   const sourceAnim = usePressAnimation();
 
-  const handleBackPress = () => navigation.goBack();
+  // Parse image when we have imageUri but no parsedData yet
+  useEffect(() => {
+    if (parsedData || !sourceImageUrl || sourceImageUrl === mockImages.defaultReviewImage) return;
+
+    let cancelled = false;
+    setIsParsing(true);
+
+    const run = async () => {
+      try {
+        const result = await parseReservationFromImage(
+          base64 ? { base64 } : { uri: sourceImageUrl }
+        );
+        if (!cancelled) {
+          setParsedData(result);
+          setFlightForm(initFlightForm(result));
+          setHotelForm(initHotelForm(result));
+          setTrainForm(initTrainForm(result));
+        }
+      } catch (err) {
+        if (!cancelled) {
+          const message = err instanceof Error ? err.message : 'Could not parse screenshot. Try again.';
+          Alert.alert('Parsing Failed', message, [
+            { text: 'Manual Entry', onPress: () => navigation.navigate('ManualEntryOptions') },
+            { text: 'OK', onPress: () => navigation.goBack() },
+          ]);
+          setParsedData({ type: 'unknown', rawText: message });
+        }
+      } finally {
+        if (!cancelled) setIsParsing(false);
+      }
+    };
+
+    run();
+    return () => { cancelled = true; };
+  }, [sourceImageUrl, base64, parsedData, navigation]);
+
+  const handleBackPress = useCallback(() => navigation.goBack(), [navigation]);
 
   const handleConfirm = async () => {
     Keyboard.dismiss();
@@ -179,12 +224,14 @@ export default function ReviewDetailsScreen() {
           confirmationNumber: flightForm.confirmationCode,
         });
       } else if (reservationType === 'hotel') {
+        const checkInCal = parseToCalendarDate(hotelForm.checkInDate);
+        const checkOutCal = parseToCalendarDate(hotelForm.checkOutDate);
         await createLodgingReservation({
           tripId: selectedTripId,
           propertyName: hotelForm.propertyName,
           address: hotelForm.address,
-          checkInDate: hotelForm.checkInDate,
-          checkOutDate: hotelForm.checkOutDate,
+          checkInDate: checkInCal ? formatCalendarDateToLongDisplay(checkInCal) : hotelForm.checkInDate,
+          checkOutDate: checkOutCal ? formatCalendarDateToLongDisplay(checkOutCal) : hotelForm.checkOutDate,
           confirmationNumber: hotelForm.confirmationCode,
         });
       } else if (reservationType === 'train') {
@@ -371,24 +418,34 @@ export default function ReviewDetailsScreen() {
   );
 
   const renderUnknownMessage = () => (
-    <View style={styles.unknownContainer}>
-      <MaterialIcons name="help-outline" size={48} color={theme.colors.text.tertiary} />
-      <Text style={[styles.unknownTitle, { color: theme.colors.text.primary }]}>
-        Could not identify reservation
-      </Text>
-      <Text style={[styles.unknownSubtitle, { color: theme.colors.text.secondary }]}>
-        {parsedData?.type === 'unknown' && parsedData.rawText
-          ? parsedData.rawText
-          : 'The screenshot could not be parsed. Try a different image or use manual entry.'}
-      </Text>
-      <Pressable
-        style={[styles.manualEntryButton, { backgroundColor: theme.colors.primaryLight }]}
-        onPress={() => navigation.navigate('ManualEntryOptions')}
+    <View style={[glassStyles.formWrapper, theme.glass.cardWrapperStyle]}>
+      <AdaptiveGlassView
+        intensity={24}
+        darkIntensity={10}
+        glassEffectStyle="clear"
+        style={[glassStyles.formBlur, glassStyles.blurContent]}
       >
-        <Text style={[styles.manualEntryText, { color: theme.colors.primary }]}>
-          Switch to Manual Entry
-        </Text>
-      </Pressable>
+        <View style={[styles.glassOverlay, { backgroundColor: theme.glass.overlayStrong }]} pointerEvents="none" />
+        <View style={styles.unknownContainer}>
+          <MaterialIcons name="help-outline" size={48} color={theme.colors.text.tertiary} />
+          <Text style={[styles.unknownTitle, { color: theme.colors.text.primary }]}>
+            Could not identify reservation
+          </Text>
+          <Text style={[styles.unknownSubtitle, { color: theme.colors.text.secondary }]}>
+            {parsedData?.type === 'unknown' && parsedData.rawText
+              ? parsedData.rawText
+              : 'The screenshot could not be parsed. Try a different image or use manual entry.'}
+          </Text>
+          <Pressable
+            style={[styles.manualEntryButton, { backgroundColor: theme.colors.primaryLight }]}
+            onPress={() => navigation.navigate('ManualEntryOptions')}
+          >
+            <Text style={[styles.manualEntryText, { color: theme.colors.primary }]}>
+              Switch to Manual Entry
+            </Text>
+          </Pressable>
+        </View>
+      </AdaptiveGlassView>
     </View>
   );
 
@@ -408,7 +465,7 @@ export default function ReviewDetailsScreen() {
       colors={theme.gradient}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
-      style={glassStyles.screenGradient}
+      style={[glassStyles.screenGradient, styles.gradientContainer]}
     >
       <View style={glassStyles.screenContainer}>
         <ScrollView
@@ -449,15 +506,14 @@ export default function ReviewDetailsScreen() {
                       </Text>
                     </View>
                     <View style={[styles.thumbnailContainer, { borderColor: theme.glass.border }]}>
-                      <ImageBackground
+                      <Image
                         source={{ uri: sourceImageUrl }}
-                        style={styles.thumbnail}
-                        imageStyle={styles.thumbnailImage}
-                      >
-                        <View style={styles.thumbnailOverlay}>
-                          <MaterialIcons name="zoom-in" size={24} color="white" />
-                        </View>
-                      </ImageBackground>
+                        style={styles.thumbnailImage}
+                        resizeMode="cover"
+                      />
+                      <View style={styles.thumbnailOverlay}>
+                        <MaterialIcons name="zoom-in" size={24} color="white" />
+                      </View>
                     </View>
                   </View>
                 </AdaptiveGlassView>
@@ -465,42 +521,63 @@ export default function ReviewDetailsScreen() {
             </Pressable>
           </Animated.View>
 
-          {reservationType !== 'unknown' && (
-            <TripSelector
-              trips={trips}
-              selectedTripId={selectedTripId}
-              onSelectTrip={setSelectedTripId}
-              isLoading={tripsLoading}
-              error={tripsError}
-              variant="glass"
-            />
-          )}
+          {isParsing ? (
+            <>
+              <FormFieldSkeleton bars={2} />
+              <View style={styles.sectionHeader}>
+                <Text style={[styles.sectionTitle, { color: theme.colors.text.primary }]}>
+                  Reservation Details
+                </Text>
+                <Text style={[styles.sectionSubtitle, { color: theme.colors.text.secondary }]}>
+                  Extracting dates, locations, and details from your screenshot...
+                </Text>
+              </View>
+              <FormFieldSkeleton bars={2} />
+              <FormFieldSkeleton bars={2} />
+              <FormFieldSkeleton bars={2} />
+              <FormFieldSkeleton bars={2} />
+              <FormFieldSkeleton bars={2} />
+            </>
+          ) : (
+            <>
+              {reservationType !== 'unknown' && (
+                <TripSelector
+                  trips={trips}
+                  selectedTripId={selectedTripId}
+                  onSelectTrip={setSelectedTripId}
+                  isLoading={tripsLoading}
+                  error={tripsError}
+                  variant="glass"
+                />
+              )}
 
-          <View style={styles.sectionHeader}>
-            <Text style={[styles.sectionTitle, { color: theme.colors.text.primary }]}>
-              {getSectionTitle(reservationType)}
-            </Text>
-            {reservationType !== 'unknown' && (
-              <Text style={[styles.sectionSubtitle, { color: theme.colors.text.secondary }]}>
-                AI has auto-filled these details. Please verify.
-              </Text>
-            )}
-          </View>
+              <View style={styles.sectionHeader}>
+                <Text style={[styles.sectionTitle, { color: theme.colors.text.primary }]}>
+                  {getSectionTitle(reservationType)}
+                </Text>
+                {reservationType !== 'unknown' && (
+                  <Text style={[styles.sectionSubtitle, { color: theme.colors.text.secondary }]}>
+                    AI has auto-filled these details. Please verify.
+                  </Text>
+                )}
+              </View>
 
-          {renderForm()}
+              {renderForm()}
 
-          {/* Confirm button at bottom of scroll content - not floating */}
-          {reservationType !== 'unknown' && (
-            <View style={styles.confirmButtonContainer}>
-              <ShimmerButton
-                label="Confirm & Save"
-                iconName={getConfirmIcon(reservationType) as any}
-                onPress={handleConfirm}
-                disabled={!canSubmit}
-                loading={isSubmitting}
-                variant="boardingPass"
-              />
-            </View>
+              {/* Confirm button at bottom of scroll content - not floating */}
+              {reservationType !== 'unknown' && (
+                <View style={styles.confirmButtonContainer}>
+                  <ShimmerButton
+                    label="Confirm & Save"
+                    iconName={getConfirmIcon(reservationType) as any}
+                    onPress={handleConfirm}
+                    disabled={!canSubmit}
+                    loading={isSubmitting}
+                    variant="boardingPass"
+                  />
+                </View>
+              )}
+            </>
           )}
         </ScrollView>
 
@@ -515,6 +592,9 @@ export default function ReviewDetailsScreen() {
 }
 
 const styles = StyleSheet.create({
+  gradientContainer: {
+    overflow: 'hidden',
+  },
   glassOverlay: {
     ...glassStyles.cardOverlay,
   },
@@ -554,20 +634,19 @@ const styles = StyleSheet.create({
   thumbnailContainer: {
     width: 80,
     height: 80,
-    borderRadius: glassConstants.radius.icon,
+    borderRadius: 12,
+    borderWidth: 1,
     overflow: 'hidden',
-    borderWidth: 2,
-  },
-  thumbnail: {
-    width: '100%',
-    height: '100%',
+    position: 'relative',
   },
   thumbnailImage: {
-    borderRadius: glassConstants.radius.icon,
+    width: '100%',
+    height: '100%',
+    transform: [{ scale: 1.05 }],
   },
   thumbnailOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.2)',
+    backgroundColor: 'rgba(0, 0, 0, 0.12)',
     justifyContent: 'center',
     alignItems: 'center',
   },

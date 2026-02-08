@@ -23,7 +23,6 @@ import { MainStackParamList } from '../../navigation/types';
 import { fontFamilies, glassStyles, glassConstants } from '../../theme';
 import { usePressAnimation } from '../../hooks';
 import { useTheme } from '../../contexts/ThemeContext';
-import { parseReservationFromImage } from '../../data/services/parseReservationService';
 
 type NavigationProp = NativeStackNavigationProp<MainStackParamList>;
 
@@ -47,7 +46,6 @@ export default function ScreenshotUploadScreen() {
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [isParsing, setIsParsing] = useState(false);
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
 
   useEffect(() => {
@@ -117,25 +115,11 @@ export default function ScreenshotUploadScreen() {
       return;
     }
 
-    setIsParsing(true);
-
     const photo = photos.find((p) => p.uri === selectedPhoto);
-
-    try {
-      const parsedData = await parseReservationFromImage(
-        photo?.base64 ? { base64: photo.base64 } : { uri: selectedPhoto }
-      );
-      navigation.navigate('ReviewDetails', { imageUri: selectedPhoto, parsedData });
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : 'Could not parse screenshot. Try again.';
-      Alert.alert('Parsing Failed', message, [
-        { text: 'Try Again', onPress: () => handleAutoScan() },
-        { text: 'Cancel', style: 'cancel' },
-      ]);
-    } finally {
-      setIsParsing(false);
-    }
+    navigation.navigate('ReviewDetails', {
+      imageUri: selectedPhoto,
+      base64: photo?.base64,
+    });
   };
 
   const renderPhoto = ({ item }: { item: Photo }) => {
@@ -247,8 +231,6 @@ export default function ScreenshotUploadScreen() {
               label="Auto-Scan with AI"
               iconName="auto-fix-high"
               onPress={handleAutoScan}
-              disabled={isParsing}
-              loading={isParsing}
               variant="boardingPass"
             />
           </View>
@@ -274,37 +256,6 @@ export default function ScreenshotUploadScreen() {
           </AdaptiveGlassView>
         </View>
 
-        {isParsing && (
-          <View style={[styles.parsingOverlay, { bottom: insets.bottom + 120 }]}>
-            <Pressable style={({ pressed }) => [styles.parsingCard, theme.glass.cardWrapperStyle, pressed && styles.parsingCardPressed]}>
-              <AdaptiveGlassView intensity={24} darkIntensity={10} glassEffectStyle="clear" absoluteFill style={glassStyles.blurContent} />
-              <View style={[styles.glassOverlay, { backgroundColor: theme.glass.overlayStrong }]} pointerEvents="none" />
-              <View style={styles.parsingContent}>
-            <View style={styles.parsingHeader}>
-              <View style={[styles.parsingIconContainer, { backgroundColor: theme.colors.primaryLight }]}>
-                <ActivityIndicator size="small" color={theme.colors.primary} />
-                <MaterialIcons
-                  name="smart-toy"
-                  size={20}
-                  color={theme.colors.primary}
-                  style={styles.parsingIcon}
-                />
-              </View>
-              <View style={styles.parsingTextContainer}>
-                <Text style={[styles.parsingTitle, { color: theme.colors.text.primary }]}>Parsing your reservation...</Text>
-                <Text style={[styles.parsingSubtitle, { color: theme.colors.text.secondary }]}>
-                  Extracting dates, location, and details
-                </Text>
-              </View>
-            </View>
-            <View style={styles.skeletonContainer}>
-              <View style={[styles.skeletonBar, styles.skeletonBar1, { backgroundColor: theme.colors.primaryLight }]} />
-              <View style={[styles.skeletonBar, styles.skeletonBar2, { backgroundColor: theme.colors.primaryLight }]} />
-            </View>
-              </View>
-            </Pressable>
-          </View>
-        )}
       </View>
     </LinearGradient>
   );
@@ -479,68 +430,5 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     maxWidth: 480,
     marginHorizontal: 'auto',
-  },
-  parsingOverlay: {
-    position: 'absolute',
-    left: 16,
-    right: 16,
-    zIndex: 40,
-  },
-  parsingCard: {
-    ...glassStyles.cardWrapper,
-    overflow: 'hidden',
-    padding: 16,
-    position: 'relative',
-    gap: 12,
-  },
-  parsingCardPressed: {
-    opacity: 0.98,
-  },
-  parsingContent: {
-    position: 'relative',
-    zIndex: 1,
-    gap: 12,
-  },
-  parsingHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  parsingIconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: glassConstants.radius.icon,
-    justifyContent: 'center',
-    alignItems: 'center',
-    position: 'relative',
-  },
-  parsingIcon: {
-    position: 'absolute',
-  },
-  parsingTextContainer: {
-    flex: 1,
-  },
-  parsingTitle: {
-    fontSize: 14,
-    fontFamily: fontFamilies.semibold,
-  },
-  parsingSubtitle: {
-    fontSize: 12,
-    fontFamily: fontFamilies.regular,
-    marginTop: 2,
-  },
-  skeletonContainer: {
-    paddingLeft: 52,
-    gap: 8,
-  },
-  skeletonBar: {
-    height: 8,
-    borderRadius: 4,
-  },
-  skeletonBar1: {
-    width: '75%',
-  },
-  skeletonBar2: {
-    width: '50%',
   },
 });

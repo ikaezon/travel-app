@@ -48,6 +48,7 @@ interface TimelineCardProps {
   type: ReservationType;
   time: string;
   title: string;
+  secondaryTitle?: string;
   subtitle: string;
   metadata?: string;
   actionLabel: string;
@@ -62,6 +63,7 @@ export const TimelineCard = React.memo(function TimelineCard({
   type,
   time,
   title,
+  secondaryTitle,
   subtitle,
   metadata,
   actionLabel,
@@ -109,6 +111,11 @@ export const TimelineCard = React.memo(function TimelineCard({
                    {type.toUpperCase()}
                  </Text>
                  <Text style={[styles.title, { color: theme.colors.text.primary }]}>{title}</Text>
+                 {secondaryTitle ? (
+                   <Text style={[styles.secondaryTitle, { color: theme.colors.text.secondary }]}>
+                     {secondaryTitle}
+                   </Text>
+                 ) : null}
                </View>
                <Text style={[styles.timeLabel, { color: theme.colors.text.secondary }]}>{time}</Text>
             </View>
@@ -116,7 +123,9 @@ export const TimelineCard = React.memo(function TimelineCard({
             <View style={styles.detailsRow}>
               <View style={styles.textContainer}>
                  <Text style={[styles.subtitle, { color: theme.colors.text.primary }]}>{subtitle}</Text>
-                 {metadata && <Text style={[styles.metadata, { color: theme.colors.text.tertiary }]}>{metadata}</Text>}
+                 <Text style={[styles.metadata, { color: theme.colors.text.tertiary }]}>
+                  {metadata && metadata.trim() ? metadata : 'Conf: —'}
+                </Text>
               </View>
               
               {thumbnailUrl && (
@@ -249,6 +258,11 @@ const styles = StyleSheet.create({
     fontFamily: fontFamilies.semibold,
     lineHeight: 22,
     letterSpacing: -0.5,
+  },
+  secondaryTitle: {
+    fontSize: 14,
+    fontFamily: fontFamilies.semibold,
+    marginTop: 2,
   },
   timeLabel: {
     fontSize: 12,

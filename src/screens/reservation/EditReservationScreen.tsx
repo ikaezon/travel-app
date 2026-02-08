@@ -234,7 +234,7 @@ export default function EditReservationScreen() {
           title: finalTitle,
           date: finalDate,
           subtitle: finalRoute || routeText,
-          metadata: trimmedCode ? `Conf: #${trimmedCode}` : '',
+          metadata: trimmedCode ? `Conf: #${trimmedCode}` : 'Conf: —',
           time: trimmedTime || '',
           reservationId: reservation.id,
         });
@@ -300,11 +300,11 @@ export default function EditReservationScreen() {
           keyboardShouldPersistTaps="handled"
         >
           <FormInput
-            label={isHotel ? 'Property name' : 'Provider'}
+            label={isHotel ? 'Property name' : isFlight ? 'Airline' : 'Provider'}
             value={providerName}
             onChangeText={setProviderName}
-            placeholder={isHotel ? 'e.g. Hilton Downtown' : 'e.g. Air France'}
-            iconName={isHotel ? 'hotel' : 'business'}
+            placeholder={isHotel ? 'e.g. Hilton Downtown' : isFlight ? 'e.g. Delta, United' : 'e.g. Amtrak'}
+            iconName={isHotel ? 'hotel' : isFlight ? 'flight' : 'business'}
             variant="glass"
           />
           {isFlight ? (

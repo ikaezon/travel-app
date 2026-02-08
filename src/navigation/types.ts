@@ -22,7 +22,7 @@ export type MainStackParamList = {
   EditReservation: { timelineItemId: string };
   ReservationAttachments: { timelineItemId: string };
   ScreenshotUpload: undefined;
-  ReviewDetails: { imageUri: string; parsedData?: ParsedReservation };
+  ReviewDetails: { imageUri: string; parsedData?: ParsedReservation; base64?: string };
   ManualEntryOptions: undefined;
   FlightEntry: { tripId?: string };
   LodgingEntry: { tripId?: string };
