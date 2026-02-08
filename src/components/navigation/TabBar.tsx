@@ -196,9 +196,7 @@ export function TabBar({ state, descriptors, navigation }: BottomTabBarProps) {
           style={[styles.pill, pillAnimatedStyle]}
           pointerEvents="none"
         >
-          <AdaptiveGlassView intensity={45} glassEffectStyle="clear" useGlassInLightMode style={[styles.pillBlur, { borderColor: theme.glass.borderStrong }]}>
-            {!theme.isDark && <View style={[styles.pillOverlay, { backgroundColor: 'rgba(255, 255, 255, 0.55)' }]} />}
-          </AdaptiveGlassView>
+          <AdaptiveGlassView intensity={5} glassEffectStyle="clear" useGlassInLightMode style={[styles.pillBlur, { borderColor: theme.glass.borderStrong }]} />
         </Animated.View>
         <AdaptiveGlassView
           intensity={24}
