@@ -446,7 +446,7 @@ export default function ReservationDetailScreen() {
             ]}
             onSelect={handleMenuSelect}
             style={[styles.menuDropdown, { top: topOffset + 64 }]}
-            uniformItemBackground
+            hideSeparators
           />
         )}
 

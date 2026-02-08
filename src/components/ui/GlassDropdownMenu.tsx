@@ -136,7 +136,7 @@ export function GlassDropdownMenu({
                   backgroundColor: theme.glass.menuItemPressed,
                 },
                 pressed && {
-                  backgroundColor: theme.colors.surface,
+                  backgroundColor: theme.glass.menuItemPressed,
                 },
               ]}
               onPress={() => handlePress(index)}
