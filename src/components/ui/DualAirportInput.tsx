@@ -20,6 +20,7 @@ import {
 } from '../../theme';
 import { useTheme } from '../../contexts/ThemeContext';
 import { AdaptiveGlassView } from './AdaptiveGlassView';
+import { useKeyboardScroll } from './KeyboardAwareScrollView';
 
 interface Airport {
   iata: string;
@@ -83,6 +84,8 @@ export function DualAirportInput({
   arrivalPlaceholder = 'JFK',
 }: DualAirportInputProps) {
   const theme = useTheme();
+  const { scrollToInput } = useKeyboardScroll();
+  const containerRef = useRef<View>(null);
   const [activeField, setActiveField] = useState<'departure' | 'arrival' | null>(null);
   const [cardHeight, setCardHeight] = useState(0);
   const justSelectedDep = useRef<string | null>(null);
@@ -191,7 +194,7 @@ export function DualAirportInput({
 
   return (
     <View style={styles.container}>
-      <View style={[glassStyles.formWrapper, theme.glass.cardWrapperStyle]} onLayout={handleCardLayout}>
+      <View ref={containerRef} style={[glassStyles.formWrapper, theme.glass.cardWrapperStyle]} onLayout={handleCardLayout}>
         <AdaptiveGlassView
           intensity={24}
           darkIntensity={10}
@@ -220,7 +223,7 @@ export function DualAirportInput({
                   onChangeText={handleDepartureChange}
                   placeholder={departurePlaceholder}
                   placeholderTextColor={theme.colors.text.tertiary}
-                  onFocus={() => setActiveField('departure')}
+                  onFocus={() => { setActiveField('departure'); scrollToInput(containerRef); }}
                   onBlur={handleBlur}
                   autoCapitalize="characters"
                   autoCorrect={false}
@@ -248,7 +251,7 @@ export function DualAirportInput({
                   onChangeText={handleArrivalChange}
                   placeholder={arrivalPlaceholder}
                   placeholderTextColor={theme.colors.text.tertiary}
-                  onFocus={() => setActiveField('arrival')}
+                  onFocus={() => { setActiveField('arrival'); scrollToInput(containerRef); }}
                   onBlur={handleBlur}
                   autoCapitalize="characters"
                   autoCorrect={false}

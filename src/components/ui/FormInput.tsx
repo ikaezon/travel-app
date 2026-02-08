@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useRef, useCallback } from 'react';
 import { View, Text, TextInput, StyleSheet, ViewStyle } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { borderRadius, spacing, fontFamilies, glassStyles, glassConstants } from '../../theme';
 import { useTheme } from '../../contexts/ThemeContext';
 import { AdaptiveGlassView } from './AdaptiveGlassView';
+import { useKeyboardScroll } from './KeyboardAwareScrollView';
 
 interface FormInputProps {
   label: string;
@@ -35,8 +36,14 @@ export function FormInput({
   variant = 'default',
 }: FormInputProps) {
   const theme = useTheme();
+  const { scrollToInput } = useKeyboardScroll();
+  const containerRef = useRef<View>(null);
   const defaultRightIconColor = rightIconColor ?? theme.colors.status.success;
   const hasRightIcon = rightIconName || showGlassCheck;
+
+  const handleFocus = useCallback(() => {
+    scrollToInput(containerRef);
+  }, [scrollToInput]);
   
   const content = (
     <>
@@ -78,6 +85,7 @@ export function FormInput({
           onChangeText={onChangeText}
           placeholder={placeholder}
           placeholderTextColor={theme.colors.text.tertiary}
+          onFocus={handleFocus}
         />
         {showGlassCheck && (
           <View style={styles.glassCheckContainer}>
@@ -115,7 +123,7 @@ export function FormInput({
 
   if (variant === 'glass') {
     return (
-      <View style={[glassStyles.formWrapper, theme.glass.cardWrapperStyle, style]}>
+      <View ref={containerRef} style={[glassStyles.formWrapper, theme.glass.cardWrapperStyle, style]}>
         <AdaptiveGlassView intensity={24} darkIntensity={10} glassEffectStyle="clear" style={[glassStyles.formBlur, glassStyles.blurContent]}>
           <View style={[styles.glassOverlay, { backgroundColor: theme.glass.overlayStrong }]} pointerEvents="none" />
           <View style={glassStyles.formContent}>{content}</View>
@@ -124,7 +132,7 @@ export function FormInput({
     );
   }
 
-  return <View style={[styles.container, style]}>{content}</View>;
+  return <View ref={containerRef} style={[styles.container, style]}>{content}</View>;
 }
 
 const styles = StyleSheet.create({

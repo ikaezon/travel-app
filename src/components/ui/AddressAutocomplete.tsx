@@ -13,6 +13,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { borderRadius, spacing, fontFamilies, glassStyles, glassConstants } from '../../theme';
 import { useTheme } from '../../contexts/ThemeContext';
 import { AdaptiveGlassView } from './AdaptiveGlassView';
+import { useKeyboardScroll } from './KeyboardAwareScrollView';
 import {
   isPlaceAutocompleteAvailable,
   createAddressAutocompleteService,
@@ -45,6 +46,8 @@ export function AddressAutocomplete({
   type = 'address',
 }: AddressAutocompleteProps) {
   const theme = useTheme();
+  const { scrollToInput } = useKeyboardScroll();
+  const containerRef = useRef<View>(null);
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [loading, setLoading] = useState(false);
   const [dropdownVisible, setDropdownVisible] = useState(false);
@@ -100,7 +103,8 @@ export function AddressAutocomplete({
 
   const handleFocus = useCallback(() => {
     setIsFocused(true);
-  }, []);
+    scrollToInput(containerRef);
+  }, [scrollToInput]);
 
   const handleBlur = useCallback(() => {
     setIsFocused(false);
@@ -195,7 +199,7 @@ export function AddressAutocomplete({
 
   if (variant === 'glass') {
     return (
-      <View style={[styles.container, style]}>
+      <View ref={containerRef} style={[styles.container, style]}>
         <View style={[glassStyles.formWrapper, theme.glass.cardWrapperStyle]}>
           <AdaptiveGlassView intensity={24} darkIntensity={10} glassEffectStyle="clear" style={[glassStyles.formBlur, glassStyles.blurContent]}>
             <View style={[styles.glassOverlay, { backgroundColor: theme.glass.overlayStrong }]} pointerEvents="none" />
@@ -207,7 +211,7 @@ export function AddressAutocomplete({
   }
 
   return (
-    <View style={[styles.container, style]}>
+    <View ref={containerRef} style={[styles.container, style]}>
       {inputContent}
     </View>
   );
