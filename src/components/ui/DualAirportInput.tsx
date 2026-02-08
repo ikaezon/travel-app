@@ -313,6 +313,7 @@ const styles = StyleSheet.create({
   labelsRow: {
     flexDirection: 'row',
     marginBottom: spacing.sm,
+    paddingHorizontal: spacing.sm,
   },
   label: {
     flex: 1,

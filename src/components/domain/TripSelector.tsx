@@ -247,6 +247,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
   },
   labelGlass: {
+    paddingHorizontal: spacing.sm,
   },
   loadingRowGlass: {
   },
@@ -254,6 +255,7 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontFamily: fontFamilies.regular,
     marginBottom: spacing.sm,
+    paddingHorizontal: spacing.sm,
   },
   loadingRow: {
     flexDirection: 'row',
@@ -272,11 +274,13 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: fontFamilies.regular,
     paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.sm,
   },
   emptyText: {
     fontSize: 14,
     fontFamily: fontFamilies.regular,
     paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.sm,
   },
   tripList: {
     gap: spacing.xs,

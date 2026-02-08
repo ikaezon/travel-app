@@ -255,6 +255,7 @@ const styles = StyleSheet.create({
   },
   labelRow: {
     marginBottom: spacing.sm,
+    paddingHorizontal: spacing.sm,
   },
   label: {
     fontSize: 14,

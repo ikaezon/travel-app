@@ -226,6 +226,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: fontFamilies.medium,
     marginBottom: spacing.sm,
+    paddingHorizontal: spacing.sm,
   },
   inputContainer: {
     position: 'relative',

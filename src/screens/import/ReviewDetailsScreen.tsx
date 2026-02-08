@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -6,7 +6,6 @@ import {
   ScrollView,
   Pressable,
   ImageBackground,
-  Platform,
   Keyboard,
   Animated,
   Alert,
@@ -21,12 +20,13 @@ import { GlassNavHeader } from '../../components/navigation/GlassNavHeader';
 import { FormInput } from '../../components/ui/FormInput';
 import { DatePickerInput } from '../../components/ui/DatePickerInput';
 import { TimePickerInput } from '../../components/ui/TimePickerInput';
+import { DualAirportInput } from '../../components/ui/DualAirportInput';
 import { TripSelector } from '../../components/domain/TripSelector';
 import { ShimmerButton } from '../../components/ui/ShimmerButton';
 import { MainStackParamList } from '../../navigation/types';
-import { fontFamilies, glassStyles, glassConstants } from '../../theme';
+import { fontFamilies, glassStyles, glassConstants, spacing } from '../../theme';
 import { mockImages } from '../../data/mocks';
-import { usePressAnimation, useTrips } from '../../hooks';
+import { usePressAnimation, useTrips, useKeyboardHeight } from '../../hooks';
 import { useTheme } from '../../contexts/ThemeContext';
 import {
   createFlightReservation,
@@ -149,26 +149,11 @@ export default function ReviewDetailsScreen() {
   const [hotelForm, setHotelForm] = useState<HotelFormData>(() => initHotelForm(parsedData));
   const [trainForm, setTrainForm] = useState<TrainFormData>(() => initTrainForm(parsedData));
 
-  const [keyboardHeight, setKeyboardHeight] = useState(0);
+  const keyboardHeight = useKeyboardHeight();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const topOffset = insets.top + 8;
   const sourceAnim = usePressAnimation();
-
-  useEffect(() => {
-    const showSub = Keyboard.addListener(
-      Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
-      (e) => setKeyboardHeight(e.endCoordinates.height)
-    );
-    const hideSub = Keyboard.addListener(
-      Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide',
-      () => setKeyboardHeight(0)
-    );
-    return () => {
-      showSub.remove();
-      hideSub.remove();
-    };
-  }, []);
 
   const handleBackPress = () => navigation.goBack();
 
@@ -231,8 +216,7 @@ export default function ReviewDetailsScreen() {
         value={flightForm.airline}
         onChangeText={(text) => setFlightForm((prev) => ({ ...prev, airline: text }))}
         iconName="flight"
-        rightIconName={flightForm.airline ? 'check-circle' : undefined}
-        rightIconColor={theme.colors.status.success}
+        showGlassCheck={!!flightForm.airline}
         variant="glass"
       />
       <FormInput
@@ -240,46 +224,33 @@ export default function ReviewDetailsScreen() {
         value={flightForm.flightNumber}
         onChangeText={(text) => setFlightForm((prev) => ({ ...prev, flightNumber: text }))}
         iconName="confirmation-number"
-        rightIconName={flightForm.flightNumber ? 'check-circle' : undefined}
-        rightIconColor={theme.colors.status.success}
+        showGlassCheck={!!flightForm.flightNumber}
         variant="glass"
       />
-      <FormInput
-        label="Departure Airport"
-        value={flightForm.departureAirport}
-        onChangeText={(text) => setFlightForm((prev) => ({ ...prev, departureAirport: text }))}
-        placeholder="e.g. LAX"
-        iconName="flight-takeoff"
+      <DualAirportInput
+        departureValue={flightForm.departureAirport}
+        arrivalValue={flightForm.arrivalAirport}
+        onDepartureChange={(text) => setFlightForm((prev) => ({ ...prev, departureAirport: text }))}
+        onArrivalChange={(text) => setFlightForm((prev) => ({ ...prev, arrivalAirport: text }))}
+        departurePlaceholder="LAX"
+        arrivalPlaceholder="JFK"
+      />
+      <DatePickerInput
+        label="Departure Date"
+        value={flightForm.departureDate}
+        onChange={(text) => setFlightForm((prev) => ({ ...prev, departureDate: text }))}
+        placeholder="Tap to select date"
+        iconName="calendar-today"
         variant="glass"
       />
-      <FormInput
-        label="Arrival Airport"
-        value={flightForm.arrivalAirport}
-        onChangeText={(text) => setFlightForm((prev) => ({ ...prev, arrivalAirport: text }))}
-        placeholder="e.g. JFK"
-        iconName="flight-land"
+      <TimePickerInput
+        label="Departure Time"
+        value={flightForm.departureTime}
+        onChange={(text) => setFlightForm((prev) => ({ ...prev, departureTime: text }))}
+        placeholder="Tap to select time"
+        iconName="schedule"
         variant="glass"
       />
-      <View style={styles.rowContainer}>
-        <DatePickerInput
-          label="Date"
-          value={flightForm.departureDate}
-          onChange={(text) => setFlightForm((prev) => ({ ...prev, departureDate: text }))}
-          placeholder="Tap to select date"
-          iconName="calendar-today"
-          style={styles.halfWidth}
-          variant="glass"
-        />
-        <TimePickerInput
-          label="Time"
-          value={flightForm.departureTime}
-          onChange={(text) => setFlightForm((prev) => ({ ...prev, departureTime: text }))}
-          placeholder="Tap to select"
-          iconName="schedule"
-          style={styles.halfWidth}
-          variant="glass"
-        />
-      </View>
       <FormInput
         label="Confirmation Code"
         value={flightForm.confirmationCode}
@@ -299,8 +270,7 @@ export default function ReviewDetailsScreen() {
         value={hotelForm.propertyName}
         onChangeText={(text) => setHotelForm((prev) => ({ ...prev, propertyName: text }))}
         iconName="hotel"
-        rightIconName={hotelForm.propertyName ? 'check-circle' : undefined}
-        rightIconColor={theme.colors.status.success}
+        showGlassCheck={!!hotelForm.propertyName}
         variant="glass"
       />
       <FormInput
@@ -311,26 +281,22 @@ export default function ReviewDetailsScreen() {
         iconName="location-on"
         variant="glass"
       />
-      <View style={styles.rowContainer}>
-        <DatePickerInput
-          label="Check-in"
-          value={hotelForm.checkInDate}
-          onChange={(text) => setHotelForm((prev) => ({ ...prev, checkInDate: text }))}
-          placeholder="Check-in date"
-          iconName="calendar-today"
-          style={styles.halfWidth}
-          variant="glass"
-        />
-        <DatePickerInput
-          label="Check-out"
-          value={hotelForm.checkOutDate}
-          onChange={(text) => setHotelForm((prev) => ({ ...prev, checkOutDate: text }))}
-          placeholder="Check-out date"
-          iconName="event"
-          style={styles.halfWidth}
-          variant="glass"
-        />
-      </View>
+      <DatePickerInput
+        label="Check-in Date"
+        value={hotelForm.checkInDate}
+        onChange={(text) => setHotelForm((prev) => ({ ...prev, checkInDate: text }))}
+        placeholder="Tap to select check-in date"
+        iconName="calendar-today"
+        variant="glass"
+      />
+      <DatePickerInput
+        label="Check-out Date"
+        value={hotelForm.checkOutDate}
+        onChange={(text) => setHotelForm((prev) => ({ ...prev, checkOutDate: text }))}
+        placeholder="Tap to select check-out date"
+        iconName="event"
+        variant="glass"
+      />
       <FormInput
         label="Confirmation Code"
         value={hotelForm.confirmationCode}
@@ -350,8 +316,7 @@ export default function ReviewDetailsScreen() {
         value={trainForm.operator}
         onChangeText={(text) => setTrainForm((prev) => ({ ...prev, operator: text }))}
         iconName="train"
-        rightIconName={trainForm.operator ? 'check-circle' : undefined}
-        rightIconColor={theme.colors.status.success}
+        showGlassCheck={!!trainForm.operator}
         variant="glass"
       />
       <FormInput
@@ -377,26 +342,22 @@ export default function ReviewDetailsScreen() {
         iconName="place"
         variant="glass"
       />
-      <View style={styles.rowContainer}>
-        <DatePickerInput
-          label="Date"
-          value={trainForm.departureDate}
-          onChange={(text) => setTrainForm((prev) => ({ ...prev, departureDate: text }))}
-          placeholder="Tap to select date"
-          iconName="calendar-today"
-          style={styles.halfWidth}
-          variant="glass"
-        />
-        <TimePickerInput
-          label="Time"
-          value={trainForm.departureTime}
-          onChange={(text) => setTrainForm((prev) => ({ ...prev, departureTime: text }))}
-          placeholder="Tap to select"
-          iconName="schedule"
-          style={styles.halfWidth}
-          variant="glass"
-        />
-      </View>
+      <DatePickerInput
+        label="Departure Date"
+        value={trainForm.departureDate}
+        onChange={(text) => setTrainForm((prev) => ({ ...prev, departureDate: text }))}
+        placeholder="Tap to select date"
+        iconName="calendar-today"
+        variant="glass"
+      />
+      <TimePickerInput
+        label="Departure Time"
+        value={trainForm.departureTime}
+        onChange={(text) => setTrainForm((prev) => ({ ...prev, departureTime: text }))}
+        placeholder="Tap to select time"
+        iconName="schedule"
+        variant="glass"
+      />
       <FormInput
         label="Confirmation Code"
         value={trainForm.confirmationCode}
@@ -447,61 +408,62 @@ export default function ReviewDetailsScreen() {
       colors={theme.gradient}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
-      style={styles.gradientContainer}
+      style={glassStyles.screenGradient}
     >
-      <View style={styles.container}>
+      <View style={glassStyles.screenContainer}>
         <ScrollView
-          style={styles.scrollView}
+          style={glassStyles.screenScrollView}
           contentContainerStyle={[
-            styles.scrollContent,
+            glassStyles.screenScrollContent,
             {
               paddingTop: topOffset + 72,
-              paddingBottom: 120 + keyboardHeight,
+              paddingBottom: spacing.xxl + keyboardHeight,
             },
           ]}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-          <View style={styles.sourceSection}>
-            <Animated.View style={{ transform: [{ scale: sourceAnim.scaleAnim }] }}>
+          {/* Source Card - aligned with other glass cards */}
+          <Animated.View style={{ transform: [{ scale: sourceAnim.scaleAnim }] }}>
             <Pressable 
-              style={[
-                styles.sourceCard,
-                theme.glass.cardWrapperStyle
-              ]} 
               onPressIn={sourceAnim.onPressIn} 
               onPressOut={sourceAnim.onPressOut}
             >
-              <AdaptiveGlassView intensity={24} darkIntensity={10} glassEffectStyle="clear" absoluteFill style={glassStyles.blurContent} />
-              <View style={styles.sourceCardInner}>
-                <View style={[styles.glassOverlay, { backgroundColor: theme.glass.overlayStrong }]} pointerEvents="none" />
-                <View style={styles.sourceContent}>
-                <View style={styles.sourceInfo}>
-                  <View style={styles.sourceHeader}>
-                    <MaterialIcons name="document-scanner" size={20} color={theme.colors.primary} />
-                    <Text style={[styles.sourceLabel, { color: theme.colors.text.secondary }]}>SOURCE</Text>
-                  </View>
-                  <Text style={[styles.sourceTitle, { color: theme.colors.text.primary }]}>Original Screenshot</Text>
-                  <Text style={[styles.sourceSubtitle, { color: theme.colors.text.secondary }]}>
-                    Tap to expand and verify details
-                  </Text>
-                </View>
-                <Pressable style={[styles.thumbnailContainer, { borderColor: theme.glass.border }]}>
-                  <ImageBackground
-                    source={{ uri: sourceImageUrl }}
-                    style={styles.thumbnail}
-                    imageStyle={styles.thumbnailImage}
-                  >
-                    <View style={styles.thumbnailOverlay}>
-                      <MaterialIcons name="zoom-in" size={24} color="white" />
+              <View style={[glassStyles.formWrapper, theme.glass.cardWrapperStyle]}>
+                <AdaptiveGlassView 
+                  intensity={24} 
+                  darkIntensity={10} 
+                  glassEffectStyle="clear" 
+                  style={[glassStyles.formBlur, glassStyles.blurContent]}
+                >
+                  <View style={[styles.glassOverlay, { backgroundColor: theme.glass.overlayStrong }]} pointerEvents="none" />
+                  <View style={styles.sourceContent}>
+                    <View style={styles.sourceInfo}>
+                      <View style={styles.sourceHeader}>
+                        <MaterialIcons name="document-scanner" size={20} color={theme.colors.primary} />
+                        <Text style={[styles.sourceLabel, { color: theme.colors.text.secondary }]}>SOURCE</Text>
+                      </View>
+                      <Text style={[styles.sourceTitle, { color: theme.colors.text.primary }]}>Original Screenshot</Text>
+                      <Text style={[styles.sourceSubtitle, { color: theme.colors.text.secondary }]}>
+                        Tap to expand and verify details
+                      </Text>
                     </View>
-                  </ImageBackground>
-                </Pressable>
-              </View>
+                    <View style={[styles.thumbnailContainer, { borderColor: theme.glass.border }]}>
+                      <ImageBackground
+                        source={{ uri: sourceImageUrl }}
+                        style={styles.thumbnail}
+                        imageStyle={styles.thumbnailImage}
+                      >
+                        <View style={styles.thumbnailOverlay}>
+                          <MaterialIcons name="zoom-in" size={24} color="white" />
+                        </View>
+                      </ImageBackground>
+                    </View>
+                  </View>
+                </AdaptiveGlassView>
               </View>
             </Pressable>
-            </Animated.View>
-          </View>
+          </Animated.View>
 
           {reservationType !== 'unknown' && (
             <TripSelector
@@ -526,20 +488,21 @@ export default function ReviewDetailsScreen() {
           </View>
 
           {renderForm()}
-        </ScrollView>
 
-        {reservationType !== 'unknown' && (
-          <View style={[styles.bottomActions, { paddingBottom: insets.bottom + 16 }]}>
-            <ShimmerButton
-              label="Confirm & Save"
-              iconName={getConfirmIcon(reservationType) as any}
-              onPress={handleConfirm}
-              disabled={!canSubmit}
-              loading={isSubmitting}
-              variant="boardingPass"
-            />
-          </View>
-        )}
+          {/* Confirm button at bottom of scroll content - not floating */}
+          {reservationType !== 'unknown' && (
+            <View style={styles.confirmButtonContainer}>
+              <ShimmerButton
+                label="Confirm & Save"
+                iconName={getConfirmIcon(reservationType) as any}
+                onPress={handleConfirm}
+                disabled={!canSubmit}
+                loading={isSubmitting}
+                variant="boardingPass"
+              />
+            </View>
+          )}
+        </ScrollView>
 
         <GlassNavHeader 
           title="Review Details" 
@@ -552,48 +515,15 @@ export default function ReviewDetailsScreen() {
 }
 
 const styles = StyleSheet.create({
-  gradientContainer: {
-    flex: 1,
-  },
-  container: {
-    flex: 1,
-  },
   glassOverlay: {
     ...glassStyles.cardOverlay,
   },
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
-    paddingHorizontal: 24,
-  },
-  sourceSection: {
-    marginBottom: 16,
-  },
-  sourceCard: {
-    ...glassStyles.cardWrapper,
-    overflow: 'hidden',
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    justifyContent: 'space-between',
-    padding: 16,
-    position: 'relative',
-  },
-  sourceCardInner: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    justifyContent: 'space-between',
-    gap: 16,
-    position: 'relative',
-    zIndex: 1,
-  },
   sourceContent: {
-    flex: 1,
     flexDirection: 'row',
     alignItems: 'flex-start',
     justifyContent: 'space-between',
     gap: 16,
+    paddingHorizontal: 10,
   },
   sourceInfo: {
     flex: 1,
@@ -658,20 +588,8 @@ const styles = StyleSheet.create({
   formContainer: {
     gap: 12,
   },
-  rowContainer: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  halfWidth: {
-    flex: 1,
-  },
-  bottomActions: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    paddingHorizontal: 24,
-    paddingTop: 16,
+  confirmButtonContainer: {
+    marginTop: spacing.lg,
   },
   unknownContainer: {
     alignItems: 'center',

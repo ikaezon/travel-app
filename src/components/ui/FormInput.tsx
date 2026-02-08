@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, TextInput, StyleSheet, ViewStyle } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
-import { borderRadius, spacing, fontFamilies, glassStyles } from '../../theme';
+import { borderRadius, spacing, fontFamilies, glassStyles, glassConstants } from '../../theme';
 import { useTheme } from '../../contexts/ThemeContext';
 import { AdaptiveGlassView } from './AdaptiveGlassView';
 
@@ -13,6 +13,8 @@ interface FormInputProps {
   iconName?: keyof typeof MaterialIcons.glyphMap;
   rightIconName?: keyof typeof MaterialIcons.glyphMap;
   rightIconColor?: string;
+  /** Show a glass-styled checkmark indicator (for OCR-verified fields) */
+  showGlassCheck?: boolean;
   isDashed?: boolean;
   labelRight?: React.ReactNode;
   style?: ViewStyle;
@@ -27,6 +29,7 @@ export function FormInput({
   iconName,
   rightIconName,
   rightIconColor,
+  showGlassCheck = false,
   isDashed = false,
   labelRight,
   style,
@@ -34,6 +37,10 @@ export function FormInput({
 }: FormInputProps) {
   const theme = useTheme();
   const defaultRightIconColor = rightIconColor ?? theme.colors.status.success;
+  
+  // Determine if we should show any right-side element
+  const hasRightIcon = rightIconName || showGlassCheck;
+  
   const content = (
     <>
       <View style={styles.labelContainer}>
@@ -67,7 +74,7 @@ export function FormInput({
               color: theme.colors.text.primary,
             },
             iconName && styles.inputWithLeftIcon,
-            rightIconName && styles.inputWithRightIcon,
+            hasRightIcon && styles.inputWithRightIcon,
             isDashed && { borderStyle: 'dashed' },
           ]}
           value={value}
@@ -75,7 +82,29 @@ export function FormInput({
           placeholder={placeholder}
           placeholderTextColor={theme.colors.text.tertiary}
         />
-        {rightIconName && (
+        {showGlassCheck && (
+          <View style={styles.glassCheckContainer}>
+            <AdaptiveGlassView
+              intensity={40}
+              darkIntensity={15}
+              glassEffectStyle="clear"
+              style={[
+                styles.glassCheckBadge,
+                { 
+                  borderColor: theme.colors.status.success,
+                  backgroundColor: `${theme.colors.status.success}20`,
+                },
+              ]}
+            >
+              <MaterialIcons
+                name="check"
+                size={10}
+                color={theme.colors.status.success}
+              />
+            </AdaptiveGlassView>
+          </View>
+        )}
+        {rightIconName && !showGlassCheck && (
           <MaterialIcons
             name={rightIconName}
             size={20}
@@ -113,6 +142,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: spacing.sm,
+    paddingHorizontal: spacing.sm,
   },
   inputContainer: {
     position: 'relative',
@@ -134,5 +164,20 @@ const styles = StyleSheet.create({
     right: spacing.lg,
     top: 18,
     zIndex: 1,
+  },
+  glassCheckContainer: {
+    position: 'absolute',
+    right: spacing.md,
+    top: 14,
+    zIndex: 1,
+  },
+  glassCheckBadge: {
+    width: 22,
+    height: 22,
+    borderRadius: glassConstants.radius.icon,
+    borderWidth: 0.5,
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
   },
 });
