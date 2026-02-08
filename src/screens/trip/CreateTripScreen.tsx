@@ -23,8 +23,7 @@ import { fetchCoverImageForDestination, isCoverImageAvailable } from '../../data
 import type { Trip } from '../../types';
 import { useTheme } from '../../contexts/ThemeContext';
 
-const DEFAULT_IMAGE_URL =
-  'https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=800';
+
 
 function formatDateRangeDisplay(startDate: string, endDate: string): string {
   const startStr = formatCalendarDateToDisplay(startDate);
@@ -92,9 +91,7 @@ export default function CreateTripScreen() {
       let finalImageUrl = imageUrl.trim();
       if (!finalImageUrl && isCoverImageAvailable()) {
         const coverUrl = await fetchCoverImageForDestination(trimmedDestination);
-        finalImageUrl = coverUrl || DEFAULT_IMAGE_URL;
-      } else if (!finalImageUrl) {
-        finalImageUrl = DEFAULT_IMAGE_URL;
+        finalImageUrl = coverUrl || '';
       }
 
       const tripData: Omit<Trip, 'id'> = {

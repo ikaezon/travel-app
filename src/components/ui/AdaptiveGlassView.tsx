@@ -34,10 +34,11 @@ export function AdaptiveGlassView({
 
   /** Dark mode: GlassView everywhere. Light mode: GlassView only on nav bars (useGlassInLightMode) */
   const useGlassView = liquidGlassReady && (isDark || useGlassInLightMode);
+  const themeKey = isDark ? 'dark' : 'light';
 
   if (useGlassView) {
     return (
-      <GlassView style={resolvedStyle} glassEffectStyle={glassEffectStyle}>
+      <GlassView key={themeKey} style={resolvedStyle} glassEffectStyle={glassEffectStyle}>
         {children}
       </GlassView>
     );
@@ -46,7 +47,7 @@ export function AdaptiveGlassView({
   const resolvedIntensity = isDark ? (darkIntensity ?? intensity) : intensity;
 
   return (
-    <BlurView intensity={resolvedIntensity} tint={blurTint} style={resolvedStyle}>
+    <BlurView key={themeKey} intensity={resolvedIntensity} tint={blurTint} style={resolvedStyle}>
       {children}
     </BlurView>
   );

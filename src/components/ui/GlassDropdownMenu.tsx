@@ -1,9 +1,12 @@
 import React, { useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, Pressable, Animated, StyleProp, ViewStyle } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
+import { isLiquidGlassAvailable } from 'expo-glass-effect';
 import { fontFamilies, glassConstants } from '../../theme';
 import { useTheme } from '../../contexts/ThemeContext';
 import { AdaptiveGlassView } from './AdaptiveGlassView';
+
+const liquidGlassReady = isLiquidGlassAvailable();
 
 const SCALE_START = 0.88;
 
@@ -72,7 +75,7 @@ export function GlassDropdownMenu({
 
   if (!visible) return null;
 
-  const useGlassAnimation = theme.isDark;
+  const useGlassAnimation = liquidGlassReady;
   const effectiveBorderWidth = useGlassAnimation ? 0 : MENU.borderWidth;
   const innerRadius = MENU.borderRadius - effectiveBorderWidth;
 
@@ -105,7 +108,7 @@ export function GlassDropdownMenu({
         }}
         pointerEvents="box-none"
       >
-        <AdaptiveGlassView intensity={MENU.blurIntensity} darkIntensity={20} glassEffectStyle="clear" absoluteFill style={{
+        <AdaptiveGlassView intensity={MENU.blurIntensity} darkIntensity={20} glassEffectStyle="clear" useGlassInLightMode absoluteFill style={{
           borderRadius: innerRadius,
           overflow: 'hidden',
         }} />

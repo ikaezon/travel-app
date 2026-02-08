@@ -13,8 +13,7 @@ import { Reservation, ReservationType } from '../../types';
 import { reservationService } from './reservationService';
 import { tripService } from './tripService';
 
-const DEFAULT_RESERVATION_HEADER_IMAGE =
-  'https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=800';
+
 
 export interface CreateFlightInput {
   tripId: string;
@@ -81,7 +80,7 @@ export async function createFlightReservation(
     status: 'confirmed',
     confirmationCode: confirmationNumber?.trim() || '—',
     statusText: 'On Time',
-    headerImageUrl: DEFAULT_RESERVATION_HEADER_IMAGE,
+    headerImageUrl: '',
     attachments: [],
   });
 
@@ -131,7 +130,7 @@ export async function createLodgingReservation(
     status: 'confirmed',
     confirmationCode: confirmationNumber?.trim() || '—',
     statusText: 'Confirmed',
-    headerImageUrl: DEFAULT_RESERVATION_HEADER_IMAGE,
+    headerImageUrl: '',
     address: address?.trim() || undefined,
     attachments: [],
   });
@@ -183,7 +182,7 @@ export async function createTrainReservation(
     status: 'confirmed',
     confirmationCode: confirmationNumber?.trim() || '—',
     statusText: 'On Time',
-    headerImageUrl: DEFAULT_RESERVATION_HEADER_IMAGE,
+    headerImageUrl: '',
     attachments: [],
   });
 

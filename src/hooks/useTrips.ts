@@ -62,7 +62,10 @@ export function useUpcomingTrips(): UseTripsResult {
 }
 
 export function useTripById(tripId: string): UseTripResult {
-  const fetchTrip = useCallback(() => tripService.getTripById(tripId), [tripId]);
+  const fetchTrip = useCallback(() => {
+    if (!tripId?.trim()) return Promise.resolve(null);
+    return tripService.getTripById(tripId);
+  }, [tripId]);
   const { data, isLoading, isRefetching, error, refetch } = useAsyncData(fetchTrip, {
     initialData: null,
   });

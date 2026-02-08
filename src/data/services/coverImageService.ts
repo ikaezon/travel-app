@@ -69,27 +69,19 @@ export function isCoverImageAvailable(): boolean {
 }
 
 
-/**
- * Fetch a cover image URL for a given destination.
- *
- * @param destination - Trip destination (e.g., "Paris, France")
- * @returns Image URL on success, null on failure
- */
-export async function fetchCoverImageForDestination(
-  destination: string
-): Promise<string | null> {
-  if (!destination.trim()) return null;
+async function fetchAndCacheImage(query: string): Promise<string | null> {
+  if (!query.trim()) return null;
   if (!isCoverImageAvailable()) return null;
 
-  const cached = getCached(destination);
+  const cached = getCached(query);
   if (cached) return cached;
 
   const key = apiKey();
   if (!key) return null;
 
   try {
-    const query = encodeURIComponent(destination.trim());
-    const url = `${UNSPLASH_API_URL}?query=${query}&orientation=landscape&per_page=1`;
+    const encodedQuery = encodeURIComponent(query.trim());
+    const url = `${UNSPLASH_API_URL}?query=${encodedQuery}&orientation=landscape&per_page=1`;
 
     const response = await fetch(url, {
       headers: {
@@ -110,7 +102,7 @@ export async function fetchCoverImageForDestination(
       const optimizedUrl = imageUrl.includes('?')
         ? `${imageUrl}&w=800`
         : `${imageUrl}?w=800`;
-      setCached(destination, optimizedUrl);
+      setCached(query, optimizedUrl);
       return optimizedUrl;
     }
 
@@ -119,4 +111,52 @@ export async function fetchCoverImageForDestination(
     console.warn('[coverImageService] Failed to fetch cover image:', error);
     return null;
   }
+}
+
+/**
+ * Fetch a cover image URL for a given destination.
+ *
+ * @param destination - Trip destination (e.g., "Paris, France")
+ * @returns Image URL on success, null on failure
+ */
+export async function fetchCoverImageForDestination(
+  destination: string
+): Promise<string | null> {
+  if (!destination.trim()) return null;
+  return fetchAndCacheImage(destination.trim());
+}
+
+/**
+ * Extract city from trip destination (e.g. "Paris, France" -> "Paris").
+ */
+function extractCityFromDestination(destination: string): string {
+  if (!destination?.trim()) return '';
+  const parts = destination.split(',').map((p) => p.trim()).filter(Boolean);
+  return parts[0] || '';
+}
+
+/**
+ * Fetch a cover image for a hotel/property based on property name + city.
+ * City should come from the trip destination (e.g. "Paris" from "Paris, France").
+ *
+ * @param propertyName - Hotel or property name
+ * @param tripDestination - Trip destination (e.g. "Paris, France") – first part used as city
+ * @returns Image URL on success, null on failure
+ */
+export async function fetchCoverImageForProperty(
+  propertyName: string,
+  tripDestination?: string
+): Promise<string | null> {
+  const city = tripDestination ? extractCityFromDestination(tripDestination) : '';
+  const primaryQuery = [propertyName.trim(), city].filter(Boolean).join(' ');
+  if (!primaryQuery.trim()) return null;
+
+  const url = await fetchAndCacheImage(primaryQuery);
+  if (url) return url;
+
+  // Fallback: city only (e.g. "Paris")
+  if (city) {
+    return fetchAndCacheImage(city);
+  }
+  return null;
 }

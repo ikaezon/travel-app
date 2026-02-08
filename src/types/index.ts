@@ -42,7 +42,7 @@ export interface Reservation {
   type: ReservationType;
   providerName: string;
   operatedBy?: string;
-  headerImageUrl: string;
+  headerImageUrl?: string;
   route: string;
   date: string;
   duration: string;

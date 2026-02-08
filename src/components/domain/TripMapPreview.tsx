@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -37,12 +37,35 @@ export function TripMapPreview({ tripId, onExpandPress }: TripMapPreviewProps) {
     destinationOnly: true,
   });
 
+  // Track when the MapView has finished rendering to prevent flash
+  const [mapReady, setMapReady] = useState(false);
+  const mapOpacity = useRef(new Animated.Value(0)).current;
+
+  // Reset mapReady only when tripId changes (navigating to a different trip)
+  useEffect(() => {
+    setMapReady(false);
+    mapOpacity.setValue(0);
+  }, [tripId, mapOpacity]);
+
+  const handleMapReady = useCallback(() => {
+    setMapReady(true);
+    // Fade in the map smoothly
+    Animated.timing(mapOpacity, {
+      toValue: 1,
+      duration: 200,
+      useNativeDriver: true,
+    }).start();
+  }, [mapOpacity]);
+
   const { scaleAnim: expandScale, onPressIn: expandPressIn, onPressOut: expandPressOut } = usePressAnimation();
 
   const handleExpandPress = useCallback(() => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
     onExpandPress();
   }, [onExpandPress]);
+
+  // Show loading indicator while data is loading OR while map is rendering
+  const showLoading = isLoading || (hasData && region && !mapReady);
 
   return (
     <View style={[styles.container, theme.glass.cardWrapperStyle, { boxShadow: theme.glass.elevatedBoxShadow }]}>
@@ -55,40 +78,43 @@ export function TripMapPreview({ tripId, onExpandPress }: TripMapPreviewProps) {
       />
       <View style={[styles.glassOverlay, { backgroundColor: theme.glass.overlayStrong }]} pointerEvents="none" />
 
-      {isLoading && (
+      {showLoading && (
         <View style={styles.centeredContent}>
           <ActivityIndicator size="large" color={theme.colors.primary} />
         </View>
       )}
 
-      {!isLoading && hasData && region && (
-        <MapView
-          style={styles.map}
-          region={region}
-          scrollEnabled={false}
-          zoomEnabled={false}
-          rotateEnabled={false}
-          pitchEnabled={false}
-          toolbarEnabled={false}
-          showsUserLocation={false}
-          showsMyLocationButton={false}
-          showsCompass={false}
-          pointerEvents="none"
-          mapType="standard"
-          userInterfaceStyle={theme.isDark ? 'dark' : 'light'}
-        >
-          {markers.map((marker) => (
-            <Marker
-              key={marker.id}
-              coordinate={{
-                latitude: marker.latitude,
-                longitude: marker.longitude,
-              }}
-              title={marker.title}
-              pinColor={marker.isDestination ? theme.colors.primary : theme.colors.status.error}
-            />
-          ))}
-        </MapView>
+      {hasData && region && (
+        <Animated.View style={[styles.mapContainer, { opacity: mapOpacity }]}>
+          <MapView
+            style={styles.map}
+            region={region}
+            scrollEnabled={false}
+            zoomEnabled={false}
+            rotateEnabled={false}
+            pitchEnabled={false}
+            toolbarEnabled={false}
+            showsUserLocation={false}
+            showsMyLocationButton={false}
+            showsCompass={false}
+            pointerEvents="none"
+            mapType="standard"
+            userInterfaceStyle={theme.isDark ? 'dark' : 'light'}
+            onMapReady={handleMapReady}
+          >
+            {markers.map((marker) => (
+              <Marker
+                key={marker.id}
+                coordinate={{
+                  latitude: marker.latitude,
+                  longitude: marker.longitude,
+                }}
+                title={marker.title}
+                pinColor={marker.isDestination ? theme.colors.primary : theme.colors.status.error}
+              />
+            ))}
+          </MapView>
+        </Animated.View>
       )}
 
       {!isLoading && !hasData && (
@@ -147,6 +173,9 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  mapContainer: {
+    ...StyleSheet.absoluteFillObject,
   },
   map: {
     ...StyleSheet.absoluteFillObject,

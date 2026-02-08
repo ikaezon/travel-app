@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import {
   View,
@@ -12,6 +12,7 @@ import {
   Alert,
   Linking,
   Platform,
+  Animated,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -23,10 +24,10 @@ import { DetailRow } from '../../components/ui/DetailRow';
 import { GlassDropdownMenu } from '../../components/ui/GlassDropdownMenu';
 import { GlassNavHeader } from '../../components/navigation/GlassNavHeader';
 import { MainStackParamList } from '../../navigation/types';
-import { useReservationByTimelineId } from '../../hooks';
+import { useReservationByTimelineId, useTripById } from '../../hooks';
 import { spacing, fontFamilies, glassStyles, glassConstants } from '../../theme';
 import { useTheme } from '../../contexts/ThemeContext';
-import { deleteReservationWithTimeline } from '../../data';
+import { deleteReservationWithTimeline, fetchCoverImageForProperty } from '../../data';
 import { shortenCountryInAddress } from '../../utils/addressFormat';
 import { formatReservationDateDisplay, getReservationDisplayAddress } from '../../utils/reservationFormat';
 import type { Reservation } from '../../types';
@@ -55,7 +56,61 @@ export default function ReservationDetailScreen() {
   };
 
   const { reservation, isLoading, error, refetch } = useReservationByTimelineId(timelineItemId);
+  const { trip } = useTripById(reservation?.tripId ?? '');
   const [menuVisible, setMenuVisible] = useState(false);
+  const [fetchedImageUrl, setFetchedImageUrl] = useState<string | null>(null);
+  const [isFetchingImage, setIsFetchingImage] = useState(false);
+
+  const reservationId = reservation?.id;
+  const providerName = reservation?.providerName;
+  const tripDestination = trip?.destination ?? undefined;
+
+  useEffect(() => {
+    setFetchedImageUrl(null);
+    if (!reservationId) {
+      setIsFetchingImage(false);
+      return;
+    }
+
+    // Wait for trip destination to load before fetching
+    if (!tripDestination) {
+      setIsFetchingImage(true);
+      return;
+    }
+
+    let cancelled = false;
+    setIsFetchingImage(true);
+
+    fetchCoverImageForProperty(providerName || '', tripDestination)
+      .then((url) => {
+        if (!cancelled) {
+          if (url) setFetchedImageUrl(url);
+          setIsFetchingImage(false);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setIsFetchingImage(false);
+      });
+
+    return () => { cancelled = true; };
+  }, [reservationId, providerName, tripDestination]);
+
+  // Show fetched image, or nothing while loading (no stock fallback)
+  const heroImageUrl = fetchedImageUrl || undefined;
+
+  // Pulse animation for hero image loading
+  const pulseAnim = useRef(new Animated.Value(0.3)).current;
+  useEffect(() => {
+    if (!isFetchingImage) return;
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseAnim, { toValue: 0.6, duration: 800, useNativeDriver: true }),
+        Animated.timing(pulseAnim, { toValue: 0.3, duration: 800, useNativeDriver: true }),
+      ])
+    );
+    loop.start();
+    return () => loop.stop();
+  }, [isFetchingImage, pulseAnim]);
 
   useFocusEffect(
     useCallback(() => {
@@ -185,8 +240,18 @@ export default function ReservationDetailScreen() {
         <View style={styles.heroSection}>
           <View style={[styles.heroCard, { boxShadow: theme.glass.elevatedBoxShadow }, theme.glass.cardWrapperStyle]}>
             <View style={[StyleSheet.absoluteFill, styles.heroCardBg, { backgroundColor: theme.glass.fill, borderRadius: glassConstants.radiusInner.cardXLarge }]} pointerEvents="none" />
+            {isFetchingImage && !heroImageUrl && (
+              <Animated.View
+                style={[
+                  StyleSheet.absoluteFill,
+                  styles.heroImageShimmer,
+                  { backgroundColor: theme.colors.text.tertiary, opacity: pulseAnim },
+                ]}
+                pointerEvents="none"
+              />
+            )}
             <ImageBackground
-              source={{ uri: reservation.headerImageUrl }}
+              source={heroImageUrl ? { uri: heroImageUrl } : undefined}
               style={styles.heroImage}
               imageStyle={styles.heroImageStyle}
             >
@@ -454,6 +519,10 @@ const styles = StyleSheet.create({
     width: '100%',
     minHeight: 220,
     justifyContent: 'flex-end',
+  },
+  heroImageShimmer: {
+    borderRadius: glassConstants.radius.cardXLarge,
+    zIndex: 1,
   },
   heroImageStyle: {
     borderRadius: glassConstants.radius.cardXLarge,
